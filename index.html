@@ -845,10 +845,10 @@ function lhMarkPdjBooked(){
     <div class="lang-dd" id="lh-lang-dd"></div>
   </div>
 
-  <!-- EXTRAS banner -->
-  <div onclick="lhGo('scr-extras')" style="position:relative;border-radius:16px;overflow:hidden;margin:0 0 10px;height:140px;cursor:pointer;background:linear-gradient(135deg,#1F3B2D,#2d5a3d)">
-    <div style="position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(201,169,97,0.08)"></div>
-    <div style="position:absolute;top:16px;right:18px;font-size:40px;opacity:0.9">🍾</div>
+  <!-- EXTRAS banner (carrousel défilant, comme le restaurant) -->
+  <div onclick="lhGo('scr-extras')" style="position:relative;border-radius:16px;overflow:hidden;margin:0 0 10px;height:140px;cursor:pointer;background:#1F3B2D">
+    <div id="lh-home-car3" style="display:flex;height:100%;transition:transform 0.5s ease"></div>
+    <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(31,59,45,0.85) 0%,rgba(31,59,45,0.15) 60%,transparent 100%)"></div>
     <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px">
       <div style="font-size:15px;font-weight:700;color:#F7F3EC;margin-bottom:2px" id="lh-home-xtra-title">Petites attentions</div>
       <div style="font-size:10px;color:rgba(247,243,236,0.6)">Champagne, panier de bienvenue, fleurs…</div>
@@ -857,6 +857,7 @@ function lhMarkPdjBooked(){
         <div style="background:#C9A961;color:#1F3B2D;border-radius:8px;padding:6px 14px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Découvrir →</div>
       </div>
     </div>
+    <div id="lh-home-car3-dots" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:5px"></div>
   </div>
 
   <!-- LIGNE 1: Arrivée + WiFi -->
@@ -1806,11 +1807,43 @@ function lhRenderReco(){
 }
 function lhSetReco(c){ lhRecoFilter=c; lhRenderReco(); }
 
+/* ---------- Bannière Extras home : carrousel défilant (comme le restaurant) ---------- */
+var lhXtraIdx=0;
+function lhRenderXtraBanner(){
+  var track=document.getElementById('lh-home-car3'); if(!track)return;
+  var n=LH_EXTRAS.length; if(!n)return;
+  var w=100/n;
+  track.style.width=(n*100)+'%';
+  var s='';
+  LH_EXTRAS.forEach(function(x){
+    var bg=x.photo
+      ? "background-image:url('"+lhEsc(x.photo).replace(/'/g,'%27')+"');background-size:cover;background-position:center;"
+      : "background:linear-gradient(135deg,#1F3B2D,#2d5a3d);";
+    s+='<div style="flex:0 0 '+w+'%;height:100%;'+bg+'display:flex;align-items:center;justify-content:center">'
+      +'<span style="font-size:40px;opacity:'+(x.photo?'0':'0.9')+'">'+(x.emoji||'✨')+'</span></div>';
+  });
+  track.innerHTML=s;
+  var dots=document.getElementById('lh-home-car3-dots');
+  if(dots){ var d='';
+    LH_EXTRAS.forEach(function(_,i){ d+='<span class="lh-dot lh-car3-dot'+(i===0?' on':'')+'" onclick="event.stopPropagation();lhXtraGo('+i+')"></span>'; });
+    dots.innerHTML=d;
+  }
+  lhXtraIdx=0; lhXtraApply();
+}
+function lhXtraApply(){
+  var track=document.getElementById('lh-home-car3'); if(!track)return;
+  var n=LH_EXTRAS.length; if(!n)return;
+  track.style.transform='translateX(-'+(lhXtraIdx*(100/n))+'%)';
+  document.querySelectorAll('#lh-app .lh-car3-dot').forEach(function(d,i){ d.classList.toggle('on',i===lhXtraIdx); });
+}
+function lhXtraGo(i){ lhXtraIdx=i; lhXtraApply(); }
+
 /* ---------- Boot ---------- */
 (function(){
   var t=document.getElementById('lh-extras-title'); if(t)t.textContent=LH_EXTRAS_TITLE;
   var hb=document.getElementById('lh-home-xtra-title'); if(hb)hb.textContent=LH_EXTRAS_TITLE;
-  lhRenderExtras(); lhRenderLco(); lhRenderReco();
+  lhRenderExtras(); lhRenderLco(); lhRenderReco(); lhRenderXtraBanner();
+  if(LH_EXTRAS.length>1){ setInterval(function(){ lhXtraIdx=(lhXtraIdx+1)%LH_EXTRAS.length; lhXtraApply(); },4000); }
 })();
 </script>
 
