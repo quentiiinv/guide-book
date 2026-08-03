@@ -1597,6 +1597,11 @@ function lhApplyParams(params){
     lhApplyParams(e.data);
   });
   try{window.parent.postMessage({type:'lh-ready'},'*');}catch(e){}
+
+  /* DÉMO PROSPECTION : sans token ni paramètres, on affiche une chambre et un
+     code d'accès fictifs pour que l'hôtel prospecté voie le rendu réel.
+     Les vrais paramètres (postMessage Hostinger) écrasent ces valeurs. */
+  lhApplyParams({ prenom:'Camille', chambre:'204', code:'A1856' });
 })();
 
 function lhHomeCar(c,n){
