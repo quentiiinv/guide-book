@@ -1928,6 +1928,53 @@ function lhFetchHotel(slug){
   }catch(e){}
 }
 
+/* ---------- Photos depuis Supabase Storage ----------
+   Chaque hôtel dépose ses photos dans les buckets 'petit-dejeuner' /
+   'restaurant'. Si des photos existent, elles remplacent les carrousels.
+   Aucune photo => on ne touche à rien (pas de photo inventée par défaut). */
+function lhBucketPhotos(bucket){
+  return fetch(LH_SUPA_URL+'/storage/v1/object/list/'+bucket,{
+    method:'POST',
+    headers:{'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY,'content-type':'application/json'},
+    body:JSON.stringify({prefix:'',limit:50,sortBy:{column:'name',order:'asc'}})
+  }).then(function(r){return r.json();}).then(function(list){
+    if(!Array.isArray(list)) return [];
+    return list.filter(function(o){return o.name && o.id;})   /* les dossiers ont id=null */
+      .map(function(o){return LH_SUPA_URL+'/storage/v1/object/public/'+bucket+'/'+encodeURIComponent(o.name);});
+  }).catch(function(){return [];});
+}
+function lhPhotoGo(trackId, idx){
+  var el=document.getElementById(trackId); if(!el)return;
+  var n=parseInt(el.getAttribute('data-lh-count')||'1',10);
+  el.style.transform='translateX(-'+(idx*(100/n))+'%)';
+  var bar=el.parentElement.querySelector('[data-lh-dots="1"]');
+  if(bar){ [].slice.call(bar.children).forEach(function(d,i){ d.className='lh-dot'+(i===idx?' on':''); }); }
+}
+function lhSetPhotos(trackId, urls){
+  if(!urls || !urls.length) return;                 /* vide => on garde l'existant */
+  var el=document.getElementById(trackId); if(!el)return;
+  var n=urls.length, w=100/n;
+  el.style.width=(n*100)+'%';
+  el.style.transform='translateX(0%)';
+  el.setAttribute('data-lh-count',String(n));
+  el.innerHTML=urls.map(function(u){
+    return '<div style="flex:0 0 '+w+'%;height:100%;background:#e8e4dd url(\''+u.replace(/'/g,'%27')+'\') center/cover"></div>';
+  }).join('');
+  var parent=el.parentElement;
+  /* masquer les anciennes pastilles */
+  parent.querySelectorAll('.lh-rs-dot, .lh-car1-dot, .lh-car2-dot').forEach(function(d){
+    var p=d.parentElement; if(p && p.getAttribute('data-lh-dots')!=='1') p.style.display='none';
+  });
+  if(n>1){
+    var bar=parent.querySelector('[data-lh-dots="1"]');
+    if(!bar){ bar=document.createElement('div'); bar.setAttribute('data-lh-dots','1');
+      bar.style.cssText='position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:3'; parent.appendChild(bar); }
+    bar.innerHTML='';
+    for(var i=0;i<n;i++){ (function(idx){ var s=document.createElement('span'); s.className='lh-dot'+(idx===0?' on':'');
+      s.onclick=function(e){e.stopPropagation(); lhPhotoGo(trackId, idx);}; bar.appendChild(s); })(i); }
+  }
+}
+
 /* ---------- Boot ---------- */
 (function(){
   var t=document.getElementById('lh-extras-title'); if(t)t.textContent=LH_EXTRAS_TITLE;
@@ -1935,6 +1982,8 @@ function lhFetchHotel(slug){
   lhApplyHotel(LH_DB);                         /* contenu depuis la base (snapshot) */
   var slug=(new URLSearchParams(location.search)).get('hotel')||LH_DB.slug||'lharmony';
   lhFetchHotel(slug);                          /* rafraîchit en direct si dispo */
+  lhBucketPhotos('petit-dejeuner').then(function(u){ lhSetPhotos('lh-pdj-slides',u); lhSetPhotos('lh-home-car1',u); });
+  lhBucketPhotos('restaurant').then(function(u){ lhSetPhotos('lh-rs-slides',u); lhSetPhotos('lh-home-car2',u); });
   if(LH_EXTRAS.length>1){ setInterval(function(){ lhXtraIdx=(lhXtraIdx+1)%LH_EXTRAS.length; lhXtraApply(); },4000); }
 })();
 </script>
