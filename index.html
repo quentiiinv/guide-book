@@ -1059,7 +1059,7 @@ function lhMarkPdjBooked(){
 
     <!-- DESCRIPTION + MENU -->
     <div class="cd">
-      <div style="font-size:15px;font-weight:700;color:#1F3B2D;margin-bottom:8px" data-t="homePdjTitle">Petit-déjeuner gourmand</div>
+      <div style="font-size:15px;font-weight:700;color:#1F3B2D;margin-bottom:8px"><span data-t="homePdjTitle">Petit-déjeuner gourmand</span><span id="lh-pdj-menu-ex"></span></div>
       <div style="font-size:12px;color:#888;line-height:1.7;margin-bottom:12px" data-t="pdjServedDesc">Servi chaque matin de 7h30 à 9h30 dans notre salle. Produits frais et locaux.</div>
       <div style="margin-top:4px">
         <div class="pdj-i"><span class="pdj-d"></span><span data-t="pdjI1">Baguette fraîche, croissants, brioche</span></div>
@@ -1670,7 +1670,7 @@ var LH_LATE_CO = [
    d'accès à un lieu (souvent public / partenaire à proximité). */
 var LH_FACILITIES = {
   spa: {
-    titre:"Spa", emoji:"🧖", photo:"https://loremflickr.com/640/420/spa,massage",
+    titre:"Spa", emoji:"🧖", photo:"",
     description:"Accès à l'espace spa de notre partenaire « Les Thermes du Val », à 400 m de l'hôtel. Modelages et soins sur réservation.",
     horaires:"Tous les jours · 10h00 – 20h00",
     acces:"À la sortie de l'hôtel, à droite — 5 min à pied. Présentez votre numéro de chambre à l'accueil.",
@@ -1678,7 +1678,7 @@ var LH_FACILITIES = {
     maps:"https://www.google.com/maps/search/spa+Saint-Arnoult-en-Yvelines"
   },
   piscine: {
-    titre:"Piscine", emoji:"🏊", photo:"https://loremflickr.com/640/420/swimming,pool",
+    titre:"Piscine", emoji:"🏊", photo:"",
     description:"Piscine intercommunale chauffée à 10 min en voiture : bassin sportif et pataugeoire pour les enfants.",
     horaires:"Lun – Ven 12h–20h · Week-end 9h–18h",
     acces:"Rue des Sablons. Parking gratuit sur place. Tarif préférentiel sur présentation de votre carte de séjour.",
@@ -1686,7 +1686,7 @@ var LH_FACILITIES = {
     maps:"https://www.google.com/maps/search/piscine+Saint-Arnoult-en-Yvelines"
   },
   sauna: {
-    titre:"Sauna", emoji:"🔥", photo:"https://loremflickr.com/640/420/sauna,wood",
+    titre:"Sauna", emoji:"🔥", photo:"",
     description:"Sauna finlandais en accès libre pour nos hôtes, au rez-de-chaussée près de la salle de séjour.",
     horaires:"Tous les jours · 8h00 – 22h00",
     acces:"Rez-de-chaussée, couloir à gauche après la réception. Porte marquée « Sauna ».",
@@ -1699,20 +1699,24 @@ var LH_FACILITIES = {
    Distinct du restaurant de l'hôtel. Liste répétable, sans limite. */
 var LH_RECO_CATS = ["Tout","Restaurant","Activité","Visite"];
 var LH_RECOS = [
-  {nom:"Le Moulin de la Renardière", cat:"Restaurant", desc:"Cuisine bistronomique dans un ancien moulin, terrasse au bord de l'eau.", emoji:"🍽️", photo:"https://loremflickr.com/640/420/restaurant,bistro", maps:"https://www.google.com/maps/search/restaurant+Yvelines"},
-  {nom:"Forêt de Rambouillet",       cat:"Activité",   desc:"Sentiers de randonnée et pistes cyclables à 15 min. Idéal en famille.", emoji:"🌲", photo:"https://loremflickr.com/640/420/forest,trail", maps:"https://www.google.com/maps/search/Foret+de+Rambouillet"},
-  {nom:"Château de Rambouillet",     cat:"Visite",     desc:"Résidence présidentielle et son parc à la française, visites guidées.", emoji:"🏰", photo:"https://loremflickr.com/640/420/castle,france", maps:"https://www.google.com/maps/search/Chateau+de+Rambouillet"},
-  {nom:"Espace Rambouillet",         cat:"Activité",   desc:"Parc animalier en forêt : cerfs, sangliers et rapaces en vol libre.", emoji:"🦌", photo:"https://loremflickr.com/640/420/deer,forest", maps:"https://www.google.com/maps/search/Espace+Rambouillet"},
-  {nom:"La Table des Gourmets",      cat:"Restaurant", desc:"Adresse gastronomique étoilée, menu du marché renouvelé chaque semaine.", emoji:"⭐", photo:"https://loremflickr.com/640/420/gourmet,plate", maps:"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"}
+  {nom:"Le Moulin de la Renardière", cat:"Restaurant", desc:"Cuisine bistronomique dans un ancien moulin, terrasse au bord de l'eau.", emoji:"🍽️", photo:"", maps:"https://www.google.com/maps/search/restaurant+Yvelines"},
+  {nom:"Forêt de Rambouillet",       cat:"Activité",   desc:"Sentiers de randonnée et pistes cyclables à 15 min. Idéal en famille.", emoji:"🌲", photo:"", maps:"https://www.google.com/maps/search/Foret+de+Rambouillet"},
+  {nom:"Château de Rambouillet",     cat:"Visite",     desc:"Résidence présidentielle et son parc à la française, visites guidées.", emoji:"🏰", photo:"", maps:"https://www.google.com/maps/search/Chateau+de+Rambouillet"},
+  {nom:"Espace Rambouillet",         cat:"Activité",   desc:"Parc animalier en forêt : cerfs, sangliers et rapaces en vol libre.", emoji:"🦌", photo:"", maps:"https://www.google.com/maps/search/Espace+Rambouillet"},
+  {nom:"La Table des Gourmets",      cat:"Restaurant", desc:"Adresse gastronomique étoilée, menu du marché renouvelé chaque semaine.", emoji:"⭐", photo:"", maps:"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"}
 ];
 
 /* ---------- Helpers réutilisables ---------- */
 function lhEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 /* Photo avec fallback dégradé de marque + emoji si l'image ne charge pas */
 function lhMedia(url,emoji,h,cls){
+  /* Règle « pas de photo = vide » : sans vraie photo, on n'affiche AUCUN
+     bloc média (pas de placeholder vert + emoji, qui ressemble à une image
+     aléatoire). La photo n'apparaît que si l'hôtel l'a fournie. */
+  if(!url) return '';
   return '<div class="lh-photo'+(cls?' '+cls:'')+'" style="height:'+h+'px">'
     + '<span class="lh-photo-emoji">'+(emoji||'✨')+'</span>'
-    + (url?'<img src="'+lhEsc(url)+'" alt="" loading="lazy" onerror="this.remove()">':'')
+    + '<img src="'+lhEsc(url)+'" alt="" loading="lazy" onerror="this.parentNode.remove()">'
     + '</div>';
 }
 function lhIcon(n){
@@ -1889,7 +1893,7 @@ function lhApplySections(){
 var LH_SUPA_URL='https://nocifyylfyafbfppmykp.supabase.co';
 var LH_SUPA_KEY='sb_publishable_OKNvEE9qH7CMfjMXBmItNA_gSed6gjJ';
 
-var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","lien_avis":"https://g.page/r/lharmony/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","nom":"Bouteille de champagne","desc":"Brut premier cru, servie fraîche en chambre à votre arrivée.","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"7f5bb9a2-5655-4ba1-8fad-29d3f3548c40","nom":"Panier de bienvenue","desc":"Produits locaux : biscuits, confitures et jus artisanal des Yvelines.","prix":29,"emoji":"🧺","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/panier.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","nom":"Bouquet de fleurs","desc":"Composition de saison préparée par notre fleuriste partenaire.","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"Accès à l'espace spa de notre partenaire « Les Thermes du Val », à 400 m de l'hôtel.","horaires":"Tous les jours · 10h00 – 20h00","acces":"Sortie de l'hôtel à droite, 5 min à pied.","prevoir":"Peignoir et serviettes fournis. Prévoyez un maillot de bain.","maps":"https://www.google.com/maps/search/spa+Saint-Arnoult"},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"Piscine intercommunale chauffée à 10 min en voiture.","horaires":"Lun–Ven 12h–20h · Week-end 9h–18h","acces":"Rue des Sablons. Parking gratuit sur place.","prevoir":"Maillot obligatoire, bonnet recommandé.","maps":"https://www.google.com/maps/search/piscine+Saint-Arnoult"},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"Sauna finlandais en accès libre au rez-de-chaussée.","horaires":"Tous les jours · 8h00 – 22h00","acces":"Rez-de-chaussée, couloir à gauche après la réception.","prevoir":"Serviette obligatoire. Douche avant l'accès.","maps":null}},"recos":[{"nom":"Le Moulin de la Renardière","cat":"Restaurant","desc":"Cuisine bistronomique dans un ancien moulin, terrasse au bord de l'eau.","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines"},{"nom":"Forêt de Rambouillet","cat":"Activité","desc":"Sentiers de randonnée et pistes cyclables à 15 min.","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet"},{"nom":"Château de Rambouillet","cat":"Visite","desc":"Résidence présidentielle et son parc à la française.","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet"}],"lateCheckout":[{"heure":"13h00","prix":20},{"heure":"15h00","prix":40}],"infos":[{"icone":"parking","titre":"Parking gratuit (Zone bleue)","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"},{"icone":"urgences","titre":"Urgences","texte":"112 (numéro d'urgence européen)"}]};
+var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"pdj_exemple":true,"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","lien_avis":"https://g.page/r/lharmony/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","nom":"Bouteille de champagne","desc":"Brut premier cru, servie fraîche en chambre à votre arrivée.","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"7f5bb9a2-5655-4ba1-8fad-29d3f3548c40","nom":"Panier de bienvenue","desc":"Produits locaux : biscuits, confitures et jus artisanal des Yvelines.","prix":29,"emoji":"🧺","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/panier.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","nom":"Bouquet de fleurs","desc":"Composition de saison préparée par notre fleuriste partenaire.","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"Accès à l'espace spa de notre partenaire « Les Thermes du Val », à 400 m de l'hôtel.","horaires":"Tous les jours · 10h00 – 20h00","acces":"Sortie de l'hôtel à droite, 5 min à pied.","prevoir":"Peignoir et serviettes fournis. Prévoyez un maillot de bain.","maps":"https://www.google.com/maps/search/spa+Saint-Arnoult"},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"Piscine intercommunale chauffée à 10 min en voiture.","horaires":"Lun–Ven 12h–20h · Week-end 9h–18h","acces":"Rue des Sablons. Parking gratuit sur place.","prevoir":"Maillot obligatoire, bonnet recommandé.","maps":"https://www.google.com/maps/search/piscine+Saint-Arnoult"},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"Sauna finlandais en accès libre au rez-de-chaussée.","horaires":"Tous les jours · 8h00 – 22h00","acces":"Rez-de-chaussée, couloir à gauche après la réception.","prevoir":"Serviette obligatoire. Douche avant l'accès.","maps":null}},"recos":[{"nom":"Le Moulin de la Renardière","cat":"Restaurant","desc":"Cuisine bistronomique dans un ancien moulin, terrasse au bord de l'eau.","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines"},{"nom":"Forêt de Rambouillet","cat":"Activité","desc":"Sentiers de randonnée et pistes cyclables à 15 min.","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet"},{"nom":"Château de Rambouillet","cat":"Visite","desc":"Résidence présidentielle et son parc à la française.","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet"}],"lateCheckout":[{"heure":"13h00","prix":20},{"heure":"15h00","prix":40}],"infos":[{"icone":"parking","titre":"Parking gratuit (Zone bleue)","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"},{"icone":"urgences","titre":"Urgences","texte":"112 (numéro d'urgence européen)"}]};
 
 /* Applique une fiche hôtel (snapshot ou fetch) au guidebook */
 function lhApplyHotel(d){
@@ -1920,6 +1924,11 @@ function lhApplyHotel(d){
     var rhx=document.getElementById('lh-rs-hours-ex');
     if(rhx) rhx.innerHTML=d.resto_exemple?'<span class="lh-ex-tag dk">'+exTxt+'</span>':'';
   }
+  if(d.pdj_exemple!==undefined){
+    var exTxt2=(LH_LANG==='en'?'Example':'Exemple');
+    var pmx=document.getElementById('lh-pdj-menu-ex');
+    if(pmx) pmx.innerHTML=d.pdj_exemple?'<span class="lh-ex-tag dk">'+exTxt2+'</span>':'';
+  }
   lhRenderExtras(); lhRenderReco(); lhRenderLco(); lhRenderXtraBanner(); lhApplySections();
 }
 
@@ -1944,6 +1953,7 @@ function lhFetchHotel(slug){
         wifi_reseau:hotel.wifi_reseau, wifi_motdepasse:hotel.wifi_motdepasse,
         checkin:hotel.checkin, checkout_std:hotel.checkout_std,
         resto_horaires:hotel.resto_horaires, resto_exemple:hotel.resto_exemple,
+        pdj_exemple:hotel.pdj_exemple,
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:(res[1]||[]).filter(function(e){return e.hotel_id===hid;}).map(function(e){return {id:e.id,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
