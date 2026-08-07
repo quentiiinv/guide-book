@@ -2128,24 +2128,29 @@ function lhMergeRows(rows, hid, keyOf){
   return order.map(function(k){ return map[k]; }).filter(function(r){ return r.actif!==false; });
 }
 
-/* Lecture en direct depuis Supabase (fonctionne sur la version hébergée) */
+/* Lecture en direct depuis Supabase (fonctionne sur la version hébergée).
+   En 2 temps pour rester scalable (des centaines/milliers d'hôtels) :
+   1) on récupère l'hôtel par son slug ;
+   2) on ne télécharge QUE les lignes partagées (hotel_id null) + celles de cet
+      hôtel — jamais le contenu des autres hôtels. */
 function lhFetchHotel(slug){
   try{
     var H={'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY};
     var base=LH_SUPA_URL+'/rest/v1/';
     function g(t,q){ return fetch(base+t+'?'+q,{headers:H}).then(function(r){return r.json();}); }
-    Promise.all([
-      g('hotels','slug=eq.'+encodeURIComponent(slug)+'&select=*'),
-      g('hotel_extras','select=*&order=ordre'),
-      g('hotel_facilities','select=*'),
-      g('hotel_recos','select=*&order=ordre'),
-      g('hotel_infos','select=*&order=ordre')
-    ]).then(function(res){
-      var hotel=res[0]&&res[0][0];
+    g('hotels','slug=eq.'+encodeURIComponent(slug)+'&select=*').then(function(rows){
+      var hotel=rows&&rows[0];
       if(!hotel){ if(slug!==LH_DB.slug) lhShow404(); return; }   /* slug inconnu -> écran introuvable */
       var hid=hotel.id;
+      var partage='or=(hotel_id.is.null,hotel_id.eq.'+hid+')';   /* modèles partagés + cet hôtel */
+      return Promise.all([
+        g('hotel_extras','select=*&order=ordre&'+partage),
+        g('hotel_facilities','select=*&'+partage),
+        g('hotel_recos','select=*&order=ordre&hotel_id=eq.'+hid),
+        g('hotel_infos','select=*&order=ordre&'+partage)
+      ]).then(function(res){
       /* Facilities : modèle partagé (hotel_id null) surchargé par le spécifique, clé = type */
-      var fac={}; lhMergeRows(res[2], hid, function(f){return f.type;}).forEach(function(f){
+      var fac={}; lhMergeRows(res[1], hid, function(f){return f.type;}).forEach(function(f){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
         slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, logo_url:hotel.logo_url,
@@ -2159,12 +2164,13 @@ function lhFetchHotel(slug){
         pdj_prix_adulte:hotel.pdj_prix_adulte, pdj_prix_enfant:hotel.pdj_prix_enfant,
         social:{instagram:hotel.social_instagram,facebook:hotel.social_facebook,linkedin:hotel.social_linkedin,youtube:hotel.social_youtube,tiktok:hotel.social_tiktok,twitter:hotel.social_twitter},
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
-        extras:lhMergeRows(res[1], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
+        extras:lhMergeRows(res[0], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
-        recos:(res[3]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url};}),
-        infos:lhMergeRows(res[4], hid, function(i){return i.icone;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
+        recos:(res[2]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url};}),
+        infos:lhMergeRows(res[3], hid, function(i){return i.icone;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
       });
       lhShowLoading(false);                       /* contenu prêt : on retire le chargement */
+      });
     }).catch(function(){
       /* réseau bloqué : si on n'a pas déjà le snapshot L'Harmony, on montre l'écran introuvable */
       if(slug!==LH_DB.slug) lhShow404();
