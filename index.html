@@ -217,6 +217,8 @@
 #lh-app .reco-cat{display:inline-block;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#C9A961;background:rgba(201,169,97,0.12);padding:4px 10px;border-radius:20px;margin-bottom:8px}
 #lh-app .reco-nm{font-size:15px;font-weight:700;color:#1F3B2D;margin-bottom:4px}
 #lh-app .reco-ds{font-size:12px;color:#888;line-height:1.6;margin-bottom:10px}
+#lh-app .reco-trajet{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#1F3B2D;background:#F1EDE4;border-radius:20px;padding:5px 11px;margin-bottom:10px}
+#lh-app .reco-trajet svg{width:14px;height:14px;stroke:#1F3B2D;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 #lh-app .reco-filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:4px;-webkit-overflow-scrolling:touch}
 #lh-app .reco-fl{flex-shrink:0;background:white;border:1.5px solid rgba(31,59,45,0.12);border-radius:20px;padding:8px 16px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:#777;cursor:pointer;transition:all 0.18s}
 #lh-app .reco-fl.on{background:#1F3B2D;color:#C9A961;border-color:#1F3B2D}
@@ -1261,8 +1263,8 @@ function lhMarkPdjBooked(){
         <div class="tm-r"><span class="tm-d" data-t="rsD6">Dimanche</span><span class="tm-h">12h-14h</span></div>
       </div>
     </div>
-    <a class="btn-f btn-dk" href="https://bookings.zenchef.com/results?rid=375884" target="_blank" data-t="rsBook">Réserver une table</a>
-    <a class="btn-f btn-lt" href="https://lharmony-yvelines.fr/restaurant" target="_blank" data-t="rsMenu">Voir le menu</a>
+    <a id="lh-rs-book" class="btn-f btn-dk" href="https://bookings.zenchef.com/results?rid=375884" target="_blank" rel="noopener" data-t="rsBook">Réserver une table</a>
+    <a id="lh-rs-menu" class="btn-f btn-lt" href="https://lharmony-yvelines.fr/restaurant" target="_blank" rel="noopener" data-t="rsMenu">Voir le menu</a>
 
 
   </div>
@@ -1699,11 +1701,11 @@ var LH_FACILITIES = {
    Distinct du restaurant de l'hôtel. Liste répétable, sans limite. */
 var LH_RECO_CATS = ["Tout","Restaurant","Activité","Visite"];
 var LH_RECOS = [
-  {nom:"Le Moulin de la Renardière", cat:"Restaurant", desc:"Cuisine bistronomique dans un ancien moulin, terrasse au bord de l'eau.", emoji:"🍽️", photo:"", maps:"https://www.google.com/maps/search/restaurant+Yvelines"},
-  {nom:"Forêt de Rambouillet",       cat:"Activité",   desc:"Sentiers de randonnée et pistes cyclables à 15 min. Idéal en famille.", emoji:"🌲", photo:"", maps:"https://www.google.com/maps/search/Foret+de+Rambouillet"},
-  {nom:"Château de Rambouillet",     cat:"Visite",     desc:"Résidence présidentielle et son parc à la française, visites guidées.", emoji:"🏰", photo:"", maps:"https://www.google.com/maps/search/Chateau+de+Rambouillet"},
-  {nom:"Espace Rambouillet",         cat:"Activité",   desc:"Parc animalier en forêt : cerfs, sangliers et rapaces en vol libre.", emoji:"🦌", photo:"", maps:"https://www.google.com/maps/search/Espace+Rambouillet"},
-  {nom:"La Table des Gourmets",      cat:"Restaurant", desc:"Adresse gastronomique étoilée, menu du marché renouvelé chaque semaine.", emoji:"⭐", photo:"", maps:"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"}
+  {nom:"La Table des Gourmets",      cat:"Restaurant", trajetMode:"pied",    trajetDuree:"6 min",  desc:"", emoji:"⭐", photo:"", maps:"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"},
+  {nom:"Le Moulin de la Renardière", cat:"Restaurant", trajetMode:"voiture", trajetDuree:"8 min",  desc:"", emoji:"🍽️", photo:"", maps:"https://www.google.com/maps/search/restaurant+Yvelines"},
+  {nom:"Forêt de Rambouillet",       cat:"Activité",   trajetMode:"voiture", trajetDuree:"15 min", desc:"", emoji:"🌲", photo:"", maps:"https://www.google.com/maps/search/Foret+de+Rambouillet"},
+  {nom:"Château de Rambouillet",     cat:"Visite",     trajetMode:"voiture", trajetDuree:"18 min", desc:"", emoji:"🏰", photo:"", maps:"https://www.google.com/maps/search/Chateau+de+Rambouillet"},
+  {nom:"Espace Rambouillet",         cat:"Activité",   trajetMode:"voiture", trajetDuree:"20 min", desc:"", emoji:"🦌", photo:"", maps:"https://www.google.com/maps/search/Espace+Rambouillet"}
 ];
 
 /* ---------- Helpers réutilisables ---------- */
@@ -1828,14 +1830,25 @@ function lhRenderReco(){
   var h='';
   LH_RECOS.filter(function(r){return lhRecoFilter==='Tout'||r.cat===lhRecoFilter;}).forEach(function(r){
     h+='<div class="reco-card">'+lhMedia(r.photo,r.emoji,140)
-      +'<div class="reco-bd"><span class="reco-cat">'+lhEsc(r.cat)+'</span>'
-      +'<div class="reco-nm">'+lhEsc(r.nom)+'</div><div class="reco-ds">'+lhEsc(r.desc)+'</div>'
+      +'<div class="reco-bd">'
+      +(r.cat?'<span class="reco-cat">'+lhEsc(r.cat)+'</span>':'')
+      +'<div class="reco-nm">'+lhEsc(r.nom)+'</div>'
+      +lhTrajet(r.trajetMode,r.trajetDuree)
+      +(r.desc?'<div class="reco-ds">'+lhEsc(r.desc)+'</div>':'')
       +(r.maps?'<a class="lh-maps" href="'+lhEsc(r.maps)+'" target="_blank" rel="noopener">'+lhIcon('pin')+' Google Maps</a>':'')
       +'</div></div>';
   });
   host.innerHTML=h||'<div style="text-align:center;color:#aaa;font-size:12px;padding:30px">Aucune recommandation dans cette catégorie.</div>';
 }
 function lhSetReco(c){ lhRecoFilter=c; lhRenderReco(); }
+/* Chip trajet : durée + mode (à pied / voiture / transports) avec emoji.
+   Alimenté par nearby_places : on garde le trajet le plus court (Walking prioritaire). */
+function lhTrajet(mode,duree){
+  if(!duree) return '';
+  var m={pied:{e:'🚶',t:'à pied'},voiture:{e:'🚗',t:'en voiture'},transports:{e:'🚌',t:'en transports'}}[mode]
+        || {e:'📍',t:(mode||'')};
+  return '<div class="reco-trajet"><span style="font-size:13px">'+m.e+'</span>À '+lhEsc(duree)+(m.t?' '+m.t:'')+'</div>';
+}
 
 /* ---------- Bannière Extras home : carrousel défilant (comme le restaurant) ---------- */
 var lhXtraIdx=0;
@@ -1893,7 +1906,7 @@ function lhApplySections(){
 var LH_SUPA_URL='https://nocifyylfyafbfppmykp.supabase.co';
 var LH_SUPA_KEY='sb_publishable_OKNvEE9qH7CMfjMXBmItNA_gSed6gjJ';
 
-var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"pdj_exemple":true,"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","lien_avis":"https://g.page/r/lharmony/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","nom":"Bouteille de champagne","desc":"Brut premier cru, servie fraîche en chambre à votre arrivée.","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"7f5bb9a2-5655-4ba1-8fad-29d3f3548c40","nom":"Panier de bienvenue","desc":"Produits locaux : biscuits, confitures et jus artisanal des Yvelines.","prix":29,"emoji":"🧺","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/panier.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","nom":"Bouquet de fleurs","desc":"Composition de saison préparée par notre fleuriste partenaire.","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"Accès à l'espace spa de notre partenaire « Les Thermes du Val », à 400 m de l'hôtel.","horaires":"Tous les jours · 10h00 – 20h00","acces":"Sortie de l'hôtel à droite, 5 min à pied.","prevoir":"Peignoir et serviettes fournis. Prévoyez un maillot de bain.","maps":"https://www.google.com/maps/search/spa+Saint-Arnoult"},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"Piscine intercommunale chauffée à 10 min en voiture.","horaires":"Lun–Ven 12h–20h · Week-end 9h–18h","acces":"Rue des Sablons. Parking gratuit sur place.","prevoir":"Maillot obligatoire, bonnet recommandé.","maps":"https://www.google.com/maps/search/piscine+Saint-Arnoult"},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"Sauna finlandais en accès libre au rez-de-chaussée.","horaires":"Tous les jours · 8h00 – 22h00","acces":"Rez-de-chaussée, couloir à gauche après la réception.","prevoir":"Serviette obligatoire. Douche avant l'accès.","maps":null}},"recos":[{"nom":"Le Moulin de la Renardière","cat":"Restaurant","desc":"Cuisine bistronomique dans un ancien moulin, terrasse au bord de l'eau.","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines"},{"nom":"Forêt de Rambouillet","cat":"Activité","desc":"Sentiers de randonnée et pistes cyclables à 15 min.","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet"},{"nom":"Château de Rambouillet","cat":"Visite","desc":"Résidence présidentielle et son parc à la française.","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet"}],"lateCheckout":[{"heure":"13h00","prix":20},{"heure":"15h00","prix":40}],"infos":[{"icone":"parking","titre":"Parking gratuit (Zone bleue)","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"},{"icone":"urgences","titre":"Urgences","texte":"112 (numéro d'urgence européen)"}]};
+var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"resto_lien_reservation":"https://bookings.zenchef.com/results?rid=375884","resto_lien_menu":"https://lharmony-yvelines.fr/restaurant","pdj_exemple":true,"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","lien_avis":"https://g.page/r/lharmony/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","nom":"Bouteille de champagne","desc":"Brut premier cru, servie fraîche en chambre à votre arrivée.","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"7f5bb9a2-5655-4ba1-8fad-29d3f3548c40","nom":"Panier de bienvenue","desc":"Produits locaux : biscuits, confitures et jus artisanal des Yvelines.","prix":29,"emoji":"🧺","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/panier.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","nom":"Bouquet de fleurs","desc":"Composition de saison préparée par notre fleuriste partenaire.","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"Accès à l'espace spa de notre partenaire « Les Thermes du Val », à 400 m de l'hôtel.","horaires":"Tous les jours · 10h00 – 20h00","acces":"Sortie de l'hôtel à droite, 5 min à pied.","prevoir":"Peignoir et serviettes fournis. Prévoyez un maillot de bain.","maps":"https://www.google.com/maps/search/spa+Saint-Arnoult"},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"Piscine intercommunale chauffée à 10 min en voiture.","horaires":"Lun–Ven 12h–20h · Week-end 9h–18h","acces":"Rue des Sablons. Parking gratuit sur place.","prevoir":"Maillot obligatoire, bonnet recommandé.","maps":"https://www.google.com/maps/search/piscine+Saint-Arnoult"},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"Sauna finlandais en accès libre au rez-de-chaussée.","horaires":"Tous les jours · 8h00 – 22h00","acces":"Rez-de-chaussée, couloir à gauche après la réception.","prevoir":"Serviette obligatoire. Douche avant l'accès.","maps":null}},"recos":[{"nom":"La Table des Gourmets","cat":"Restaurant","trajetMode":"pied","trajetDuree":"6 min","desc":"","emoji":"⭐","photo":null,"maps":"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"},{"nom":"Le Moulin de la Renardière","cat":"Restaurant","trajetMode":"voiture","trajetDuree":"8 min","desc":"","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines"},{"nom":"Forêt de Rambouillet","cat":"Activité","trajetMode":"voiture","trajetDuree":"15 min","desc":"","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet"},{"nom":"Château de Rambouillet","cat":"Visite","trajetMode":"voiture","trajetDuree":"18 min","desc":"","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet"}],"lateCheckout":[{"heure":"13h00","prix":20},{"heure":"15h00","prix":40}],"infos":[{"icone":"parking","titre":"Parking gratuit (Zone bleue)","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"},{"icone":"urgences","titre":"Urgences","texte":"112 (numéro d'urgence européen)"}]};
 
 /* Applique une fiche hôtel (snapshot ou fetch) au guidebook */
 function lhApplyHotel(d){
@@ -1907,7 +1920,7 @@ function lhApplyHotel(d){
   }
   if(d.facilities){ for(var t in d.facilities){ if(!d.facilities.hasOwnProperty(t))continue; var f=d.facilities[t], o=LH_FACILITIES[t]||{};
       LH_FACILITIES[t]={titre:f.titre,emoji:f.emoji,photo:f.photo||o.photo||'',description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.prevoir,maps:f.maps}; } }
-  if(d.recos){ LH_RECOS=d.recos.map(function(r){ return {nom:r.nom,cat:r.cat,desc:r.desc,emoji:r.emoji,photo:r.photo||'',maps:r.maps}; }); }
+  if(d.recos){ LH_RECOS=d.recos.map(function(r){ return {nom:r.nom,cat:r.cat,trajetMode:r.trajetMode,trajetDuree:r.trajetDuree,desc:r.desc,emoji:r.emoji,photo:r.photo||'',maps:r.maps}; }); }
   if(d.lateCheckout){ LH_LATE_CO=d.lateCheckout.map(function(o,i){ return {id:'lco'+i,heure:o.heure,prix:o.prix}; }); }
   var ey=document.querySelector('#scr-home .hero-ey'); if(ey&&d.nom) ey.textContent=d.nom+(d.lieu?' · '+d.lieu:'');
   /* Champs texte lus directement depuis la ligne Supabase (vide = vide) */
@@ -1929,6 +1942,12 @@ function lhApplyHotel(d){
     var pmx=document.getElementById('lh-pdj-menu-ex');
     if(pmx) pmx.innerHTML=d.pdj_exemple?'<span class="lh-ex-tag dk">'+exTxt2+'</span>':'';
   }
+  /* Boutons restaurant : juste un lien par bouton. Affiché si lien présent,
+     caché si vide (on n'invente jamais d'URL). */
+  function lhLinkBtn(id,url){ var e=document.getElementById(id); if(!e)return;
+    if(url){ e.href=url; e.style.display=''; } else { e.style.display='none'; } }
+  if(d.resto_lien_reservation!==undefined) lhLinkBtn('lh-rs-book', d.resto_lien_reservation);
+  if(d.resto_lien_menu!==undefined)        lhLinkBtn('lh-rs-menu', d.resto_lien_menu);
   lhRenderExtras(); lhRenderReco(); lhRenderLco(); lhRenderXtraBanner(); lhApplySections();
 }
 
@@ -1953,11 +1972,12 @@ function lhFetchHotel(slug){
         wifi_reseau:hotel.wifi_reseau, wifi_motdepasse:hotel.wifi_motdepasse,
         checkin:hotel.checkin, checkout_std:hotel.checkout_std,
         resto_horaires:hotel.resto_horaires, resto_exemple:hotel.resto_exemple,
+        resto_lien_reservation:hotel.resto_lien_reservation, resto_lien_menu:hotel.resto_lien_menu,
         pdj_exemple:hotel.pdj_exemple,
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:(res[1]||[]).filter(function(e){return e.hotel_id===hid;}).map(function(e){return {id:e.id,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
-        recos:(res[3]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url};}),
+        recos:(res[3]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url};}),
         lateCheckout:(res[4]||[]).filter(function(l){return l.hotel_id===hid;}).map(function(l){return {heure:l.heure,prix:l.prix};})
       });
     }).catch(function(){/* réseau bloqué (aperçu) : on garde le snapshot */});
