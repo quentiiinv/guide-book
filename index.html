@@ -258,6 +258,46 @@ var LH_LANG=LH_URL_LANG||LH_SAVED||(navigator.language||'fr').slice(0,2);
 if(!LH_T[LH_LANG])LH_LANG='fr';
 
 function lhT(k){return(LH_T[LH_LANG]&&LH_T[LH_LANG][k])||LH_T[LH_FB][k]||LH_T['fr'][k]||k;}
+/* Clés des sections ajoutées récemment. fr/en + principales langues de
+   voyageurs ; toute langue non remplie retombe sur l'anglais (LH_FB). */
+var LH_T_EXTRA={
+ discTi:{fr:"À découvrir",en:"Discover",es:"Descubrir",it:"Da scoprire",de:"Entdecken",pt:"Descobrir",nl:"Ontdekken"},
+ discDs:{fr:"Restos & activités",en:"Food & activities",es:"Restaurantes y actividades",it:"Ristoranti e attività",de:"Essen & Aktivitäten",pt:"Restaurantes e atividades",nl:"Eten & activiteiten"},
+ poolTi:{fr:"Piscine",en:"Pool",es:"Piscina",it:"Piscina",de:"Pool",pt:"Piscina",nl:"Zwembad"},
+ poolDs:{fr:"Baignade & détente",en:"Swim & relax",es:"Baño y relax",it:"Nuoto e relax",de:"Schwimmen & Entspannen",pt:"Nadar e relaxar",nl:"Zwemmen & ontspannen"},
+ spaTi:{fr:"Spa",en:"Spa",es:"Spa",it:"Spa",de:"Spa",pt:"Spa",nl:"Spa"},
+ spaDs:{fr:"Détente & soins",en:"Relax & treatments",es:"Relax y cuidados",it:"Relax e trattamenti",de:"Entspannung & Anwendungen",pt:"Relax e cuidados",nl:"Ontspanning & behandelingen"},
+ saunaTi:{fr:"Sauna",en:"Sauna",es:"Sauna",it:"Sauna",de:"Sauna",pt:"Sauna",nl:"Sauna"},
+ saunaDs:{fr:"Chaleur & bien-être",en:"Heat & wellness",es:"Calor y bienestar",it:"Calore e benessere",de:"Wärme & Wohlbefinden",pt:"Calor e bem-estar",nl:"Warmte & wellness"},
+ xtraEy:{fr:"Faites-vous plaisir",en:"Treat yourself",es:"Date un capricho",it:"Concediti un extra",de:"Gönnen Sie sich etwas",pt:"Mime-se",nl:"Gun jezelf iets"},
+ xtraTi:{fr:"Petites attentions",en:"Little extras",es:"Pequeños detalles",it:"Piccoli pensieri",de:"Kleine Aufmerksamkeiten",pt:"Pequenos mimos",nl:"Kleine extraatjes"},
+ xtraDs:{fr:"Champagne, panier de bienvenue, fleurs…",en:"Champagne, welcome basket, flowers…",es:"Champán, cesta de bienvenida, flores…",it:"Champagne, cesto di benvenuto, fiori…",de:"Champagner, Willkommenskorb, Blumen…",pt:"Champanhe, cesto de boas-vindas, flores…",nl:"Champagne, welkomstmand, bloemen…"},
+ xtraFrom:{fr:"À partir de",en:"From",es:"Desde",it:"Da",de:"Ab",pt:"A partir de",nl:"Vanaf"},
+ xtraCta:{fr:"Découvrir",en:"Discover",es:"Descubrir",it:"Scopri",de:"Entdecken",pt:"Descobrir",nl:"Ontdekken"},
+ xtraIntro:{fr:"Ajoutez une touche spéciale à votre séjour, commandé en un clic et préparé pour votre arrivée.",en:"Add a special touch to your stay — ordered in one click, ready for your arrival.",es:"Añade un toque especial a tu estancia, en un clic y listo a tu llegada.",it:"Aggiungi un tocco speciale al soggiorno, in un clic e pronto al tuo arrivo.",de:"Verleihen Sie Ihrem Aufenthalt eine besondere Note – in einem Klick, bereit bei Ankunft.",pt:"Dê um toque especial à sua estadia, num clique e pronto à chegada.",nl:"Geef je verblijf een speciaal tintje — in één klik, klaar bij aankomst."},
+ xtraNote:{fr:"À réserver au moins 4h avant votre arrivée, le temps de tout préparer.",en:"Book at least 4h before arrival so we can prepare everything.",es:"Resérvalo al menos 4h antes de llegar para prepararlo todo.",it:"Prenota almeno 4h prima dell'arrivo per preparare tutto.",de:"Mindestens 4 Std. vor Ankunft buchen, damit wir alles vorbereiten können.",pt:"Reserve pelo menos 4h antes da chegada para prepararmos tudo.",nl:"Reserveer minstens 4 uur voor aankomst zodat we alles kunnen klaarzetten."},
+ orderBtn:{fr:"Commander",en:"Order",es:"Pedir",it:"Ordina",de:"Bestellen",pt:"Encomendar",nl:"Bestellen"},
+ loadingW:{fr:"Chargement",en:"Loading",es:"Cargando",it:"Caricamento",de:"Wird geladen",pt:"A carregar",nl:"Laden"},
+ nfTi:{fr:"Guide introuvable",en:"Guide not found",es:"Guía no encontrada",it:"Guida non trovata",de:"Reiseführer nicht gefunden",pt:"Guia não encontrado",nl:"Gids niet gevonden"},
+ nfBody:{fr:"Ce lien ne correspond à aucun guide de séjour. Vérifiez l'adresse, ou contactez directement votre hôtel.",en:"This link doesn't match any guide. Check the address, or contact your hotel directly.",es:"Este enlace no corresponde a ninguna guía. Verifica la dirección o contacta con tu hotel.",it:"Questo link non corrisponde ad alcuna guida. Verifica l'indirizzo o contatta l'hotel.",de:"Dieser Link gehört zu keinem Reiseführer. Prüfen Sie die Adresse oder kontaktieren Sie Ihr Hotel.",pt:"Este link não corresponde a nenhum guia. Verifique o endereço ou contacte o seu hotel.",nl:"Deze link hoort bij geen enkele gids. Controleer het adres of neem contact op met je hotel."},
+ recoEy:{fr:"Autour de l'hôtel",en:"Around the hotel",es:"Alrededor del hotel",it:"Intorno all'hotel",de:"Rund ums Hotel",pt:"À volta do hotel",nl:"Rondom het hotel"},
+ recoTi:{fr:"Nos recommandations",en:"Our recommendations",es:"Nuestras recomendaciones",it:"I nostri consigli",de:"Unsere Empfehlungen",pt:"As nossas recomendações",nl:"Onze aanbevelingen"},
+ recoEmpty:{fr:"Aucune recommandation dans cette catégorie.",en:"No recommendations in this category.",es:"No hay recomendaciones en esta categoría.",it:"Nessun consiglio in questa categoria.",de:"Keine Empfehlungen in dieser Kategorie.",pt:"Sem recomendações nesta categoria.",nl:"Geen aanbevelingen in deze categorie."},
+ catAll:{fr:"Tout",en:"All",es:"Todo",it:"Tutto",de:"Alle",pt:"Tudo",nl:"Alles"},
+ catAct:{fr:"Activité",en:"Activity",es:"Actividad",it:"Attività",de:"Aktivität",pt:"Atividade",nl:"Activiteit"},
+ catVis:{fr:"Visite",en:"Sightseeing",es:"Visita",it:"Visita",de:"Besichtigung",pt:"Visita",nl:"Bezienswaardigheid"},
+ tjFoot:{fr:"à pied",en:"on foot",es:"a pie",it:"a piedi",de:"zu Fuß",pt:"a pé",nl:"te voet"},
+ tjCar:{fr:"en voiture",en:"by car",es:"en coche",it:"in auto",de:"mit dem Auto",pt:"de carro",nl:"met de auto"},
+ tjTransit:{fr:"en transports",en:"by transit",es:"en transporte",it:"con i mezzi",de:"mit Öffis",pt:"de transporte",nl:"met OV"},
+ wellEy:{fr:"Bien-être & détente",en:"Wellness & relaxation",es:"Bienestar y relax",it:"Benessere e relax",de:"Wellness & Entspannung",pt:"Bem-estar e relax",nl:"Wellness & ontspanning"},
+ labHours:{fr:"Horaires",en:"Hours",es:"Horario",it:"Orari",de:"Öffnungszeiten",pt:"Horário",nl:"Openingstijden"},
+ labAccess:{fr:"Accès",en:"Access",es:"Acceso",it:"Accesso",de:"Zugang",pt:"Acesso",nl:"Toegang"},
+ labBring:{fr:"À prévoir",en:"To bring",es:"Qué llevar",it:"Cosa portare",de:"Mitbringen",pt:"O que levar",nl:"Meenemen"},
+ seeRoute:{fr:"Voir l'itinéraire",en:"See directions",es:"Ver ruta",it:"Vedi percorso",de:"Route anzeigen",pt:"Ver rota",nl:"Route bekijken"},
+ exempleW:{fr:"Exemple",en:"Example",es:"Ejemplo",it:"Esempio",de:"Beispiel",pt:"Exemplo",nl:"Voorbeeld"},
+ callW:{fr:"Appeler",en:"Call",es:"Llamar",it:"Chiama",de:"Anrufen",pt:"Ligar",nl:"Bellen"}
+};
+(function(){ for(var k in LH_T_EXTRA){ var t=LH_T_EXTRA[k]; for(var l in t){ if(LH_T[l]) LH_T[l][k]=t[l]; } } })();
 function lhGo(id){
   if(id==='scr-pdj'&&!lhFetchDone){
     /* Fetch pas encore terminé — attendre */
@@ -317,6 +357,24 @@ function lhSetLang(l){
   });
   /* Reset stars */
   lhStars(0);
+  /* Re-traduire les sections rendues en JS (elles ne portent pas de data-t) */
+  lhRelocalize();
+}
+/* Re-rend tout le contenu dynamique dans la langue courante. */
+function lhRelocalize(){
+  try{
+    LH_EXTRAS_TITLE=lhT('xtraTi');
+    var et=document.getElementById('lh-extras-title'); if(et)et.textContent=LH_EXTRAS_TITLE;
+    var ht=document.getElementById('lh-home-xtra-title'); if(ht)ht.textContent=LH_EXTRAS_TITLE;
+    if(typeof lhRenderExtras==='function') lhRenderExtras();
+    if(typeof lhRenderReco==='function') lhRenderReco();
+    if(typeof lhRenderInfos==='function') lhRenderInfos();
+    if(typeof lhRenderSocial==='function') lhRenderSocial();
+    if(typeof lhRenderLco==='function') lhRenderLco();
+    if(typeof lhRenderXtraBanner==='function') lhRenderXtraBanner();
+    if(typeof lhApplyExemples==='function') lhApplyExemples();
+    if(typeof lhApplyContact==='function') lhApplyContact();
+  }catch(e){}
 }
 function lhToggleLang(){
   document.getElementById('lh-lang-dd').classList.toggle('open');
@@ -819,15 +877,15 @@ function lhMarkPdjBooked(){
 <!-- ===== CHARGEMENT (hôtels autres que la démo) ===== -->
 <div id="lh-loading" style="display:none;position:fixed;inset:0;background:#F7F3EC;z-index:9998;flex-direction:column;align-items:center;justify-content:center;gap:2px">
   <div class="lh-spinner"></div>
-  <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700">Chargement</div>
+  <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700" data-t="loadingW">Chargement</div>
 </div>
 
 <!-- ===== GUIDE INTROUVABLE ===== -->
 <div id="lh-404" style="display:none;position:fixed;inset:0;background:#1F3B2D;z-index:9998;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:32px">
   <div style="font-size:44px">🔍</div>
-  <div style="font-size:21px;font-weight:700;color:#F7F3EC">Guide introuvable</div>
-  <div style="font-size:13px;color:rgba(247,243,236,0.55);max-width:280px;line-height:1.7">Ce lien ne correspond à aucun guide de séjour. Vérifiez l'adresse, ou contactez directement votre hôtel.</div>
-  <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-top:12px">Propulsé par SolvIA</div>
+  <div style="font-size:21px;font-weight:700;color:#F7F3EC" data-t="nfTi">Guide introuvable</div>
+  <div style="font-size:13px;color:rgba(247,243,236,0.55);max-width:280px;line-height:1.7" data-t="nfBody">Ce lien ne correspond à aucun guide de séjour. Vérifiez l'adresse, ou contactez directement votre hôtel.</div>
+  <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-top:12px"><span data-t="poweredBy">Propulsé par</span> SolvIA</div>
 </div>
 
 <!-- ===== HOME ===== -->
@@ -872,10 +930,10 @@ function lhMarkPdjBooked(){
     <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(31,59,45,0.85) 0%,rgba(31,59,45,0.15) 60%,transparent 100%)"></div>
     <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="font-size:15px;font-weight:700;color:#F7F3EC" id="lh-home-xtra-title">Petites attentions</div><span id="lh-home-xtra-ex"></span></div>
-      <div style="font-size:10px;color:rgba(247,243,236,0.6)">Champagne, panier de bienvenue, fleurs…</div>
+      <div style="font-size:10px;color:rgba(247,243,236,0.6)" data-t="xtraDs">Champagne, panier de bienvenue, fleurs…</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-        <div style="font-size:13px;font-weight:700;color:#C9A961">À partir de 29€</div>
-        <div style="background:#C9A961;color:#1F3B2D;border-radius:8px;padding:6px 14px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Découvrir →</div>
+        <div style="font-size:13px;font-weight:700;color:#C9A961"><span data-t="xtraFrom">À partir de</span> 29€</div>
+        <div style="background:#C9A961;color:#1F3B2D;border-radius:8px;padding:6px 14px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase"><span data-t="xtraCta">Découvrir</span> →</div>
       </div>
     </div>
     <div id="lh-home-car3-dots" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:5px"></div>
@@ -958,13 +1016,13 @@ function lhMarkPdjBooked(){
   <div class="nav-g" style="padding-top:0">
     <div data-lh-sec="recos" class="nav-c" onclick="lhGo('scr-reco')">
       <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-      <div class="nav-lb">À découvrir</div>
-      <div class="nav-ds">Restos & activités</div>
+      <div class="nav-lb" data-t="discTi">À découvrir</div>
+      <div class="nav-ds" data-t="discDs">Restos & activités</div>
     </div>
     <div data-lh-sec="piscine" class="nav-c" onclick="lhOpenInfo('piscine')">
       <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M2 18c1.5 0 1.5 1 3 1s1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1"/><path d="M6 15V5a2 2 0 012-2M18 15V5a2 2 0 00-2-2"/></svg></div>
-      <div class="nav-lb">Piscine</div>
-      <div class="nav-ds">Baignade & détente</div>
+      <div class="nav-lb" data-t="poolTi">Piscine</div>
+      <div class="nav-ds" data-t="poolDs">Baignade & détente</div>
     </div>
   </div>
 
@@ -972,13 +1030,13 @@ function lhMarkPdjBooked(){
   <div class="nav-g" style="padding-top:0">
     <div data-lh-sec="spa" class="nav-c" onclick="lhOpenInfo('spa')">
       <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 22c4-3 7-6 7-11a7 7 0 00-14 0c0 5 3 8 7 11z"/><path d="M9 12a3 3 0 006 0"/></svg></div>
-      <div class="nav-lb">Spa</div>
-      <div class="nav-ds">Détente & soins</div>
+      <div class="nav-lb" data-t="spaTi">Spa</div>
+      <div class="nav-ds" data-t="spaDs">Détente & soins</div>
     </div>
     <div data-lh-sec="sauna" class="nav-c" onclick="lhOpenInfo('sauna')">
       <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M8 3c0 1.5-1 2-1 3.5S8 8 8 9.5M12 3c0 1.5-1 2-1 3.5s1 1 1 2.5M16 3c0 1.5-1 2-1 3.5s1 1 1 2.5"/><rect x="3" y="12" width="18" height="9" rx="1.5"/></svg></div>
-      <div class="nav-lb">Sauna</div>
-      <div class="nav-ds">Chaleur & bien-être</div>
+      <div class="nav-lb" data-t="saunaTi">Sauna</div>
+      <div class="nav-ds" data-t="saunaDs">Chaleur & bien-être</div>
     </div>
   </div>
 
@@ -1345,7 +1403,7 @@ function lhMarkPdjBooked(){
 <div class="scr" id="scr-extras">
   <div class="s-hdr">
     <button class="bk" onclick="lhGo('scr-home')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-    <div><div class="s-ey">Faites-vous plaisir</div><div style="display:flex;align-items:center;gap:8px"><div class="s-ti" id="lh-extras-title">Petites attentions</div><span id="lh-extras-ex"></span></div></div>
+    <div><div class="s-ey" data-t="xtraEy">Faites-vous plaisir</div><div style="display:flex;align-items:center;gap:8px"><div class="s-ti" id="lh-extras-title">Petites attentions</div><span id="lh-extras-ex"></span></div></div>
   </div>
   <div class="s-body" id="lh-extras-body"></div>
 </div>
@@ -1363,7 +1421,7 @@ function lhMarkPdjBooked(){
 <div class="scr" id="scr-reco">
   <div class="s-hdr">
     <button class="bk" onclick="lhGo('scr-home')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-    <div><div class="s-ey">Autour de l'hôtel</div><div class="s-ti">Nos recommandations</div></div>
+    <div><div class="s-ey" data-t="recoEy">Autour de l'hôtel</div><div class="s-ti" data-t="recoTi">Nos recommandations</div></div>
   </div>
   <div class="s-body">
     <div class="reco-filters" id="lh-reco-filters"></div>
@@ -1693,7 +1751,7 @@ function lhApplyContact(){
   var mail=document.getElementById('lh-help-mail');
   if(mail){ if(LH_EMAIL){ mail.href='mailto:'+LH_EMAIL; mail.textContent=LH_EMAIL; mail.style.display=''; } else mail.style.display='none'; }
   var cb=document.getElementById('lh-call-btn');
-  if(cb){ if(LH_TEL){ cb.href='tel:'+LH_TEL; cb.style.display=''; cb.textContent='📞 '+(LH_LANG==='en'?'Call':'Appeler')+((HOTEL&&HOTEL.nom)?' '+HOTEL.nom:''); } else cb.style.display='none'; }
+  if(cb){ if(LH_TEL){ cb.href='tel:'+LH_TEL; cb.style.display=''; cb.textContent='📞 '+lhT('callW')+((HOTEL&&HOTEL.nom)?' '+HOTEL.nom:''); } else cb.style.display='none'; }
 }
 function lhApplyPdjPrices(){
   function set(id,txt){var e=document.getElementById(id);if(e)e.textContent=txt;}
@@ -1701,6 +1759,17 @@ function lhApplyPdjPrices(){
   set('lh-pdj-price-badge',  LH_PDJ_AD+'€ / pers.');
   set('lh-pdj-ad', LH_PDJ_AD+'€');
   set('lh-pdj-en', LH_PDJ_EN+'€');
+}
+/* Badges « Exemple » (resto / petit-déj / extras), ré-appliqués aussi au
+   changement de langue. */
+var LH_RESTO_EXEMPLE=true, LH_PDJ_EXEMPLE=true, LH_EXTRAS_EXEMPLE=true;
+function lhApplyExemples(){
+  var t=lhT('exempleW');
+  function put(id,on,cls){ var e=document.getElementById(id); if(e) e.innerHTML=on?'<span class="lh-ex-tag'+(cls||'')+'">'+t+'</span>':''; }
+  put('lh-rs-hours-ex', LH_RESTO_EXEMPLE, ' dk');
+  put('lh-pdj-menu-ex', LH_PDJ_EXEMPLE, ' dk');
+  put('lh-home-xtra-ex', LH_EXTRAS_EXEMPLE, '');
+  put('lh-extras-ex',    LH_EXTRAS_EXEMPLE, '');
 }
 
 /* --- 3. BIEN-ÊTRE (Spa / Piscine / Sauna) — InfoBlock générique ------
@@ -1893,14 +1962,14 @@ function lhDemoPay(label, montant, onDone){
 /* ---------- 1. EXTRAS ---------- */
 function lhRenderExtras(){
   var host=document.getElementById('lh-extras-body'); if(!host)return;
-  var h='<div style="font-size:12px;color:#888;line-height:1.7;margin-bottom:10px">Ajoutez une touche spéciale à votre séjour, commandé en un clic et préparé pour votre arrivée.</div>'
-    +'<div style="display:flex;gap:9px;align-items:flex-start;background:rgba(201,169,97,0.12);border-radius:12px;padding:11px 14px;margin-bottom:16px"><span style="font-size:14px;line-height:1.2">🕐</span><span style="font-size:11px;color:#8a6d2f;line-height:1.6;font-weight:600">À réserver au moins 4h avant votre arrivée, le temps de tout préparer.</span></div>';
+  var h='<div style="font-size:12px;color:#888;line-height:1.7;margin-bottom:10px">'+lhEsc(lhT('xtraIntro'))+'</div>'
+    +'<div style="display:flex;gap:9px;align-items:flex-start;background:rgba(201,169,97,0.12);border-radius:12px;padding:11px 14px;margin-bottom:16px"><span style="font-size:14px;line-height:1.2">🕐</span><span style="font-size:11px;color:#8a6d2f;line-height:1.6;font-weight:600">'+lhEsc(lhT('xtraNote'))+'</span></div>';
   LH_EXTRAS.forEach(function(x){
     h+='<div class="xtra-card">'+lhMedia(x.photo,x.emoji,150)
       +'<div class="xtra-bd"><div class="xtra-nm">'+lhEsc(x.nom)+'</div>'
       +'<div class="xtra-ds">'+lhEsc(x.desc)+'</div>'
       +'<div class="xtra-ft"><div class="xtra-pr">'+x.prix+'€</div>'
-      +'<button class="xtra-add" onclick="lhOrderExtra(\''+x.id+'\')">Commander</button></div></div></div>';
+      +'<button class="xtra-add" onclick="lhOrderExtra(\''+x.id+'\')">'+lhEsc(lhT('orderBtn'))+'</button></div></div></div>';
   });
   host.innerHTML=h;
 }
@@ -1921,7 +1990,7 @@ function lhRenderLco(){
     +'<div class="lco-dot"></div><div class="lco-h">Départ à '+lhEsc(o.heure)+'</div>'
     +'<div class="lco-p">+'+o.prix+'€</div></div>';
   var ex=document.getElementById('lh-lco-ex');
-  if(ex) ex.innerHTML=LH_LATE_EXEMPLE?'<span class="lh-ex-tag dk">'+(LH_LANG==='en'?'Example':'Exemple')+'</span>':'';
+  if(ex) ex.innerHTML=LH_LATE_EXEMPLE?'<span class="lh-ex-tag dk">'+lhT('exempleW')+'</span>':'';
 }
 function lhSelLco(id){
   lhLcoSel=id; lhRenderLco();
@@ -1939,12 +2008,12 @@ function lhPayLco(){
 /* ---------- 3. INFO BLOCK (Spa / Piscine / Sauna) ---------- */
 function lhOpenInfo(key){
   var f=LH_FACILITIES[key]; if(!f)return;
-  document.getElementById('lh-info-ey').textContent='Bien-être & détente';
+  document.getElementById('lh-info-ey').textContent=lhT('wellEy');
   document.getElementById('lh-info-ti').textContent=f.titre;
   var rows=[
-    {ic:'clock', lb:'Horaires',  tx:f.horaires},
-    {ic:'pin',   lb:'Accès',     tx:f.acces},
-    {ic:'bag',   lb:'À prévoir', tx:f.prevoir}
+    {ic:'clock', lb:lhT('labHours'),  tx:f.horaires},
+    {ic:'pin',   lb:lhT('labAccess'), tx:f.acces},
+    {ic:'bag',   lb:lhT('labBring'),  tx:f.prevoir}
   ];
   var h=lhMedia(f.photo,f.emoji,190,'ib-photo');
   h+='<div class="cd"><div style="font-size:13px;color:#555;line-height:1.7">'+lhEsc(f.description)+'</div></div>';
@@ -1953,17 +2022,20 @@ function lhOpenInfo(key){
     h+='<div class="ib-row"><div class="ib-ic">'+lhIcon(r.ic)+'</div><div><div class="ib-lb">'+r.lb+'</div><div class="ib-tx">'+lhEsc(r.tx)+'</div></div></div>';
   });
   h+='</div>';
-  if(f.maps)h+='<a class="lh-maps" href="'+lhEsc(f.maps)+'" target="_blank" rel="noopener">'+lhIcon('pin')+' Voir l\'itinéraire</a>';
+  if(f.maps)h+='<a class="lh-maps" href="'+lhEsc(f.maps)+'" target="_blank" rel="noopener">'+lhIcon('pin')+' '+lhEsc(lhT('seeRoute'))+'</a>';
   document.getElementById('lh-info-body').innerHTML=h;
   lhGo('scr-info');
 }
 
 /* ---------- 4. RECOMMANDATIONS LOCALES ---------- */
 var lhRecoFilter='Tout';
+/* Les catégories restent stockées en français (clé de filtre) ; on ne traduit
+   que l'affichage. */
+function lhCatLabel(c){ var m={"Tout":"catAll","Restaurant":"resto","Activité":"catAct","Visite":"catVis"}[c]; return m?lhT(m):c; }
 function lhRenderReco(){
   var fh=document.getElementById('lh-reco-filters');
   if(fh){ var f='';
-    LH_RECO_CATS.forEach(function(c){ f+='<button class="reco-fl'+(c===lhRecoFilter?' on':'')+'" onclick="lhSetReco(\''+c+'\')">'+lhEsc(c)+'</button>'; });
+    LH_RECO_CATS.forEach(function(c){ f+='<button class="reco-fl'+(c===lhRecoFilter?' on':'')+'" onclick="lhSetReco(\''+c+'\')">'+lhEsc(lhCatLabel(c))+'</button>'; });
     fh.innerHTML=f;
   }
   var host=document.getElementById('lh-reco-list'); if(!host)return;
@@ -1971,23 +2043,25 @@ function lhRenderReco(){
   LH_RECOS.filter(function(r){return lhRecoFilter==='Tout'||r.cat===lhRecoFilter;}).forEach(function(r){
     h+='<div class="reco-card">'+lhMedia(r.photo,r.emoji,140)
       +'<div class="reco-bd">'
-      +(r.cat?'<span class="reco-cat">'+lhEsc(r.cat)+'</span>':'')
+      +(r.cat?'<span class="reco-cat">'+lhEsc(lhCatLabel(r.cat))+'</span>':'')
       +'<div class="reco-nm">'+lhEsc(r.nom)+'</div>'
       +lhTrajet(r.trajetMode,r.trajetDuree)
       +(r.desc?'<div class="reco-ds">'+lhEsc(r.desc)+'</div>':'')
       +(r.maps?'<a class="lh-maps" href="'+lhEsc(r.maps)+'" target="_blank" rel="noopener">'+lhIcon('pin')+' Google Maps</a>':'')
       +'</div></div>';
   });
-  host.innerHTML=h||'<div style="text-align:center;color:#aaa;font-size:12px;padding:30px">Aucune recommandation dans cette catégorie.</div>';
+  host.innerHTML=h||'<div style="text-align:center;color:#aaa;font-size:12px;padding:30px">'+lhEsc(lhT('recoEmpty'))+'</div>';
 }
 function lhSetReco(c){ lhRecoFilter=c; lhRenderReco(); }
 /* Chip trajet : durée + mode (à pied / voiture / transports) avec emoji.
    Alimenté par nearby_places : on garde le trajet le plus court (Walking prioritaire). */
 function lhTrajet(mode,duree){
   if(!duree) return '';
-  var m={pied:{e:'🚶',t:'à pied'},voiture:{e:'🚗',t:'en voiture'},transports:{e:'🚌',t:'en transports'}}[mode]
-        || {e:'📍',t:(mode||'')};
-  return '<div class="reco-trajet"><span style="font-size:13px">'+m.e+'</span>À '+lhEsc(duree)+(m.t?' '+m.t:'')+'</div>';
+  var e={pied:'🚶',voiture:'🚗',transports:'🚌'}[mode]||'📍';
+  var tk={pied:'tjFoot',voiture:'tjCar',transports:'tjTransit'}[mode];
+  var t=tk?lhT(tk):(mode||'');
+  var pref=(LH_LANG==='fr')?'À ':'';   /* « À 6 min à pied » en FR ; « 6 min on foot » ailleurs */
+  return '<div class="reco-trajet"><span style="font-size:13px">'+e+'</span>'+pref+lhEsc(duree)+(t?' '+t:'')+'</div>';
 }
 
 /* ---------- Bannière Extras home : carrousel défilant (comme le restaurant) ---------- */
@@ -2087,22 +2161,10 @@ function lhApplyHotel(d){
   /* Restaurant : phrase d'horaires personnalisable par hôtel + tag « Exemple »
      tant que l'hôtel n'a pas renseigné ses vrais horaires. */
   if(d.resto_horaires!==undefined){ var rh=document.getElementById('lh-home-rs-hours'); if(rh) rh.textContent=(d.resto_horaires==null?'':d.resto_horaires); }
-  if(d.resto_exemple!==undefined){
-    var exTxt=(LH_LANG==='en'?'Example':'Exemple');
-    var rhx=document.getElementById('lh-rs-hours-ex');
-    if(rhx) rhx.innerHTML=d.resto_exemple?'<span class="lh-ex-tag dk">'+exTxt+'</span>':'';
-  }
-  if(d.pdj_exemple!==undefined){
-    var exTxt2=(LH_LANG==='en'?'Example':'Exemple');
-    var pmx=document.getElementById('lh-pdj-menu-ex');
-    if(pmx) pmx.innerHTML=d.pdj_exemple?'<span class="lh-ex-tag dk">'+exTxt2+'</span>':'';
-  }
-  if(d.extras_exemple!==undefined){
-    var exTxt3=(LH_LANG==='en'?'Example':'Exemple');
-    var tag3=d.extras_exemple?'<span class="lh-ex-tag">'+exTxt3+'</span>':'';
-    var xb=document.getElementById('lh-home-xtra-ex'); if(xb) xb.innerHTML=tag3;
-    var xs=document.getElementById('lh-extras-ex');    if(xs) xs.innerHTML=tag3;
-  }
+  if(d.resto_exemple!==undefined) LH_RESTO_EXEMPLE=d.resto_exemple;
+  if(d.pdj_exemple!==undefined)   LH_PDJ_EXEMPLE=d.pdj_exemple;
+  if(d.extras_exemple!==undefined)LH_EXTRAS_EXEMPLE=d.extras_exemple;
+  lhApplyExemples();
   /* Boutons restaurant : juste un lien par bouton. Affiché si lien présent,
      caché si vide (on n'invente jamais d'URL). */
   function lhLinkBtn(id,url){ var e=document.getElementById(id); if(!e)return;
