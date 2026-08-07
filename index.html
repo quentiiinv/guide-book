@@ -2051,6 +2051,22 @@ function lhApplyHotel(d){
   lhRenderExtras(); lhRenderReco(); lhRenderInfos(); lhRenderSocial(); lhRenderLco(); lhRenderXtraBanner(); lhApplySections();
 }
 
+/* Fusion « modèle partagé + spécifique hôtel ».
+   - On garde les lignes partagées (hotel_id null) ET celles de l'hôtel.
+   - Le partagé pose la base ; le spécifique (même clé) surcharge ou masque
+     (actif=false). L'ordre suit le modèle partagé. */
+function lhMergeRows(rows, hid, keyOf){
+  var mine=(rows||[]).filter(function(r){ return r.hotel_id===hid || r.hotel_id==null; });
+  mine.sort(function(a,b){
+    var sa=(a.hotel_id==null)?0:1, sb=(b.hotel_id==null)?0:1;   /* partagé d'abord */
+    if(sa!==sb) return sa-sb;
+    return (a.ordre||0)-(b.ordre||0);
+  });
+  var map={}, order=[];
+  mine.forEach(function(r){ var k=keyOf(r); if(!(k in map)) order.push(k); map[k]=r; });
+  return order.map(function(k){ return map[k]; }).filter(function(r){ return r.actif!==false; });
+}
+
 /* Lecture en direct depuis Supabase (fonctionne sur la version hébergée) */
 function lhFetchHotel(slug){
   try{
@@ -2066,7 +2082,8 @@ function lhFetchHotel(slug){
       g('hotel_infos','select=*&order=ordre')
     ]).then(function(res){
       var hotel=res[0]&&res[0][0]; if(!hotel) return; var hid=hotel.id;
-      var fac={}; (res[2]||[]).filter(function(f){return f.hotel_id===hid;}).forEach(function(f){
+      /* Facilities : modèle partagé (hotel_id null) surchargé par le spécifique, clé = type */
+      var fac={}; lhMergeRows(res[2], hid, function(f){return f.type;}).forEach(function(f){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
         nom:hotel.nom, lieu:hotel.lieu,
@@ -2077,11 +2094,11 @@ function lhFetchHotel(slug){
         pdj_exemple:hotel.pdj_exemple, extras_exemple:hotel.extras_exemple,
         social:{instagram:hotel.social_instagram,facebook:hotel.social_facebook,linkedin:hotel.social_linkedin,youtube:hotel.social_youtube,tiktok:hotel.social_tiktok,twitter:hotel.social_twitter},
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
-        extras:(res[1]||[]).filter(function(e){return e.hotel_id===hid && e.actif!==false;}).map(function(e){return {id:e.id,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
+        extras:lhMergeRows(res[1], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
         recos:(res[3]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url};}),
         lateCheckout:(res[4]||[]).filter(function(l){return l.hotel_id===hid;}).map(function(l){return {heure:l.heure,prix:l.prix};}),
-        infos:(res[5]||[]).filter(function(i){return i.hotel_id===hid;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
+        infos:lhMergeRows(res[5], hid, function(i){return i.icone;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
       });
     }).catch(function(){/* réseau bloqué (aperçu) : on garde le snapshot */});
   }catch(e){}
