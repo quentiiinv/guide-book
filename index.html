@@ -14,21 +14,39 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 #lh-desktop-side .dt-feat{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:#2b3a32}
 #lh-desktop-side .dt-fi{width:34px;height:34px;flex-shrink:0;border-radius:10px;background:rgba(201,169,97,0.15);display:flex;align-items:center;justify-content:center}
 #lh-desktop-side .dt-fi svg{width:18px;height:18px;stroke:#A9812F;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-/* ===== DESKTOP : mockup de téléphone (le guide dedans) + panneau QR ===== */
-@media (min-width:900px){
-  html,body{background:#F1ECE3}
-  body{display:flex;align-items:center;justify-content:center;gap:72px;min-height:100vh;padding:48px;box-sizing:border-box}
-  /* Corps du téléphone */
-  #lh-phone{display:block;position:relative;flex:0 0 auto;width:398px;height:min(824px,90vh);
-    background:#101214;border-radius:54px;padding:14px;
-    box-shadow:0 50px 90px -20px rgba(53,42,22,0.35),0 20px 40px -15px rgba(53,42,22,0.22)}
-  /* liseré brillant du châssis */
-  #lh-phone::after{content:'';position:absolute;inset:0;border-radius:54px;box-shadow:inset 0 0 0 2px rgba(255,255,255,0.07);pointer-events:none}
-  /* écran = le guide, scrollbar cachée */
-  #lh-phone #lh-app{width:100%;height:100%;min-height:0;border-radius:41px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none}
-  #lh-phone #lh-app::-webkit-scrollbar{width:0;height:0;display:none}
-  #lh-desktop-side{display:flex;flex-direction:column;align-items:flex-start;max-width:330px}
-}
+/* Barre latérale desktop — cachée en mobile (aucun impact) ;
+   le bloc @media desktop est placé en fin de feuille (voir plus bas) pour
+   gagner dans la cascade face aux règles de base #lh-app / .nav-g. */
+#lh-sidebar{display:none}
+/* ===== SIDEBAR (structure) ===== */
+#lh-sidebar{width:330px;flex-shrink:0;flex-direction:column;gap:22px;padding:36px 26px;
+  background:#1F3B2D;color:#F7F3EC;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin}
+#lh-sidebar .sb-brand-ey{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:700;line-height:1.5}
+#lh-sidebar .sb-hello{font-size:24px;font-weight:800;line-height:1.18;margin-top:9px}
+#lh-sidebar .sb-hello em{font-style:italic;font-weight:400;color:#C9A961}
+#lh-sidebar .sb-sub{font-size:11px;color:rgba(247,243,236,0.45);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:300}
+#lh-sidebar .sb-nav{display:flex;flex-direction:column;gap:2px}
+#lh-sidebar .sb-item{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:12px;cursor:pointer;
+  color:rgba(247,243,236,0.72);font-size:13.5px;font-weight:600;background:none;border:none;text-align:left;width:100%;
+  font-family:'Montserrat',sans-serif;transition:background .16s,color .16s}
+#lh-sidebar .sb-item:hover{background:rgba(247,243,236,0.07);color:#F7F3EC}
+#lh-sidebar .sb-item.on{background:rgba(201,169,97,0.16);color:#F7F3EC}
+#lh-sidebar .sb-item .sb-ic{width:20px;height:20px;flex-shrink:0}
+#lh-sidebar .sb-item .sb-ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#lh-sidebar .sb-item.on .sb-ic svg{stroke:#C9A961}
+#lh-sidebar .sb-foot{margin-top:auto;display:flex;flex-direction:column;gap:16px;padding-top:12px}
+#lh-sidebar .sb-foot .lang-wrap{padding:0;justify-content:flex-start}
+#lh-sidebar .sb-foot .lang-sel{width:100%}
+#lh-sidebar .sb-foot .lang-dd{top:auto;bottom:calc(100% + 6px);left:0;transform:none;width:100%;max-height:260px}
+#lh-sidebar .sb-foot #lh-social{justify-content:flex-start;padding:0;gap:14px}
+#lh-sidebar .sb-divider{height:1px;background:rgba(247,243,236,0.1)}
+#lh-sidebar .sb-qr{display:flex;align-items:center;gap:13px}
+#lh-sidebar .sb-qr img{width:74px;height:74px;background:#fff;padding:5px;border-radius:11px;image-rendering:pixelated}
+#lh-sidebar .sb-qr span{font-size:11.5px;font-weight:600;color:rgba(247,243,236,0.62);line-height:1.4}
+#lh-sidebar .sb-code-wrap{display:flex;gap:10px}
+#lh-sidebar #lh-footer{max-width:none}
+#lh-sidebar #lh-footer a{color:#C9A961!important}
+#lh-sidebar #lh-footer>div{margin-left:0!important;margin-right:0!important;max-width:none!important}
 #lh-app *{box-sizing:border-box;margin:0;padding:0}
 #lh-app{font-family:'Montserrat',sans-serif;background:#F7F3EC;width:100%;max-width:100%;min-height:100vh;position:relative;overflow-x:clip}
 #lh-app .scr{display:none;flex-direction:column;min-height:100%;animation:lhFade 0.35s ease}
@@ -255,6 +273,38 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 #lh-app .lh-maps{display:inline-flex;align-items:center;gap:7px;background:rgba(31,59,45,0.05);color:#1F3B2D;border-radius:10px;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-decoration:none;margin-top:4px;transition:background 0.2s}
 #lh-app .lh-maps:hover{background:rgba(31,59,45,0.1)}
 #lh-app .lh-maps svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ============================================================
+   ===== DESKTOP NATIF (≥1000px) : barre latérale + lecture large =====
+   Placé en toute fin de feuille pour l'emporter dans la cascade.
+   ============================================================ */
+@media (min-width:1000px){
+  html,body{background:#E7E1D5}
+  body{display:block;min-height:100vh;padding:0}
+  #lh-phone{display:block}                 /* wrapper transparent, pas de cadre */
+  #lh-desktop-side{display:none}
+  #lh-app{display:flex;flex-direction:row;align-items:stretch;max-width:1240px;min-height:100vh;
+    margin:0 auto;background:#F7F3EC;box-shadow:0 0 90px rgba(31,59,45,0.10);overflow:visible}
+  #lh-sidebar{display:flex}
+  /* Zone de contenu = l'écran actif, colonne de lecture confortable */
+  #lh-app > .scr.on{flex:1;min-width:0;max-width:none;padding:46px 60px 72px;background:#F7F3EC}
+  #lh-app > .scr.on > *{max-width:880px;width:100%;margin-left:auto;margin-right:auto}
+  /* Barre verte des sous-écrans : plus de bouton retour (la sidebar gère la nav) */
+  #lh-app .s-hdr{position:static;box-shadow:none;padding:26px 30px}
+  #lh-app .s-hdr .bk{display:none}
+  #lh-app .s-body{padding:28px 0 0}
+  #lh-app .scr{animation:none}
+  /* Accueil : la nav en grille et les doublons passent dans la sidebar */
+  #scr-home .nav-g,#scr-home #lh-lang-wrap,#scr-home #lh-social,#scr-home #lh-note-generic,#scr-home #lh-guest-card{display:none}
+  #scr-home .hero{padding:46px 46px 40px}
+  #scr-home .hero-ey{font-size:11px;letter-spacing:1.8px}
+  #scr-home .hero-t{font-size:34px;line-height:1.12}
+  #scr-home .hero-s{font-size:11px}
+  #scr-home [data-lh-sec]{height:220px}
+  /* Lisibilité générale un cran au-dessus */
+  #lh-app .s-ti{font-size:26px}
+  #lh-app .cd-txt,#lh-app .ib-tx,#lh-app .reco-ds{font-size:14px;line-height:1.75}
+}
 </style>
 
 <script>
@@ -345,7 +395,9 @@ var LH_T_EXTRA={
  dtFeatWifi:{fr:"WiFi en un tap",en:"WiFi in one tap",es:"WiFi con un toque",it:"WiFi con un tocco",de:"WLAN mit einem Tipp",pt:"WiFi num toque",nl:"WiFi met één tik"},
  dtFeatPdj:{fr:"Petit-déjeuner & restaurant",en:"Breakfast & restaurant",es:"Desayuno y restaurante",it:"Colazione e ristorante",de:"Frühstück & Restaurant",pt:"Pequeno-almoço e restaurante",nl:"Ontbijt & restaurant"},
  dtFeatReco:{fr:"Bonnes adresses autour",en:"Local recommendations",es:"Recomendaciones locales",it:"Consigli nei dintorni",de:"Tipps in der Umgebung",pt:"Recomendações locais",nl:"Tips in de buurt"},
- dtFeatXtra:{fr:"Petites attentions à réserver",en:"Little extras to book",es:"Detalles para reservar",it:"Piccoli extra da prenotare",de:"Extras zum Buchen",pt:"Mimos para reservar",nl:"Extraatjes om te boeken"}
+ dtFeatXtra:{fr:"Petites attentions à réserver",en:"Little extras to book",es:"Detalles para reservar",it:"Piccoli extra da prenotare",de:"Extras zum Buchen",pt:"Mimos para reservar",nl:"Extraatjes om te boeken"},
+ sbHome:{fr:"Accueil",en:"Home",es:"Inicio",it:"Home",de:"Start",pt:"Início",nl:"Start"},
+ sbScan:{fr:"Ouvrir sur mon téléphone",en:"Open on my phone",es:"Abrir en mi móvil",it:"Apri sul telefono",de:"Auf dem Handy öffnen",pt:"Abrir no telemóvel",nl:"Openen op mijn telefoon"}
 };
 (function(){
   for(var k in LH_T_EXTRA){ var t=LH_T_EXTRA[k]; for(var l in t){ if(LH_T[l]) LH_T[l][k]=t[l]; } }
@@ -369,6 +421,7 @@ function lhGo(id){
     var scr=document.getElementById('scr-pdj');
     if(scr){scr.classList.add('on');scr.style.animation='lhFade 0.35s ease';}
     window.scrollTo(0,0);
+    if(window.lhSbSync)lhSbSync('scr-pdj');
     lhPdjStep(2);
     return;
   }
@@ -376,6 +429,7 @@ function lhGo(id){
   document.getElementById(id).classList.add('on');
   window.scrollTo(0,0);
   document.getElementById('lh-app').scrollTop=0;
+  if(window.lhSbSync)lhSbSync(id);
 }
 function lhSetLang(l){
   LH_LANG=l;
@@ -2401,7 +2455,7 @@ function lhApplyPhotos(bucket, trackIds, rowImages){
 </script>
 
 <!-- FOOTER -->
-<div style="margin-top:20px;border-top:1px solid rgba(31,59,45,0.07);padding:16px 0 24px;text-align:center">
+<div id="lh-footer" style="margin-top:20px;border-top:1px solid rgba(31,59,45,0.07);padding:16px 0 24px;text-align:center">
   <div style="font-size:9px;color:#ccc;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px"><span data-t="poweredBy">Propulsé par</span> <strong style="color:#aaa;font-weight:700">SolvIA</strong></div>
   <div style="font-size:9px;color:#bbb;line-height:1.7;max-width:260px;margin:0 auto 8px"><span data-t="footerDesc">Guide digital conçu sur mesure pour l'hôtellerie. Envie d'une solution similaire&nbsp;?</span> <a href="mailto:contact@solvia.pro" style="color:#1F3B2D;font-weight:600;text-decoration:none">contact@solvia.pro</a></div>
   <div style="font-size:8px;color:#ddd;letter-spacing:0.5px">© SolvIA</div>
@@ -2441,5 +2495,93 @@ function lhRenderQR(){ try{ var el=document.getElementById('lh-qr'); if(!el||typ
 lhRenderQR();
 /* Eyebrow du panneau = nom · ville (le panneau existe maintenant) */
 (function(){ var e=document.getElementById('lh-dt-hotel'); if(e && typeof HOTEL!=='undefined' && HOTEL.nom) e.textContent=HOTEL.nom+(HOTEL.lieu?' · '+HOTEL.lieu:''); })();
+
+/* ============================================================
+   VERSION DESKTOP NATIVE : barre latérale + zone de lecture.
+   Construite uniquement sur grand écran ; le mobile n'est jamais touché.
+   ============================================================ */
+function lhSbSync(id){
+  var map={'scr-home':'home','scr-ci':'ci','scr-wf':'wf','scr-pdj':'pdj','scr-rs':'rs','scr-reco':'reco','scr-extras':'xtra','scr-pr':'infos','scr-av':'avis'};
+  var k=map[id]; if(!k)return; /* scr-info (bien-être) : l'état actif est posé au clic */
+  document.querySelectorAll('#lh-sidebar .sb-item').forEach(function(b){b.classList.toggle('on',b.dataset.k===k);});
+}
+(function(){
+  if(!window.matchMedia||!window.matchMedia('(min-width:1000px)').matches) return;
+  var app=document.getElementById('lh-app'); if(!app||document.getElementById('lh-sidebar')) return;
+  var home=document.getElementById('scr-home'); if(!home) return;
+
+  var IC={
+    home:'<path d="M3 9.6L12 3l9 6.6M5 9v11h5v-6h4v6h5V9"/>',
+    ci:'<path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>',
+    wf:'<path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>',
+    pdj:'<path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/>',
+    rs:'<path d="M6 3v7a2 2 0 004 0V3M8 10v11M18 3c-2 0-3 2.2-3 5.5S16 14 18 14v7"/>',
+    reco:'<path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/>',
+    xtra:'<path d="M20 12v9H4v-9M2 7.5h20V12H2zM12 22V7.5M12 7.5C10.5 7.5 8.5 6 9 3.6s3 .9 3 3.9M12 7.5c1.5 0 3.5-1.5 3-3.9s-3 .9-3 3.9"/>',
+    spa:'<path d="M12 22c4-3 7-6 7-11a7 7 0 00-14 0c0 5 3 8 7 11z"/><path d="M9 12a3 3 0 006 0"/>',
+    pool:'<path d="M2 18c1.5 0 1.5 1 3 1s1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1"/><path d="M6 15V5a2 2 0 012-2M18 15V5a2 2 0 00-2-2"/>',
+    sauna:'<path d="M8 3c0 1.5-1 2-1 3.5S8 8 8 9.5M12 3c0 1.5-1 2-1 3.5s1 1 1 2.5M16 3c0 1.5-1 2-1 3.5s1 1 1 2.5"/><rect x="3" y="12" width="18" height="9" rx="1.5"/>',
+    infos:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    avis:'<path d="M11.05 2.93c.3-.92 1.6-.92 1.9 0l1.52 4.67a1 1 0 00.95.69h4.91c.97 0 1.37 1.24.59 1.81l-3.98 2.89a1 1 0 00-.36 1.12l1.52 4.67c.3.92-.76 1.69-1.54 1.12l-3.97-2.89a1 1 0 00-1.18 0l-3.97 2.89c-.79.57-1.84-.2-1.54-1.12l1.52-4.67a1 1 0 00-.36-1.12L2.6 10.8c-.79-.57-.38-1.81.59-1.81h4.91a1 1 0 00.95-.69z"/>'
+  };
+  function svg(p){return '<span class="sb-ic"><svg viewBox="0 0 24 24">'+p+'</svg></span>';}
+
+  var items=[
+    {k:'home', t:'sbHome',      ic:'home', go:function(){lhGo('scr-home');}},
+    {k:'ci',   t:'arr',         ic:'ci',   go:function(){lhGo('scr-ci');}},
+    {k:'wf',   t:'wifi',        ic:'wf',   go:function(){lhGo('scr-wf');}},
+    {k:'pdj',  t:'pdj',         ic:'pdj',  go:function(){lhGo('scr-pdj');}},
+    {k:'rs',   t:'resto',       ic:'rs',   go:function(){lhGo('scr-rs');}},
+    {k:'reco', t:'discTi',      ic:'reco', go:function(){lhGo('scr-reco');}},
+    {k:'xtra', t:'xtraTi',      ic:'xtra', go:function(){lhGo('scr-extras');}},
+    {k:'spa',  t:'spaTi',       ic:'spa',  go:function(){lhOpenInfo('spa');}},
+    {k:'pool', t:'poolTi',      ic:'pool', go:function(){lhOpenInfo('piscine');}},
+    {k:'sauna',t:'saunaTi',     ic:'sauna',go:function(){lhOpenInfo('sauna');}},
+    {k:'infos',t:'infos',       ic:'infos',go:function(){lhGo('scr-pr');}},
+    {k:'avis', t:'navAvisLbl',  ic:'avis', go:function(){lhGo('scr-av');}}
+  ];
+
+  var sb=document.createElement('div'); sb.id='lh-sidebar';
+
+  /* --- Marque --- */
+  var brand=document.createElement('div');
+  var hn=(typeof HOTEL!=='undefined'&&HOTEL.nom)?HOTEL.nom:'';
+  var hl=(typeof HOTEL!=='undefined'&&HOTEL.lieu)?HOTEL.lieu:'';
+  brand.innerHTML='<div class="sb-brand-ey">'+(hn?lhEsc(hn)+(hl?' · '+lhEsc(hl):''):'')+'</div>'
+    +'<div class="sb-hello"><span data-t="welcome">Bienvenue</span> <em data-t="welSub">chez vous</em></div>'
+    +'<div class="sb-sub" data-t="guide">Votre guide de séjour</div>';
+  sb.appendChild(brand);
+
+  /* --- Chambre + code (nœud existant, reste synchronisé) --- */
+  var gc=document.getElementById('lh-guest-card');
+  if(gc){ gc.style.padding='0'; sb.appendChild(gc); }
+
+  /* --- Navigation --- */
+  var nav=document.createElement('nav'); nav.className='sb-nav';
+  items.forEach(function(it){
+    var b=document.createElement('button');
+    b.className='sb-item'; b.dataset.k=it.k;
+    b.innerHTML=svg(IC[it.ic])+'<span data-t="'+it.t+'">'+lhEsc(lhT(it.t)||'')+'</span>';
+    b.onclick=function(){ it.go(); document.querySelectorAll('#lh-sidebar .sb-item').forEach(function(x){x.classList.toggle('on',x===b);}); };
+    nav.appendChild(b);
+  });
+  sb.appendChild(nav);
+
+  /* --- Pied : langue, QR, réseaux --- */
+  var foot=document.createElement('div'); foot.className='sb-foot';
+  var lw=document.getElementById('lh-lang-wrap'); if(lw) foot.appendChild(lw);
+  var qr=document.createElement('div'); qr.className='sb-qr';
+  qr.innerHTML='<img id="lh-sb-qr" alt="QR"><span data-t="sbScan">Ouvrir sur mon téléphone</span>';
+  foot.appendChild(qr);
+  var soc=document.getElementById('lh-social'); if(soc) foot.appendChild(soc);
+  var ft=document.getElementById('lh-footer'); if(ft){ ft.style.marginTop='0'; ft.style.borderTop='1px solid rgba(247,243,236,0.1)'; ft.style.textAlign='left'; ft.style.padding='14px 0 0'; foot.appendChild(ft); }
+  sb.appendChild(foot);
+
+  app.insertBefore(sb, app.firstChild);
+
+  /* Marquer l'accueil actif + rendre le QR de la sidebar */
+  lhSbSync('scr-home');
+  try{ var el=document.getElementById('lh-sb-qr'); if(el&&typeof qrcode==='function'){ var q=qrcode(0,'M'); q.addData(location.href); q.make(); el.src=q.createDataURL(4,2); } }catch(e){}
+})();
 </script>
 </body></html>
