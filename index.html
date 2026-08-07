@@ -816,6 +816,20 @@ function lhMarkPdjBooked(){
 }
 </script>
 
+<!-- ===== CHARGEMENT (hôtels autres que la démo) ===== -->
+<div id="lh-loading" style="display:none;position:fixed;inset:0;background:#F7F3EC;z-index:9998;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+  <div class="lh-spinner"></div>
+  <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700">Chargement</div>
+</div>
+
+<!-- ===== GUIDE INTROUVABLE ===== -->
+<div id="lh-404" style="display:none;position:fixed;inset:0;background:#1F3B2D;z-index:9998;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:32px">
+  <div style="font-size:44px">🔍</div>
+  <div style="font-size:21px;font-weight:700;color:#F7F3EC">Guide introuvable</div>
+  <div style="font-size:13px;color:rgba(247,243,236,0.55);max-width:280px;line-height:1.7">Ce lien ne correspond à aucun guide de séjour. Vérifiez l'adresse, ou contactez directement votre hôtel.</div>
+  <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-top:12px">Propulsé par SolvIA</div>
+</div>
+
 <!-- ===== HOME ===== -->
 <div class="scr on" id="scr-home">
   <div class="hero">
@@ -2037,8 +2051,10 @@ var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","slug":"lharmo
 /* Applique une fiche hôtel (snapshot ou fetch) au guidebook */
 function lhApplyHotel(d){
   if(!d) return;
-  if(d.nom) HOTEL.nom=d.nom;
+  if(d.slug) LH_SLUG=d.slug;
+  if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
+  if(d.logo_url) lhSetFavicon(d.logo_url);
   if(d.sections){ for(var k in d.sections){ if(d.sections.hasOwnProperty(k)) HOTEL.sections[k]=d.sections[k]; } }
   if(d.extras && d.extras.length){
     LH_EXTRAS=d.extras.map(function(x,i){ var o=LH_EXTRAS[i]||{};
@@ -2125,12 +2141,14 @@ function lhFetchHotel(slug){
       g('hotel_recos','select=*&order=ordre'),
       g('hotel_infos','select=*&order=ordre')
     ]).then(function(res){
-      var hotel=res[0]&&res[0][0]; if(!hotel) return; var hid=hotel.id;
+      var hotel=res[0]&&res[0][0];
+      if(!hotel){ if(slug!==LH_DB.slug) lhShow404(); return; }   /* slug inconnu -> écran introuvable */
+      var hid=hotel.id;
       /* Facilities : modèle partagé (hotel_id null) surchargé par le spécifique, clé = type */
       var fac={}; lhMergeRows(res[2], hid, function(f){return f.type;}).forEach(function(f){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
-        nom:hotel.nom, lieu:hotel.lieu,
+        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, logo_url:hotel.logo_url,
         wifi_reseau:hotel.wifi_reseau, wifi_motdepasse:hotel.wifi_motdepasse,
         checkin:hotel.checkin, checkout_std:hotel.checkout_std,
         resto_horaires:hotel.resto_horaires, resto_exemple:hotel.resto_exemple,
@@ -2146,24 +2164,43 @@ function lhFetchHotel(slug){
         recos:(res[3]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url};}),
         infos:lhMergeRows(res[4], hid, function(i){return i.icone;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
       });
-    }).catch(function(){/* réseau bloqué (aperçu) : on garde le snapshot */});
-  }catch(e){}
+      lhShowLoading(false);                       /* contenu prêt : on retire le chargement */
+    }).catch(function(){
+      /* réseau bloqué : si on n'a pas déjà le snapshot L'Harmony, on montre l'écran introuvable */
+      if(slug!==LH_DB.slug) lhShow404();
+    });
+  }catch(e){ if(slug!==LH_DB.slug) lhShow404(); }
+}
+/* ---------- États chargement / introuvable ---------- */
+function lhShowLoading(v){ var e=document.getElementById('lh-loading'); if(e) e.style.display=v?'flex':'none'; }
+function lhShow404(){ lhShowLoading(false); var e=document.getElementById('lh-404'); if(e) e.style.display='flex'; }
+/* Favicon par hôtel : si l'hôtel a un logo, il devient l'icône de l'onglet. */
+function lhSetFavicon(url){
+  if(!url) return;
+  var l=document.querySelector('link[rel="icon"]');
+  if(!l){ l=document.createElement('link'); l.rel='icon'; document.head.appendChild(l); }
+  l.href=url;
 }
 
 /* ---------- Photos depuis Supabase Storage ----------
-   Chaque hôtel dépose ses photos dans les buckets 'petit-dejeuner' /
-   'restaurant'. Si des photos existent, elles remplacent les carrousels.
-   Aucune photo => on ne touche à rien (pas de photo inventée par défaut). */
-function lhBucketPhotos(bucket){
+   Priorité par hôtel : on cherche d'abord un sous-dossier '<slug>/' dans le
+   bucket ; s'il est vide, on retombe sur la racine (photos par défaut,
+   partagées par tous les hôtels). Aucune photo => on ne touche à rien. */
+function lhBucketList(bucket, prefix){
+  prefix=prefix||'';
   return fetch(LH_SUPA_URL+'/storage/v1/object/list/'+bucket,{
     method:'POST',
     headers:{'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY,'content-type':'application/json'},
-    body:JSON.stringify({prefix:'',limit:50,sortBy:{column:'name',order:'asc'}})
+    body:JSON.stringify({prefix:prefix,limit:50,sortBy:{column:'name',order:'asc'}})
   }).then(function(r){return r.json();}).then(function(list){
     if(!Array.isArray(list)) return [];
     return list.filter(function(o){return o.name && o.id;})   /* les dossiers ont id=null */
-      .map(function(o){return LH_SUPA_URL+'/storage/v1/object/public/'+bucket+'/'+encodeURIComponent(o.name);});
+      .map(function(o){return LH_SUPA_URL+'/storage/v1/object/public/'+bucket+'/'+prefix+encodeURIComponent(o.name);});
   }).catch(function(){return [];});
+}
+function lhBucketPhotos(bucket, slug){
+  if(!slug) return lhBucketList(bucket,'');
+  return lhBucketList(bucket, slug+'/').then(function(u){ return u.length ? u : lhBucketList(bucket,''); });
 }
 function lhPhotoGo(trackId, idx){
   var el=document.getElementById(trackId); if(!el)return;
@@ -2203,21 +2240,25 @@ function lhSetPhotos(trackId, urls){
 }
 /* Résout les photos d'une catégorie : priorité aux liens de la ligne hôtel,
    sinon fallback sur le bucket Storage partagé. Vide partout => rien. */
-var LH_PDJ_IMAGES=[], LH_RESTO_IMAGES=[];
+var LH_PDJ_IMAGES=[], LH_RESTO_IMAGES=[], LH_SLUG='lharmony';
 function lhApplyPhotos(bucket, trackIds, rowImages){
   function put(list){ trackIds.forEach(function(t){ lhSetPhotos(t, list); }); }
   var clean=(rowImages||[]).filter(function(u){return u && String(u).trim();});
   if(clean.length){ put(clean); }
-  else { lhBucketPhotos(bucket).then(function(u){ put(u); }); }
+  else { lhBucketPhotos(bucket, LH_SLUG).then(function(u){ put(u); }); }
 }
 
 /* ---------- Boot ---------- */
 (function(){
   var t=document.getElementById('lh-extras-title'); if(t)t.textContent=LH_EXTRAS_TITLE;
   var hb=document.getElementById('lh-home-xtra-title'); if(hb)hb.textContent=LH_EXTRAS_TITLE;
-  lhApplyHotel(LH_DB);                         /* contenu depuis la base (snapshot) */
   var slug=(new URLSearchParams(location.search)).get('hotel')||LH_DB.slug||'lharmony';
-  lhFetchHotel(slug);                          /* rafraîchit en direct si dispo */
+  /* La démo L'Harmony s'affiche instantanément via le snapshot. Pour tout autre
+     hôtel, on n'affiche PAS L'Harmony (pas de flash) : écran de chargement le
+     temps que le vrai contenu arrive de Supabase. */
+  if(slug===LH_DB.slug){ lhApplyHotel(LH_DB); }
+  else { lhShowLoading(true); }
+  lhFetchHotel(slug);                          /* rafraîchit / charge en direct */
   /* Les photos sont appliquées par lhApplyHotel (liens ligne hôtel > bucket). */
   if(LH_EXTRAS.length>1){ setInterval(function(){ lhXtraIdx=(lhXtraIdx+1)%LH_EXTRAS.length; lhXtraApply(); },4000); }
 })();
