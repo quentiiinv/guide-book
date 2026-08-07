@@ -18,37 +18,9 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
    le bloc @media desktop est placé en fin de feuille (voir plus bas) pour
    gagner dans la cascade face aux règles de base #lh-app / .nav-g. */
 #lh-sidebar{display:none}
-/* ===== SIDEBAR (structure) ===== */
-#lh-sidebar{width:366px;flex-shrink:0;flex-direction:column;gap:24px;padding:40px 34px;
-  background:#1F3B2D;color:#F7F3EC;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin}
-/* un peu d'air entre les éléments et le bord (le nom, les cases, la nav) */
-#lh-sidebar .sb-brand{padding:0 4px}
-#lh-sidebar .sb-nav{margin:0 -2px}
-#lh-sidebar .sb-brand{padding-bottom:4px}
-#lh-sidebar .sb-name{font-size:20px;font-weight:800;color:#F7F3EC;line-height:1.2}
-#lh-sidebar .sb-city{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-top:6px}
-#lh-sidebar .sb-nav{display:flex;flex-direction:column;gap:2px}
-#lh-sidebar .sb-item{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:12px;cursor:pointer;
-  color:rgba(247,243,236,0.72);font-size:13.5px;font-weight:600;background:none;border:none;text-align:left;width:100%;
-  font-family:'Montserrat',sans-serif;transition:background .16s,color .16s}
-#lh-sidebar .sb-item:hover{background:rgba(247,243,236,0.07);color:#F7F3EC}
-#lh-sidebar .sb-item.on{background:rgba(201,169,97,0.16);color:#F7F3EC}
-#lh-sidebar .sb-item .sb-ic{width:20px;height:20px;flex-shrink:0}
-#lh-sidebar .sb-item .sb-ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-#lh-sidebar .sb-item.on .sb-ic svg{stroke:#C9A961}
-#lh-sidebar .sb-foot{margin-top:auto;display:flex;flex-direction:column;gap:16px;padding-top:12px}
-#lh-sidebar .sb-foot .lang-wrap{padding:0;justify-content:flex-start}
-#lh-sidebar .sb-foot .lang-sel{width:100%}
-#lh-sidebar .sb-foot .lang-dd{top:auto;bottom:calc(100% + 6px);left:0;transform:none;width:100%;max-height:260px}
-#lh-sidebar .sb-foot #lh-social{justify-content:flex-start;padding:0;gap:14px}
-#lh-sidebar .sb-divider{height:1px;background:rgba(247,243,236,0.1)}
-#lh-sidebar .sb-qr{display:flex;align-items:center;gap:13px}
-#lh-sidebar .sb-qr img{width:74px;height:74px;background:#fff;padding:5px;border-radius:11px;image-rendering:pixelated}
-#lh-sidebar .sb-qr span{font-size:11.5px;font-weight:600;color:rgba(247,243,236,0.62);line-height:1.4}
-#lh-sidebar .sb-code-wrap{display:flex;gap:10px}
-#lh-sidebar #lh-footer{max-width:none}
-#lh-sidebar #lh-footer a{color:#C9A961!important}
-#lh-sidebar #lh-footer>div{margin-left:0!important;margin-right:0!important;max-width:none!important}
+#lh-page-foot{display:none}
+/* La structure de la sidebar est définie APRÈS le reset #lh-app * (fin de feuille),
+   sinon le reset padding:0 écraserait le padding de la barre. */
 #lh-app *{box-sizing:border-box;margin:0;padding:0}
 #lh-app{font-family:'Montserrat',sans-serif;background:#F7F3EC;width:100%;max-width:100%;min-height:100vh;position:relative;overflow-x:clip}
 #lh-app .scr{display:none;flex-direction:column;min-height:100%;animation:lhFade 0.35s ease}
@@ -305,31 +277,59 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
      on montre le bloc dédié #lh-dt-home (construit en JS). ===== */
   #scr-home > :not(#lh-dt-home){display:none!important}
   #lh-dt-home{display:block}
-  #lh-dt-home .dth-hero{background:#1F3B2D;border-radius:22px;padding:48px 46px;position:relative;overflow:hidden}
-  #lh-dt-home .dth-hero::before{content:'';position:absolute;top:-70px;right:-50px;width:240px;height:240px;border-radius:50%;background:rgba(201,169,97,0.08)}
-  #lh-dt-home .dth-hero::after{content:'';position:absolute;bottom:-60px;left:-30px;width:150px;height:150px;border-radius:50%;background:rgba(201,169,97,0.05)}
-  #lh-dt-home .dth-ey{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:700;position:relative}
-  #lh-dt-home .dth-ti{font-size:38px;font-weight:800;color:#F7F3EC;line-height:1.1;margin:14px 0 16px;position:relative}
-  #lh-dt-home .dth-tx{font-size:15px;line-height:1.75;color:rgba(247,243,236,0.75);max-width:60ch;position:relative}
-  /* Carrousels mis en avant (petites attentions / petit-déj / restaurant) */
-  #lh-dt-home #lh-dt-cars{margin:30px 0 4px;display:flex;flex-direction:column;gap:14px}
+  #lh-dt-home .dth-hero{background:#1F3B2D;border-radius:20px;padding:32px 38px;position:relative;overflow:hidden}
+  #lh-dt-home .dth-hero::before{content:'';position:absolute;top:-70px;right:-50px;width:220px;height:220px;border-radius:50%;background:rgba(201,169,97,0.08)}
+  #lh-dt-home .dth-hero::after{content:'';position:absolute;bottom:-60px;left:-30px;width:140px;height:140px;border-radius:50%;background:rgba(201,169,97,0.05)}
+  #lh-dt-home .dth-ey{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:700;position:relative}
+  #lh-dt-home .dth-ti{font-size:29px;font-weight:800;color:#F7F3EC;line-height:1.12;margin:10px 0 12px;position:relative}
+  #lh-dt-home .dth-tx{font-size:14px;line-height:1.7;color:rgba(247,243,236,0.72);max-width:56ch;position:relative}
+  /* Bandeau mis en avant : petites attentions (carrousel) */
+  #lh-dt-home #lh-dt-cars{margin:16px 0 0;display:flex;flex-direction:column;gap:14px}
   #lh-dt-home #lh-dt-cars:empty{display:none;margin:0}
-  #lh-dt-home .dth-banner{height:184px!important;border-radius:18px!important;margin:0!important}
-  #lh-dt-home .dth-lb{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#A9812F;font-weight:700;margin:36px 0 16px}
-  #lh-dt-home .dth-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  #lh-dt-home .dth-card{display:flex;align-items:center;gap:16px;background:#fff;border:1.5px solid transparent;border-radius:16px;padding:20px 22px;cursor:pointer;text-align:left;font-family:'Montserrat',sans-serif;box-shadow:0 2px 12px rgba(31,59,45,0.05);transition:border-color .16s,transform .16s}
+  #lh-dt-home .dth-banner{height:172px!important;border-radius:18px!important;margin:0!important}
+  #lh-dt-home .dth-lb{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#A9812F;font-weight:700;margin:26px 0 14px}
+  #lh-dt-home .dth-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  #lh-dt-home .dth-card{display:flex;align-items:center;gap:15px;background:#fff;border:1.5px solid transparent;border-radius:15px;padding:17px 20px;cursor:pointer;text-align:left;font-family:'Montserrat',sans-serif;box-shadow:0 2px 12px rgba(31,59,45,0.05);transition:border-color .16s,transform .16s}
   #lh-dt-home .dth-card:hover{border-color:#1F3B2D;transform:translateY(-2px)}
-  #lh-dt-home .dth-ic{width:50px;height:50px;flex-shrink:0;border-radius:14px;background:#F1ECE3;display:flex;align-items:center;justify-content:center}
-  #lh-dt-home .dth-ic svg{width:24px;height:24px;stroke:#1F3B2D;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-  #lh-dt-home .dth-card .t{display:block;font-size:15px;font-weight:700;color:#1F3B2D}
-  #lh-dt-home .dth-card .d{display:block;font-size:12.5px;color:#9a9a90;margin-top:3px}
-  #lh-dt-home .dth-foot{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:40px;padding-top:24px;border-top:1px solid rgba(31,59,45,0.08)}
-  #lh-dt-home .dth-qr{display:flex;align-items:center;gap:14px}
-  #lh-dt-home .dth-qr img{width:74px;height:74px;background:#fff;padding:5px;border-radius:11px;image-rendering:pixelated;box-shadow:0 3px 12px rgba(31,59,45,0.08)}
-  #lh-dt-home .dth-qr span{font-size:12.5px;font-weight:600;color:#70746a;line-height:1.4;max-width:16ch}
-  #lh-dt-home .dth-credit{font-size:10px;color:#b7b3aa;text-align:right;line-height:1.7}
-  #lh-dt-home .dth-credit strong{color:#8a8578}
-  #lh-dt-home .dth-credit a{color:#1F3B2D;font-weight:600;text-decoration:none}
+  #lh-dt-home .dth-ic{width:46px;height:46px;flex-shrink:0;border-radius:13px;background:#F1ECE3;display:flex;align-items:center;justify-content:center}
+  #lh-dt-home .dth-ic svg{width:22px;height:22px;stroke:#1F3B2D;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  #lh-dt-home .dth-card .t{display:block;font-size:14.5px;font-weight:700;color:#1F3B2D}
+  #lh-dt-home .dth-card .d{display:block;font-size:12px;color:#9a9a90;margin-top:3px}
+
+  /* ===== SIDEBAR (structure) — après le reset, donc le padding tient.
+     Compactée pour tenir sans scroll, même avec tous les onglets. ===== */
+  #lh-sidebar{width:308px;flex-shrink:0;flex-direction:column;gap:13px;padding:20px 22px 16px;
+    background:#1F3B2D;color:#F7F3EC;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:none}
+  #lh-sidebar::-webkit-scrollbar{width:0;display:none}
+  #lh-sidebar .sb-brand{padding:0 12px}
+  #lh-sidebar .sb-name{font-size:18px;font-weight:800;color:#F7F3EC;line-height:1.2}
+  #lh-sidebar .sb-city{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-top:4px}
+  #lh-sidebar #lh-guest-card{padding:0 6px!important}
+  #lh-sidebar #lh-guest-card>div>div{padding:10px 13px!important}
+  #lh-sidebar .sb-nav{display:flex;flex-direction:column;gap:1px;padding:0 4px}
+  #lh-sidebar .sb-item{display:flex;align-items:center;gap:12px;padding:7px 13px;border-radius:10px;cursor:pointer;
+    color:rgba(247,243,236,0.72);font-size:12.5px;font-weight:600;background:none;border:none;text-align:left;width:100%;
+    font-family:'Montserrat',sans-serif;transition:background .16s,color .16s}
+  #lh-sidebar .sb-item:hover{background:rgba(247,243,236,0.07);color:#F7F3EC}
+  #lh-sidebar .sb-item.on{background:rgba(201,169,97,0.18);color:#F7F3EC}
+  #lh-sidebar .sb-item .sb-ic{width:18px;height:18px;flex-shrink:0}
+  #lh-sidebar .sb-item .sb-ic svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  #lh-sidebar .sb-item.on .sb-ic svg{stroke:#C9A961}
+  #lh-sidebar .sb-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding:10px 8px 0}
+  #lh-sidebar .sb-foot .lang-wrap{padding:0;justify-content:flex-start;position:relative}
+  #lh-sidebar .sb-foot .lang-sel{width:100%;padding:7px 14px 7px 12px}
+  #lh-sidebar .sb-foot .lang-dd{top:auto;bottom:calc(100% + 6px);left:0;transform:none;width:100%;max-height:240px}
+  #lh-sidebar .sb-foot #lh-social{justify-content:flex-start;padding:0;gap:14px}
+  #lh-sidebar .sb-qr{display:flex;align-items:center;gap:12px}
+  #lh-sidebar .sb-qr img{width:58px;height:58px;background:#fff;padding:4px;border-radius:9px;image-rendering:pixelated;flex-shrink:0}
+  #lh-sidebar .sb-qr span{font-size:10.5px;font-weight:600;color:rgba(247,243,236,0.6);line-height:1.4}
+
+  /* Footer SolvIA en bas de page (hors app, pleine largeur, comme le mobile) */
+  #lh-page-foot{display:block;text-align:center;padding:22px 20px 30px;background:#EFE9DE}
+  #lh-page-foot .pf1{font-size:9px;color:#b3ab9c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+  #lh-page-foot .pf1 strong{color:#8a8578;font-weight:700}
+  #lh-page-foot .pf2{font-size:10px;color:#b3ab9c;line-height:1.7}
+  #lh-page-foot .pf2 a{color:#1F3B2D;font-weight:600;text-decoration:none}
 }
 </style>
 
@@ -472,7 +472,7 @@ function lhSetLang(l){
   /* Update dd active */
   document.querySelectorAll('#lh-app .lang-dd button').forEach(function(b){b.classList.toggle('on',b.dataset.l===l);});
   /* Translate all (guide + panneau desktop) */
-  document.querySelectorAll('#lh-app [data-t], #lh-desktop-side [data-t]').forEach(function(el){
+  document.querySelectorAll('#lh-app [data-t], #lh-desktop-side [data-t], #lh-page-foot [data-t]').forEach(function(el){
     var k=el.dataset.t;
     if(el.tagName==='A'){el.textContent=lhT(k);}
     else{el.innerHTML=lhT(k);}
@@ -2617,36 +2617,44 @@ function lhSbSync(id){
   });
   sb.appendChild(nav);
 
-  /* --- Pied de sidebar : langue, réseaux, QR, crédit SolvIA (visibles en permanence) --- */
+  /* --- Pied de sidebar : langue, réseaux, QR (visibles sans scroller) --- */
   var foot=document.createElement('div'); foot.className='sb-foot';
   var lw=document.getElementById('lh-lang-wrap'); if(lw) foot.appendChild(lw);
   var soc=document.getElementById('lh-social'); if(soc) foot.appendChild(soc);
   var qr=document.createElement('div'); qr.className='sb-qr';
   qr.innerHTML='<img id="lh-sb-qr" alt="QR"><span data-t="sbScan">Ouvrir sur mon téléphone</span>';
   foot.appendChild(qr);
-  var ft=document.getElementById('lh-footer');
-  if(ft){ ft.style.marginTop='0'; ft.style.borderTop='1px solid rgba(247,243,236,0.1)'; ft.style.textAlign='left'; ft.style.padding='14px 0 0'; ft.style.display='block'; foot.appendChild(ft); }
   sb.appendChild(foot);
 
   app.insertBefore(sb, app.firstChild);
 
-  /* ===== ACCUEIL DESKTOP dédié (hero court + carrousels + accès rapide) ===== */
+  /* --- Crédit SolvIA : footer en bas de page (hors app, pleine largeur) --- */
+  (function(){
+    var ft=document.getElementById('lh-footer'); if(ft) ft.style.display='none';
+    var pf=document.createElement('div'); pf.id='lh-page-foot';
+    pf.innerHTML='<div class="pf1"><span data-t="poweredBy">Propulsé par</span> <strong>SolvIA</strong></div>'
+      +'<div class="pf2"><span data-t="footerDesc">Guide digital conçu sur mesure pour l\'hôtellerie. Envie d\'une solution similaire ?</span> <a href="mailto:contact@solvia.pro">contact@solvia.pro</a></div>';
+    var host=document.getElementById('lh-phone')||app;
+    if(host.parentNode) host.parentNode.insertBefore(pf, host.nextSibling);
+  })();
+
+  /* ===== ACCUEIL DESKTOP : hero court + petites attentions en avant + onglets ===== */
   (function(){
     var prenom=(typeof lhGuestPrenom!=='undefined'&&lhGuestPrenom)?lhGuestPrenom:'';
+    /* Onglets principaux d'abord (Arrivée, WiFi), puis Restaurant/Petit-déj, puis À découvrir. */
     var cards=[
       {t:'arr',   d:'arrD',        ic:'ci',   go:function(){lhGo('scr-ci');}},
       {t:'wifi',  d:'wifiD',       ic:'wf',   go:function(){lhGo('scr-wf');}},
-      {t:'pdj',   d:'navPdjDesc',  ic:'pdj',  go:function(){lhGo('scr-pdj');}},
       {t:'resto', d:'restoD',      ic:'rs',   go:function(){lhGo('scr-rs');}},
-      {t:'discTi',d:'discDs',      ic:'reco', go:function(){lhGo('scr-reco');}},
-      {t:'xtraTi',d:'xtraDs',      ic:'xtra', go:function(){lhGo('scr-extras');}}
+      {t:'pdj',   d:'navPdjDesc',  ic:'pdj',  go:function(){lhGo('scr-pdj');}},
+      {t:'discTi',d:'discDs',      ic:'reco', go:function(){lhGo('scr-reco');}}
     ];
     var dh=document.createElement('div'); dh.id='lh-dt-home';
     var hero='<div class="dth-hero">'
       +'<div class="dth-ey">'+(hn?lhEsc(hn)+(hl?' · '+lhEsc(hl):''):'')+'</div>'
       +'<div class="dth-ti"><span data-t="welcome">Bienvenue</span>'+(prenom?', '+lhEsc(prenom):'')+'</div>'
       +'<div class="dth-tx" data-t="homeWelcomeShort">'+lhEsc(lhT('homeWelcomeShort')||'')+'</div></div>';
-    /* Zone d'accueil des carrousels mis en avant (déplacés depuis l'accueil mobile) */
+    /* Bandeau petites attentions (mis en avant) */
     var carZone='<div id="lh-dt-cars"></div>';
     var grid='<div class="dth-lb" data-t="dthQuick">Accès rapide</div><div class="dth-grid">';
     cards.forEach(function(c){
@@ -2656,13 +2664,11 @@ function lhSbSync(id){
     grid+='</div>';
     dh.innerHTML=hero+carZone+grid;
     home.insertBefore(dh, home.firstChild);
-    /* Déplacer les 3 bannières carrousel dans l'accueil desktop (elles gardent
-       leur logique : images live + masquage auto si la section n'existe pas). */
+    /* On met SEULEMENT le bandeau petites attentions en avant (car3).
+       Les bannières petit-déj/resto restent masquées : ces onglets sont dans la grille. */
     var carHost=dh.querySelector('#lh-dt-cars');
-    ['lh-home-car1','lh-home-car2','lh-home-car3'].forEach(function(cid){
-      var car=document.getElementById(cid); var banner=car?car.parentElement:null;
-      if(banner){ banner.classList.add('dth-banner'); carHost.appendChild(banner); }
-    });
+    var car3=document.getElementById('lh-home-car3'); var banner=car3?car3.parentElement:null;
+    if(banner){ banner.classList.add('dth-banner'); carHost.appendChild(banner); }
     /* clics des cartes */
     var idx=0;
     dh.querySelectorAll('.dth-card').forEach(function(btn){ var c=cards[idx++]; btn.onclick=c.go; });
