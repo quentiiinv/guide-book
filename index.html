@@ -318,8 +318,10 @@ function lhToggleLang(){
   document.getElementById('lh-lang-sel').classList.toggle('open');
 }
 function lhCopy(){
-  var pwd='lharmony';
+  var pe=document.getElementById('lh-wf-pwd');
+  var pwd=pe?(pe.textContent||'').trim():'';
   var b=document.getElementById('lh-copy');
+  if(!pwd)return;
   if(navigator.clipboard&&navigator.clipboard.writeText){
     navigator.clipboard.writeText(pwd).then(function(){
       b.innerHTML=lhT('wfCopied');b.style.background='#C9A961';b.style.color='#1F3B2D';
@@ -1000,12 +1002,12 @@ function lhMarkPdjBooked(){
     </div>
     <div class="cd">
       <div class="cd-lb" data-t="ciFrom">Check-in à partir de</div>
-      <div class="cd-val">15:00</div>
+      <div class="cd-val" id="lh-ci-in">15:00</div>
       <div class="cd-txt" data-t="ciTxt">Utilisez le code transmis par SMS pour ouvrir la porte principale et la boîte à cadenas.</div>
     </div>
     <div class="cd">
       <div class="cd-lb" data-t="coBy">Check-out avant</div>
-      <div class="cd-val">11:00</div>
+      <div class="cd-val" id="lh-ci-out">11:00</div>
       <div class="cd-txt" data-t="coTxt">Laissez la clé dans la boîte à cadenas en partant et refermez bien la porte derrière vous.</div>
     </div>
 
@@ -1027,8 +1029,8 @@ function lhMarkPdjBooked(){
   </div>
   <div class="s-body">
     <div class="wf-row">
-      <div class="wf-box"><div class="wf-lb" data-t="wfNet">Réseau</div><div class="wf-val">Livebox-22A0</div></div>
-      <div class="wf-box"><div class="wf-lb" data-t="wfPwd">Mot de passe</div><div class="wf-val">lharmony</div></div>
+      <div class="wf-box"><div class="wf-lb" data-t="wfNet">Réseau</div><div class="wf-val" id="lh-wf-net">Livebox-22A0</div></div>
+      <div class="wf-box"><div class="wf-lb" data-t="wfPwd">Mot de passe</div><div class="wf-val" id="lh-wf-pwd">lharmony</div></div>
     </div>
     <button class="cp-btn" id="lh-copy" onclick="lhCopy()" data-t="wfCopy">Copier le mot de passe</button>
     <p class="cp-hint" data-t="wfHint">Appuyez pour copier</p>
@@ -1897,6 +1899,12 @@ function lhApplyHotel(d){
   if(d.recos){ LH_RECOS=d.recos.map(function(r){ return {nom:r.nom,cat:r.cat,desc:r.desc,emoji:r.emoji,photo:r.photo||'',maps:r.maps}; }); }
   if(d.lateCheckout){ LH_LATE_CO=d.lateCheckout.map(function(o,i){ return {id:'lco'+i,heure:o.heure,prix:o.prix}; }); }
   var ey=document.querySelector('#scr-home .hero-ey'); if(ey&&d.nom) ey.textContent=d.nom+(d.lieu?' · '+d.lieu:'');
+  /* Champs texte lus directement depuis la ligne Supabase (vide = vide) */
+  function lhSet(id,v){ var e=document.getElementById(id); if(e && v!==undefined) e.textContent=(v==null?'':v); }
+  lhSet('lh-wf-net', d.wifi_reseau);
+  lhSet('lh-wf-pwd', d.wifi_motdepasse);
+  lhSet('lh-ci-in',  d.checkin);
+  if(d.checkout_std!==undefined){ lhSet('lh-ci-out', d.checkout_std); lhSet('lh-lco-std', d.checkout_std); LH_CHECKOUT_STD=d.checkout_std||LH_CHECKOUT_STD; }
   lhRenderExtras(); lhRenderReco(); lhRenderLco(); lhRenderXtraBanner(); lhApplySections();
 }
 
@@ -1918,6 +1926,8 @@ function lhFetchHotel(slug){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
         nom:hotel.nom, lieu:hotel.lieu,
+        wifi_reseau:hotel.wifi_reseau, wifi_motdepasse:hotel.wifi_motdepasse,
+        checkin:hotel.checkin, checkout_std:hotel.checkout_std,
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:(res[1]||[]).filter(function(e){return e.hotel_id===hid;}).map(function(e){return {id:e.id,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
