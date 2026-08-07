@@ -191,7 +191,6 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 /* ===== SOLVIA — NOUVELLES SECTIONS (Extras / Bien-être / Reco / Late check-out) ===== */
 /* Media / photo réutilisable (fallback dégradé de marque si la photo ne charge pas) */
 #lh-app .lh-photo{position:relative;width:100%;background:linear-gradient(135deg,#1F3B2D,#2d5a3d);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;overflow:hidden}
-#lh-app .lh-photo .lh-photo-emoji{font-size:44px;opacity:0.9}
 #lh-app .lh-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 /* EXTRAS — cartes produit payantes */
 #lh-app .xtra-card{background:white;border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 10px rgba(31,59,45,0.04);transition:box-shadow 0.2s}
@@ -357,7 +356,7 @@ function lhStars(n){
   else if(n>=4){
     if(thx)thx.style.display='none';
     if(toast){toast.style.display='block';toast.innerHTML=lhT('avRedirect');}
-    window.open('https://g.page/r/CY-wHW4vERgQEAE/review','_blank');
+    if(LH_LIEN_AVIS) window.open(LH_LIEN_AVIS,'_blank');
     setTimeout(function(){if(toast)toast.style.display='none';},1200);
   } else {
     if(toast)toast.style.display='none';
@@ -536,7 +535,7 @@ function lhPdjSupplement(){
   /* Enfants en supplément = enfants programmés - quota enfants prépayés */
   var totalEn=0;lhPdjDays.forEach(function(d){totalEn+=d.en;});
   var extraEn=Math.max(0,totalEn-lhPdjPrepaidEnfant);
-  return extraAd*12+extraEn*6;
+  return extraAd*LH_PDJ_AD+extraEn*LH_PDJ_EN;
 }
 function lhRenderDays(){
   var c=document.getElementById('lh-pdj-days');
@@ -893,7 +892,7 @@ function lhMarkPdjBooked(){
       <div style="font-size:15px;font-weight:700;color:#F7F3EC;margin-bottom:2px" data-t="homePdjTitle">Petit-déjeuner gourmand</div>
       <div style="font-size:10px;color:rgba(247,243,236,0.6)" data-t="homePdjDesc">Croissants, baguette du boulanger, fruits, café…</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-        <div style="font-size:18px;font-weight:700;color:#C9A961" data-t="price1">12€ / pers.</div>
+        <div style="font-size:18px;font-weight:700;color:#C9A961" id="lh-pdj-price-banner">12€ / pers.</div>
         <div style="background:#C9A961;color:#1F3B2D;border-radius:8px;padding:6px 14px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase" data-t="ctaBookArrow">Réserver →</div>
       </div>
     </div>
@@ -1054,7 +1053,7 @@ function lhMarkPdjBooked(){
         
       </div>
       <!-- Price badge -->
-      <div style="position:absolute;top:12px;right:12px;background:rgba(31,59,45,0.9);backdrop-filter:blur(8px);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;color:#C9A961" data-t="price1">12€ / pers.</div>
+      <div style="position:absolute;top:12px;right:12px;background:rgba(31,59,45,0.9);backdrop-filter:blur(8px);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;color:#C9A961" id="lh-pdj-price-badge">12€ / pers.</div>
     </div>
 
     <!-- DESCRIPTION + MENU -->
@@ -1071,11 +1070,11 @@ function lhMarkPdjBooked(){
       <div style="display:flex;gap:10px;margin-top:14px">
         <div style="flex:1;background:#F7F3EC;border-radius:12px;padding:14px;text-align:center">
           <div style="font-size:9px;color:#aaa;text-transform:uppercase;letter-spacing:1px;font-weight:600" data-t="pdjAd">Adulte</div>
-          <div style="font-size:24px;font-weight:700;color:#1F3B2D">12€</div>
+          <div style="font-size:24px;font-weight:700;color:#1F3B2D" id="lh-pdj-ad">12€</div>
         </div>
         <div style="flex:1;background:#F7F3EC;border-radius:12px;padding:14px;text-align:center">
           <div style="font-size:9px;color:#aaa;text-transform:uppercase;letter-spacing:1px;font-weight:600" data-t="pdjEn">Enfant</div>
-          <div style="font-size:24px;font-weight:700;color:#1F3B2D">6€</div>
+          <div style="font-size:24px;font-weight:700;color:#1F3B2D" id="lh-pdj-en">6€</div>
         </div>
       </div>
     </div>
@@ -1280,9 +1279,9 @@ function lhMarkPdjBooked(){
     <div id="lh-pr-infos"></div>
     <div class="pr-item">
       <div class="pr-ic"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.01 1.18A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/></svg></div>
-      <div><div class="pr-ti" data-t="prH">Besoin d'aide ?</div><div class="pr-tx"><a href="tel:+33130461214" style="color:#1F3B2D;font-weight:600;text-decoration:none">01 30 46 12 14</a><br><a href="mailto:contact@lharmony-yvelines.fr" style="color:#777;text-decoration:none">contact@lharmony-yvelines.fr</a></div></div>
+      <div><div class="pr-ti" data-t="prH">Besoin d'aide ?</div><div class="pr-tx"><a id="lh-help-tel" href="tel:+33130461214" style="color:#1F3B2D;font-weight:600;text-decoration:none">01 30 46 12 14</a><br><a id="lh-help-mail" href="mailto:contact@lharmony-yvelines.fr" style="color:#777;text-decoration:none">contact@lharmony-yvelines.fr</a></div></div>
     </div>
-    <a class="btn-f btn-dk" href="tel:+33130461214" style="margin-top:4px" data-t="prCall">📞 Appeler L'Harmony</a>
+    <a id="lh-call-btn" class="btn-f btn-dk" href="tel:+33130461214" style="margin-top:4px">📞 Appeler</a>
     <div style="text-align:center;margin-top:14px;padding:12px;background:rgba(31,59,45,0.04);border-radius:12px">
       <div style="font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-bottom:6px" data-t="prUrg">Urgences</div>
       <div style="font-size:12px;color:#666;line-height:1.8"><a href="tel:112" style="color:#1F3B2D;font-weight:600;text-decoration:none">112</a> <span style="color:#bbb">·</span> SAMU <a href="tel:15" style="color:#1F3B2D;font-weight:600;text-decoration:none">15</a> <span style="color:#bbb">·</span> <span data-t="prFire">Pompiers</span> <a href="tel:18" style="color:#1F3B2D;font-weight:600;text-decoration:none">18</a></div>
@@ -1663,6 +1662,33 @@ function lhLateHeure(){
   return hh+'h'+mm;
 }
 
+/* --- Contact & prix petit-déj — lus depuis la ligne hôtel (multi-hôtel) --- */
+var LH_TEL='', LH_EMAIL='', LH_LIEN_AVIS='';
+var LH_PDJ_AD=12, LH_PDJ_EN=6;
+function lhFmtTel(t){                       /* +33130461214 -> 01 30 46 12 14 */
+  if(!t) return '';
+  var d=String(t).replace(/[^\d+]/g,'');
+  if(d.indexOf('+33')===0) d='0'+d.slice(3);
+  else if(d.indexOf('0033')===0) d='0'+d.slice(4);
+  d=d.replace(/\D/g,'');
+  return d.replace(/(\d{2})(?=\d)/g,'$1 ').trim();
+}
+function lhApplyContact(){
+  var tel=document.getElementById('lh-help-tel');
+  if(tel){ if(LH_TEL){ tel.href='tel:'+LH_TEL; tel.textContent=lhFmtTel(LH_TEL); tel.style.display=''; } else tel.style.display='none'; }
+  var mail=document.getElementById('lh-help-mail');
+  if(mail){ if(LH_EMAIL){ mail.href='mailto:'+LH_EMAIL; mail.textContent=LH_EMAIL; mail.style.display=''; } else mail.style.display='none'; }
+  var cb=document.getElementById('lh-call-btn');
+  if(cb){ if(LH_TEL){ cb.href='tel:'+LH_TEL; cb.style.display=''; cb.textContent='📞 '+(LH_LANG==='en'?'Call':'Appeler')+((HOTEL&&HOTEL.nom)?' '+HOTEL.nom:''); } else cb.style.display='none'; }
+}
+function lhApplyPdjPrices(){
+  function set(id,txt){var e=document.getElementById(id);if(e)e.textContent=txt;}
+  set('lh-pdj-price-banner', LH_PDJ_AD+'€ / pers.');
+  set('lh-pdj-price-badge',  LH_PDJ_AD+'€ / pers.');
+  set('lh-pdj-ad', LH_PDJ_AD+'€');
+  set('lh-pdj-en', LH_PDJ_EN+'€');
+}
+
 /* --- 3. BIEN-ÊTRE (Spa / Piscine / Sauna) — InfoBlock générique ------
    Un seul composant, une entrée par lieu. Pensé comme des instructions
    d'accès à un lieu (souvent public / partenaire à proximité). */
@@ -1815,7 +1841,7 @@ function lhMedia(url,emoji,h,cls){
      pour une URL cassée. La photo n'apparaît que si elle charge vraiment. */
   if(!url) return '';
   return '<div class="lh-photo'+(cls?' '+cls:'')+'" style="height:'+h+'px;display:none">'
-    + '<img src="'+lhEsc(url)+'" alt="" '
+    + '<img src="'+lhEsc(url)+'" alt="" loading="lazy" decoding="async" '
     +   'onload="this.parentNode.style.display=\'\'" '
     +   'onerror="this.parentNode.remove()">'
     + '</div>';
@@ -2006,7 +2032,7 @@ function lhApplySections(){
 var LH_SUPA_URL='https://nocifyylfyafbfppmykp.supabase.co';
 var LH_SUPA_KEY='sb_publishable_OKNvEE9qH7CMfjMXBmItNA_gSed6gjJ';
 
-var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"resto_lien_reservation":"https://bookings.zenchef.com/results?rid=375884","resto_lien_menu":"https://lharmony-yvelines.fr/restaurant","pdj_exemple":true,"extras_exemple":true,"pdj_images":[],"resto_images":[],"social":{"instagram":"https://www.instagram.com/lharmony_yvelines/","facebook":"https://www.facebook.com/lharmony.yvelines","linkedin":"","youtube":"","tiktok":"","twitter":""},"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","lien_avis":"https://g.page/r/lharmony/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","nom":"Bouteille de champagne","desc":"Brut premier cru, servie fraîche en chambre à votre arrivée.","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","nom":"Bouquet de fleurs","desc":"Composition de saison préparée par notre fleuriste partenaire.","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"Accès à l'espace spa de notre partenaire « Les Thermes du Val », à 400 m de l'hôtel.","horaires":"Tous les jours · 10h00 – 20h00","acces":"Sortie de l'hôtel à droite, 5 min à pied.","prevoir":"Peignoir et serviettes fournis. Prévoyez un maillot de bain.","maps":"https://www.google.com/maps/search/spa+Saint-Arnoult"},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"Piscine intercommunale chauffée à 10 min en voiture.","horaires":"Lun–Ven 12h–20h · Week-end 9h–18h","acces":"Rue des Sablons. Parking gratuit sur place.","prevoir":"Maillot obligatoire, bonnet recommandé.","maps":"https://www.google.com/maps/search/piscine+Saint-Arnoult"},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"Sauna finlandais en accès libre au rez-de-chaussée.","horaires":"Tous les jours · 8h00 – 22h00","acces":"Rez-de-chaussée, couloir à gauche après la réception.","prevoir":"Serviette obligatoire. Douche avant l'accès.","maps":null}},"recos":[{"nom":"La Table des Gourmets","cat":"Restaurant","trajetMode":"pied","trajetDuree":"6 min","desc":"","emoji":"⭐","photo":null,"maps":"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"},{"nom":"Le Moulin de la Renardière","cat":"Restaurant","trajetMode":"voiture","trajetDuree":"8 min","desc":"","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines"},{"nom":"Forêt de Rambouillet","cat":"Activité","trajetMode":"voiture","trajetDuree":"15 min","desc":"","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet"},{"nom":"Château de Rambouillet","cat":"Visite","trajetMode":"voiture","trajetDuree":"18 min","desc":"","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet"}],"late_prix":20,"late_exemple":true,"infos":[{"icone":"parking","titre":"Parking gratuit","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"}]};
+var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"resto_lien_reservation":"https://bookings.zenchef.com/results?rid=375884","resto_lien_menu":"https://lharmony-yvelines.fr/restaurant","pdj_exemple":true,"extras_exemple":true,"pdj_images":[],"resto_images":[],"social":{"instagram":"https://www.instagram.com/lharmony_yvelines/","facebook":"https://www.facebook.com/lharmony.yvelines","linkedin":"","youtube":"","tiktok":"","twitter":""},"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","email":"contact@lharmony-yvelines.fr","lien_avis":"https://g.page/r/CY-wHW4vERgQEAE/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","nom":"Bouteille de champagne","desc":"Brut premier cru, servie fraîche en chambre à votre arrivée.","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","nom":"Bouquet de fleurs","desc":"Composition de saison préparée par notre fleuriste partenaire.","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"Accès à l'espace spa de notre partenaire « Les Thermes du Val », à 400 m de l'hôtel.","horaires":"Tous les jours · 10h00 – 20h00","acces":"Sortie de l'hôtel à droite, 5 min à pied.","prevoir":"Peignoir et serviettes fournis. Prévoyez un maillot de bain.","maps":"https://www.google.com/maps/search/spa+Saint-Arnoult"},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"Piscine intercommunale chauffée à 10 min en voiture.","horaires":"Lun–Ven 12h–20h · Week-end 9h–18h","acces":"Rue des Sablons. Parking gratuit sur place.","prevoir":"Maillot obligatoire, bonnet recommandé.","maps":"https://www.google.com/maps/search/piscine+Saint-Arnoult"},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"Sauna finlandais en accès libre au rez-de-chaussée.","horaires":"Tous les jours · 8h00 – 22h00","acces":"Rez-de-chaussée, couloir à gauche après la réception.","prevoir":"Serviette obligatoire. Douche avant l'accès.","maps":null}},"recos":[{"nom":"La Table des Gourmets","cat":"Restaurant","trajetMode":"pied","trajetDuree":"6 min","desc":"","emoji":"⭐","photo":null,"maps":"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"},{"nom":"Le Moulin de la Renardière","cat":"Restaurant","trajetMode":"voiture","trajetDuree":"8 min","desc":"","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines"},{"nom":"Forêt de Rambouillet","cat":"Activité","trajetMode":"voiture","trajetDuree":"15 min","desc":"","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet"},{"nom":"Château de Rambouillet","cat":"Visite","trajetMode":"voiture","trajetDuree":"18 min","desc":"","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet"}],"late_prix":20,"late_exemple":true,"infos":[{"icone":"parking","titre":"Parking gratuit","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"}]};
 
 /* Applique une fiche hôtel (snapshot ou fetch) au guidebook */
 function lhApplyHotel(d){
@@ -2026,6 +2052,13 @@ function lhApplyHotel(d){
   /* Photos : liens de la ligne hôtel prioritaires, sinon bucket Storage. */
   if(d.pdj_images!==undefined){ LH_PDJ_IMAGES=d.pdj_images||[]; lhApplyPhotos('petit-dejeuner',['lh-pdj-slides','lh-home-car1'],LH_PDJ_IMAGES); }
   if(d.resto_images!==undefined){ LH_RESTO_IMAGES=d.resto_images||[]; lhApplyPhotos('restaurant',['lh-rs-slides','lh-home-car2'],LH_RESTO_IMAGES); }
+  /* Contact + lien avis + prix petit-déj, lus depuis la ligne hôtel */
+  if(d.telephone!==undefined) LH_TEL=d.telephone||'';
+  if(d.email!==undefined)     LH_EMAIL=d.email||'';
+  if(d.lien_avis!==undefined) LH_LIEN_AVIS=d.lien_avis||'';
+  if(d.pdj_prix_adulte!=null) LH_PDJ_AD=d.pdj_prix_adulte;
+  if(d.pdj_prix_enfant!=null) LH_PDJ_EN=d.pdj_prix_enfant;
+  lhApplyContact(); lhApplyPdjPrices();
   if(d.late_prix!==undefined && d.late_prix!==null) LH_LATE_PRICE=d.late_prix;
   if(d.late_exemple!==undefined) LH_LATE_EXEMPLE=d.late_exemple;
   var ey=document.querySelector('#scr-home .hero-ey'); if(ey&&d.nom) ey.textContent=d.nom+(d.lieu?' · '+d.lieu:'');
@@ -2090,7 +2123,6 @@ function lhFetchHotel(slug){
       g('hotel_extras','select=*&order=ordre'),
       g('hotel_facilities','select=*'),
       g('hotel_recos','select=*&order=ordre'),
-      g('hotel_late_checkout','select=*&order=ordre'),
       g('hotel_infos','select=*&order=ordre')
     ]).then(function(res){
       var hotel=res[0]&&res[0][0]; if(!hotel) return; var hid=hotel.id;
@@ -2105,12 +2137,14 @@ function lhFetchHotel(slug){
         resto_lien_reservation:hotel.resto_lien_reservation, resto_lien_menu:hotel.resto_lien_menu,
         pdj_exemple:hotel.pdj_exemple, extras_exemple:hotel.extras_exemple,
         pdj_images:hotel.pdj_images||[], resto_images:hotel.resto_images||[],
+        telephone:hotel.telephone, email:hotel.email, lien_avis:hotel.lien_avis,
+        pdj_prix_adulte:hotel.pdj_prix_adulte, pdj_prix_enfant:hotel.pdj_prix_enfant,
         social:{instagram:hotel.social_instagram,facebook:hotel.social_facebook,linkedin:hotel.social_linkedin,youtube:hotel.social_youtube,tiktok:hotel.social_tiktok,twitter:hotel.social_twitter},
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:lhMergeRows(res[1], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
         recos:(res[3]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url};}),
-        infos:lhMergeRows(res[5], hid, function(i){return i.icone;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
+        infos:lhMergeRows(res[4], hid, function(i){return i.icone;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
       });
     }).catch(function(){/* réseau bloqué (aperçu) : on garde le snapshot */});
   }catch(e){}
