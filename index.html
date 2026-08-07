@@ -21,10 +21,9 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 /* ===== SIDEBAR (structure) ===== */
 #lh-sidebar{width:330px;flex-shrink:0;flex-direction:column;gap:22px;padding:36px 26px;
   background:#1F3B2D;color:#F7F3EC;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin}
-#lh-sidebar .sb-brand-ey{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:700;line-height:1.5}
-#lh-sidebar .sb-hello{font-size:24px;font-weight:800;line-height:1.18;margin-top:9px}
-#lh-sidebar .sb-hello em{font-style:italic;font-weight:400;color:#C9A961}
-#lh-sidebar .sb-sub{font-size:11px;color:rgba(247,243,236,0.45);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:300}
+#lh-sidebar .sb-brand{padding-bottom:4px}
+#lh-sidebar .sb-name{font-size:20px;font-weight:800;color:#F7F3EC;line-height:1.2}
+#lh-sidebar .sb-city{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-top:6px}
 #lh-sidebar .sb-nav{display:flex;flex-direction:column;gap:2px}
 #lh-sidebar .sb-item{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:12px;cursor:pointer;
   color:rgba(247,243,236,0.72);font-size:13.5px;font-weight:600;background:none;border:none;text-align:left;width:100%;
@@ -279,31 +278,51 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
    Placé en toute fin de feuille pour l'emporter dans la cascade.
    ============================================================ */
 @media (min-width:1000px){
-  html,body{background:#E7E1D5}
+  html,body{background:#EFE9DE}
   body{display:block;min-height:100vh;padding:0}
   #lh-phone{display:block}                 /* wrapper transparent, pas de cadre */
   #lh-desktop-side{display:none}
-  #lh-app{display:flex;flex-direction:row;align-items:stretch;max-width:1240px;min-height:100vh;
-    margin:0 auto;background:#F7F3EC;box-shadow:0 0 90px rgba(31,59,45,0.10);overflow:visible}
+  /* Pleine largeur : la sidebar est collée au bord gauche, le contenu remplit le reste */
+  #lh-app{display:flex;flex-direction:row;align-items:stretch;max-width:none;min-height:100vh;
+    margin:0;background:#F7F3EC;overflow:visible}
   #lh-sidebar{display:flex}
   /* Zone de contenu = l'écran actif, colonne de lecture confortable */
-  #lh-app > .scr.on{flex:1;min-width:0;max-width:none;padding:46px 60px 72px;background:#F7F3EC}
-  #lh-app > .scr.on > *{max-width:880px;width:100%;margin-left:auto;margin-right:auto}
+  #lh-app > .scr.on{flex:1;min-width:0;max-width:none;padding:48px 64px 72px;background:#F7F3EC}
+  #lh-app > .scr.on > *{max-width:900px;width:100%;margin-left:auto;margin-right:auto}
   /* Barre verte des sous-écrans : plus de bouton retour (la sidebar gère la nav) */
   #lh-app .s-hdr{position:static;box-shadow:none;padding:26px 30px}
   #lh-app .s-hdr .bk{display:none}
   #lh-app .s-body{padding:28px 0 0}
   #lh-app .scr{animation:none}
-  /* Accueil : la nav en grille et les doublons passent dans la sidebar */
-  #scr-home .nav-g,#scr-home #lh-lang-wrap,#scr-home #lh-social,#scr-home #lh-note-generic,#scr-home #lh-guest-card{display:none}
-  #scr-home .hero{padding:46px 46px 40px}
-  #scr-home .hero-ey{font-size:11px;letter-spacing:1.8px}
-  #scr-home .hero-t{font-size:34px;line-height:1.12}
-  #scr-home .hero-s{font-size:11px}
-  #scr-home [data-lh-sec]{height:220px}
   /* Lisibilité générale un cran au-dessus */
   #lh-app .s-ti{font-size:26px}
   #lh-app .cd-txt,#lh-app .ib-tx,#lh-app .reco-ds{font-size:14px;line-height:1.75}
+
+  /* ===== ACCUEIL DESKTOP : on masque le contenu mobile de l'accueil et
+     on montre le bloc dédié #lh-dt-home (construit en JS). ===== */
+  #scr-home > :not(#lh-dt-home){display:none!important}
+  #lh-dt-home{display:block}
+  #lh-dt-home .dth-hero{background:#1F3B2D;border-radius:22px;padding:48px 46px;position:relative;overflow:hidden}
+  #lh-dt-home .dth-hero::before{content:'';position:absolute;top:-70px;right:-50px;width:240px;height:240px;border-radius:50%;background:rgba(201,169,97,0.08)}
+  #lh-dt-home .dth-hero::after{content:'';position:absolute;bottom:-60px;left:-30px;width:150px;height:150px;border-radius:50%;background:rgba(201,169,97,0.05)}
+  #lh-dt-home .dth-ey{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:700;position:relative}
+  #lh-dt-home .dth-ti{font-size:38px;font-weight:800;color:#F7F3EC;line-height:1.1;margin:14px 0 16px;position:relative}
+  #lh-dt-home .dth-tx{font-size:15px;line-height:1.75;color:rgba(247,243,236,0.75);max-width:60ch;position:relative}
+  #lh-dt-home .dth-lb{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#A9812F;font-weight:700;margin:38px 0 16px}
+  #lh-dt-home .dth-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  #lh-dt-home .dth-card{display:flex;align-items:center;gap:16px;background:#fff;border:1.5px solid transparent;border-radius:16px;padding:20px 22px;cursor:pointer;text-align:left;font-family:'Montserrat',sans-serif;box-shadow:0 2px 12px rgba(31,59,45,0.05);transition:border-color .16s,transform .16s}
+  #lh-dt-home .dth-card:hover{border-color:#1F3B2D;transform:translateY(-2px)}
+  #lh-dt-home .dth-ic{width:50px;height:50px;flex-shrink:0;border-radius:14px;background:#F1ECE3;display:flex;align-items:center;justify-content:center}
+  #lh-dt-home .dth-ic svg{width:24px;height:24px;stroke:#1F3B2D;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  #lh-dt-home .dth-card .t{display:block;font-size:15px;font-weight:700;color:#1F3B2D}
+  #lh-dt-home .dth-card .d{display:block;font-size:12.5px;color:#9a9a90;margin-top:3px}
+  #lh-dt-home .dth-foot{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:40px;padding-top:24px;border-top:1px solid rgba(31,59,45,0.08)}
+  #lh-dt-home .dth-qr{display:flex;align-items:center;gap:14px}
+  #lh-dt-home .dth-qr img{width:74px;height:74px;background:#fff;padding:5px;border-radius:11px;image-rendering:pixelated;box-shadow:0 3px 12px rgba(31,59,45,0.08)}
+  #lh-dt-home .dth-qr span{font-size:12.5px;font-weight:600;color:#70746a;line-height:1.4;max-width:16ch}
+  #lh-dt-home .dth-credit{font-size:10px;color:#b7b3aa;text-align:right;line-height:1.7}
+  #lh-dt-home .dth-credit strong{color:#8a8578}
+  #lh-dt-home .dth-credit a{color:#1F3B2D;font-weight:600;text-decoration:none}
 }
 </style>
 
@@ -397,7 +416,9 @@ var LH_T_EXTRA={
  dtFeatReco:{fr:"Bonnes adresses autour",en:"Local recommendations",es:"Recomendaciones locales",it:"Consigli nei dintorni",de:"Tipps in der Umgebung",pt:"Recomendações locais",nl:"Tips in de buurt"},
  dtFeatXtra:{fr:"Petites attentions à réserver",en:"Little extras to book",es:"Detalles para reservar",it:"Piccoli extra da prenotare",de:"Extras zum Buchen",pt:"Mimos para reservar",nl:"Extraatjes om te boeken"},
  sbHome:{fr:"Accueil",en:"Home",es:"Inicio",it:"Home",de:"Start",pt:"Início",nl:"Start"},
- sbScan:{fr:"Ouvrir sur mon téléphone",en:"Open on my phone",es:"Abrir en mi móvil",it:"Apri sul telefono",de:"Auf dem Handy öffnen",pt:"Abrir no telemóvel",nl:"Openen op mijn telefoon"}
+ sbScan:{fr:"Ouvrir sur mon téléphone",en:"Open on my phone",es:"Abrir en mi móvil",it:"Apri sul telefono",de:"Auf dem Handy öffnen",pt:"Abrir no telemóvel",nl:"Openen op mijn telefoon"},
+ homeWelcomeTxt:{fr:"Tout ce qu'il faut pour un séjour serein est réuni ici : votre arrivée, le WiFi, le petit-déjeuner, notre restaurant, les meilleures adresses autour et quelques attentions pour vous faire plaisir. Belle arrivée parmi nous !",en:"Everything you need for a relaxing stay is right here: your arrival, WiFi, breakfast, our restaurant, the best spots nearby and a few little extras to treat yourself. So glad to have you with us!",es:"Aquí encontrará todo para una estancia tranquila: su llegada, el WiFi, el desayuno, nuestro restaurante, los mejores lugares de la zona y algunos detalles para darse un gusto. ¡Bienvenido!",it:"Qui trovi tutto per un soggiorno sereno: l'arrivo, il WiFi, la colazione, il nostro ristorante, i posti migliori nei dintorni e qualche coccola per te. Benvenuto!",de:"Hier finden Sie alles für einen entspannten Aufenthalt: Ihre Ankunft, WLAN, Frühstück, unser Restaurant, die besten Orte in der Nähe und ein paar kleine Extras. Schön, dass Sie da sind!",pt:"Aqui está tudo para uma estadia tranquila: a sua chegada, o WiFi, o pequeno-almoço, o nosso restaurante, os melhores locais à volta e alguns mimos para si. Bem-vindo!",nl:"Hier vindt u alles voor een ontspannen verblijf: uw aankomst, wifi, ontbijt, ons restaurant, de beste plekjes in de buurt en een paar extraatjes. Fijn dat u er bent!"},
+ dthQuick:{fr:"Accès rapide",en:"Quick access",es:"Acceso rápido",it:"Accesso rapido",de:"Schnellzugriff",pt:"Acesso rápido",nl:"Snel naar"}
 };
 (function(){
   for(var k in LH_T_EXTRA){ var t=LH_T_EXTRA[k]; for(var l in t){ if(LH_T[l]) LH_T[l][k]=t[l]; } }
@@ -2543,13 +2564,11 @@ function lhSbSync(id){
 
   var sb=document.createElement('div'); sb.id='lh-sidebar';
 
-  /* --- Marque --- */
-  var brand=document.createElement('div');
+  /* --- Marque (nom de l'hôtel · ville) --- */
+  var brand=document.createElement('div'); brand.className='sb-brand';
   var hn=(typeof HOTEL!=='undefined'&&HOTEL.nom)?HOTEL.nom:'';
   var hl=(typeof HOTEL!=='undefined'&&HOTEL.lieu)?HOTEL.lieu:'';
-  brand.innerHTML='<div class="sb-brand-ey">'+(hn?lhEsc(hn)+(hl?' · '+lhEsc(hl):''):'')+'</div>'
-    +'<div class="sb-hello"><span data-t="welcome">Bienvenue</span> <em data-t="welSub">chez vous</em></div>'
-    +'<div class="sb-sub" data-t="guide">Votre guide de séjour</div>';
+  brand.innerHTML='<div class="sb-name">'+lhEsc(hn||'')+'</div>'+(hl?'<div class="sb-city">'+lhEsc(hl)+'</div>':'');
   sb.appendChild(brand);
 
   /* --- Chambre + code (nœud existant, reste synchronisé) --- */
@@ -2567,21 +2586,50 @@ function lhSbSync(id){
   });
   sb.appendChild(nav);
 
-  /* --- Pied : langue, QR, réseaux --- */
+  /* --- Pied de sidebar : langue + réseaux uniquement --- */
   var foot=document.createElement('div'); foot.className='sb-foot';
   var lw=document.getElementById('lh-lang-wrap'); if(lw) foot.appendChild(lw);
-  var qr=document.createElement('div'); qr.className='sb-qr';
-  qr.innerHTML='<img id="lh-sb-qr" alt="QR"><span data-t="sbScan">Ouvrir sur mon téléphone</span>';
-  foot.appendChild(qr);
   var soc=document.getElementById('lh-social'); if(soc) foot.appendChild(soc);
-  var ft=document.getElementById('lh-footer'); if(ft){ ft.style.marginTop='0'; ft.style.borderTop='1px solid rgba(247,243,236,0.1)'; ft.style.textAlign='left'; ft.style.padding='14px 0 0'; foot.appendChild(ft); }
   sb.appendChild(foot);
 
   app.insertBefore(sb, app.firstChild);
 
-  /* Marquer l'accueil actif + rendre le QR de la sidebar */
+  /* ===== ACCUEIL DESKTOP dédié (hero + accès rapide + QR/crédit) ===== */
+  (function(){
+    var prenom=(typeof lhGuestPrenom!=='undefined'&&lhGuestPrenom)?lhGuestPrenom:'';
+    var cards=[
+      {t:'arr',   d:'arrD',        ic:'ci',   go:function(){lhGo('scr-ci');}},
+      {t:'wifi',  d:'wifiD',       ic:'wf',   go:function(){lhGo('scr-wf');}},
+      {t:'pdj',   d:'navPdjDesc',  ic:'pdj',  go:function(){lhGo('scr-pdj');}},
+      {t:'resto', d:'restoD',      ic:'rs',   go:function(){lhGo('scr-rs');}},
+      {t:'discTi',d:'discDs',      ic:'reco', go:function(){lhGo('scr-reco');}},
+      {t:'xtraTi',d:'xtraDs',      ic:'xtra', go:function(){lhGo('scr-extras');}}
+    ];
+    var dh=document.createElement('div'); dh.id='lh-dt-home';
+    var hero='<div class="dth-hero">'
+      +'<div class="dth-ey">'+(hn?lhEsc(hn)+(hl?' · '+lhEsc(hl):''):'')+'</div>'
+      +'<div class="dth-ti"><span data-t="welcome">Bienvenue</span>'+(prenom?', '+lhEsc(prenom):'')+'</div>'
+      +'<div class="dth-tx" data-t="homeWelcomeTxt">'+lhEsc(lhT('homeWelcomeTxt')||'')+'</div></div>';
+    var grid='<div class="dth-lb" data-t="dthQuick">Accès rapide</div><div class="dth-grid">';
+    cards.forEach(function(c){
+      grid+='<button class="dth-card" data-go="'+c.ic+'"><span class="dth-ic"><svg viewBox="0 0 24 24">'+IC[c.ic]+'</svg></span>'
+        +'<span><span class="t" data-t="'+c.t+'">'+lhEsc(lhT(c.t)||'')+'</span><span class="d" data-t="'+c.d+'">'+lhEsc(lhT(c.d)||'')+'</span></span></button>';
+    });
+    grid+='</div>';
+    var foota='<div class="dth-foot"><div class="dth-qr"><img id="lh-dt-qr" alt="QR"><span data-t="sbScan">Ouvrir sur mon téléphone</span></div>'
+      +'<div class="dth-credit"><span data-t="poweredBy">Propulsé par</span> <strong>SolvIA</strong> · <a href="mailto:contact@solvia.pro">contact@solvia.pro</a></div></div>';
+    dh.innerHTML=hero+grid+foota;
+    home.insertBefore(dh, home.firstChild);
+    /* clics des cartes (les .t/.d ont des <svg> data-go pour retrouver l'action) */
+    var idx=0;
+    dh.querySelectorAll('.dth-card').forEach(function(btn){ var c=cards[idx++]; btn.onclick=c.go; });
+    /* QR de l'accueil */
+    try{ var el=document.getElementById('lh-dt-qr'); if(el&&typeof qrcode==='function'){ var q=qrcode(0,'M'); q.addData(location.href); q.make(); el.src=q.createDataURL(4,2); } }catch(e){}
+    /* on retire l'ancien footer mobile (doublon du crédit) sur desktop */
+    var oldFt=document.getElementById('lh-footer'); if(oldFt) oldFt.style.display='none';
+  })();
+
   lhSbSync('scr-home');
-  try{ var el=document.getElementById('lh-sb-qr'); if(el&&typeof qrcode==='function'){ var q=qrcode(0,'M'); q.addData(location.href); q.make(); el.src=q.createDataURL(4,2); } }catch(e){}
 })();
 </script>
 </body></html>
