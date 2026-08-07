@@ -19,8 +19,11 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
    gagner dans la cascade face aux règles de base #lh-app / .nav-g. */
 #lh-sidebar{display:none}
 /* ===== SIDEBAR (structure) ===== */
-#lh-sidebar{width:330px;flex-shrink:0;flex-direction:column;gap:22px;padding:36px 26px;
+#lh-sidebar{width:366px;flex-shrink:0;flex-direction:column;gap:24px;padding:40px 34px;
   background:#1F3B2D;color:#F7F3EC;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin}
+/* un peu d'air entre les éléments et le bord (le nom, les cases, la nav) */
+#lh-sidebar .sb-brand{padding:0 4px}
+#lh-sidebar .sb-nav{margin:0 -2px}
 #lh-sidebar .sb-brand{padding-bottom:4px}
 #lh-sidebar .sb-name{font-size:20px;font-weight:800;color:#F7F3EC;line-height:1.2}
 #lh-sidebar .sb-city{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-top:6px}
@@ -308,7 +311,11 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
   #lh-dt-home .dth-ey{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:700;position:relative}
   #lh-dt-home .dth-ti{font-size:38px;font-weight:800;color:#F7F3EC;line-height:1.1;margin:14px 0 16px;position:relative}
   #lh-dt-home .dth-tx{font-size:15px;line-height:1.75;color:rgba(247,243,236,0.75);max-width:60ch;position:relative}
-  #lh-dt-home .dth-lb{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#A9812F;font-weight:700;margin:38px 0 16px}
+  /* Carrousels mis en avant (petites attentions / petit-déj / restaurant) */
+  #lh-dt-home #lh-dt-cars{margin:30px 0 4px;display:flex;flex-direction:column;gap:14px}
+  #lh-dt-home #lh-dt-cars:empty{display:none;margin:0}
+  #lh-dt-home .dth-banner{height:184px!important;border-radius:18px!important;margin:0!important}
+  #lh-dt-home .dth-lb{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#A9812F;font-weight:700;margin:36px 0 16px}
   #lh-dt-home .dth-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   #lh-dt-home .dth-card{display:flex;align-items:center;gap:16px;background:#fff;border:1.5px solid transparent;border-radius:16px;padding:20px 22px;cursor:pointer;text-align:left;font-family:'Montserrat',sans-serif;box-shadow:0 2px 12px rgba(31,59,45,0.05);transition:border-color .16s,transform .16s}
   #lh-dt-home .dth-card:hover{border-color:#1F3B2D;transform:translateY(-2px)}
@@ -418,7 +425,8 @@ var LH_T_EXTRA={
  sbHome:{fr:"Accueil",en:"Home",es:"Inicio",it:"Home",de:"Start",pt:"Início",nl:"Start"},
  sbScan:{fr:"Ouvrir sur mon téléphone",en:"Open on my phone",es:"Abrir en mi móvil",it:"Apri sul telefono",de:"Auf dem Handy öffnen",pt:"Abrir no telemóvel",nl:"Openen op mijn telefoon"},
  homeWelcomeTxt:{fr:"Tout ce qu'il faut pour un séjour serein est réuni ici : votre arrivée, le WiFi, le petit-déjeuner, notre restaurant, les meilleures adresses autour et quelques attentions pour vous faire plaisir. Belle arrivée parmi nous !",en:"Everything you need for a relaxing stay is right here: your arrival, WiFi, breakfast, our restaurant, the best spots nearby and a few little extras to treat yourself. So glad to have you with us!",es:"Aquí encontrará todo para una estancia tranquila: su llegada, el WiFi, el desayuno, nuestro restaurante, los mejores lugares de la zona y algunos detalles para darse un gusto. ¡Bienvenido!",it:"Qui trovi tutto per un soggiorno sereno: l'arrivo, il WiFi, la colazione, il nostro ristorante, i posti migliori nei dintorni e qualche coccola per te. Benvenuto!",de:"Hier finden Sie alles für einen entspannten Aufenthalt: Ihre Ankunft, WLAN, Frühstück, unser Restaurant, die besten Orte in der Nähe und ein paar kleine Extras. Schön, dass Sie da sind!",pt:"Aqui está tudo para uma estadia tranquila: a sua chegada, o WiFi, o pequeno-almoço, o nosso restaurante, os melhores locais à volta e alguns mimos para si. Bem-vindo!",nl:"Hier vindt u alles voor een ontspannen verblijf: uw aankomst, wifi, ontbijt, ons restaurant, de beste plekjes in de buurt en een paar extraatjes. Fijn dat u er bent!"},
- dthQuick:{fr:"Accès rapide",en:"Quick access",es:"Acceso rápido",it:"Accesso rapido",de:"Schnellzugriff",pt:"Acesso rápido",nl:"Snel naar"}
+ dthQuick:{fr:"Accès rapide",en:"Quick access",es:"Acceso rápido",it:"Accesso rapido",de:"Schnellzugriff",pt:"Acesso rápido",nl:"Snel naar"},
+ homeWelcomeShort:{fr:"Nous sommes ravis de vous accueillir. Vous trouverez ici tout ce qu'il faut pour profiter pleinement de votre séjour.",en:"We're delighted to welcome you. You'll find here everything you need to make the most of your stay.",es:"Estamos encantados de recibirle. Aquí encontrará todo lo necesario para disfrutar plenamente de su estancia.",it:"Siamo lieti di accogliervi. Qui troverete tutto il necessario per godervi appieno il soggiorno.",de:"Wir freuen uns, Sie begrüßen zu dürfen. Hier finden Sie alles, was Sie für einen schönen Aufenthalt brauchen.",pt:"Estamos felizes por recebê-lo. Aqui encontrará tudo o que precisa para aproveitar ao máximo a sua estadia.",nl:"Wij verwelkomen u van harte. Hier vindt u alles wat u nodig heeft om optimaal van uw verblijf te genieten."}
 };
 (function(){
   for(var k in LH_T_EXTRA){ var t=LH_T_EXTRA[k]; for(var l in t){ if(LH_T[l]) LH_T[l][k]=t[l]; } }
@@ -1200,6 +1208,19 @@ function lhMarkPdjBooked(){
     <div><div class="s-ey" data-t="ciEy">Check-in · Check-out</div><div class="s-ti" data-t="ciTi">Arrivée / Départ</div></div>
   </div>
   <div class="s-body">
+    <!-- Rappel chambre + code (affiché seulement si transmis dans le lien) -->
+    <div class="cd" id="lh-ci-codes" style="display:none;background:rgba(201,169,97,0.10);border:1.5px solid rgba(201,169,97,0.3)">
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:120px">
+          <div class="cd-lb" data-t="gcChambre">Chambre</div>
+          <div class="cd-val" id="lh-ci-room" style="font-size:24px"></div>
+        </div>
+        <div style="flex:1;min-width:120px" id="lh-ci-code-wrap">
+          <div class="cd-lb" data-t="gcCode">Code d'accès</div>
+          <div class="cd-val" id="lh-ci-code" style="font-size:24px"></div>
+        </div>
+      </div>
+    </div>
     <div class="vid" id="lh-vid-box" onclick="lhPlayVideo()" style="display:none">
       <div class="play" id="lh-vid-play"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
       <div class="vid-lb" data-t="vidLb">Vidéo : comment accéder à l'hôtel</div>
@@ -1676,12 +1697,22 @@ function lhApplyParams(params){
     if(gcCh)gcCh.style.display='block';
     var gcChV=document.getElementById('lh-gc-chambre-val');
     if(gcChV)gcChV.textContent='N°'+chambre;
+    /* Rappel dans l'écran check-in */
+    var ciCodes=document.getElementById('lh-ci-codes');
+    var ciRoom=document.getElementById('lh-ci-room');
+    if(ciRoom)ciRoom.textContent='N°'+chambre;
+    if(ciCodes)ciCodes.style.display='block';
     var urlCode=params.get?params.get('code'):params.code||'';
     if(urlCode){
       var gcCode=document.getElementById('lh-gc-code');
       var gcCodeV=document.getElementById('lh-gc-code-val');
       if(gcCode)gcCode.style.display='block';
       if(gcCodeV)gcCodeV.textContent=urlCode+' 🔑';
+      var ciCode=document.getElementById('lh-ci-code');
+      if(ciCode)ciCode.textContent=urlCode+' 🔑';
+    } else {
+      var ciCW=document.getElementById('lh-ci-code-wrap');
+      if(ciCW)ciCW.style.display='none';
     }
   }
 
@@ -2586,15 +2617,20 @@ function lhSbSync(id){
   });
   sb.appendChild(nav);
 
-  /* --- Pied de sidebar : langue + réseaux uniquement --- */
+  /* --- Pied de sidebar : langue, réseaux, QR, crédit SolvIA (visibles en permanence) --- */
   var foot=document.createElement('div'); foot.className='sb-foot';
   var lw=document.getElementById('lh-lang-wrap'); if(lw) foot.appendChild(lw);
   var soc=document.getElementById('lh-social'); if(soc) foot.appendChild(soc);
+  var qr=document.createElement('div'); qr.className='sb-qr';
+  qr.innerHTML='<img id="lh-sb-qr" alt="QR"><span data-t="sbScan">Ouvrir sur mon téléphone</span>';
+  foot.appendChild(qr);
+  var ft=document.getElementById('lh-footer');
+  if(ft){ ft.style.marginTop='0'; ft.style.borderTop='1px solid rgba(247,243,236,0.1)'; ft.style.textAlign='left'; ft.style.padding='14px 0 0'; ft.style.display='block'; foot.appendChild(ft); }
   sb.appendChild(foot);
 
   app.insertBefore(sb, app.firstChild);
 
-  /* ===== ACCUEIL DESKTOP dédié (hero + accès rapide + QR/crédit) ===== */
+  /* ===== ACCUEIL DESKTOP dédié (hero court + carrousels + accès rapide) ===== */
   (function(){
     var prenom=(typeof lhGuestPrenom!=='undefined'&&lhGuestPrenom)?lhGuestPrenom:'';
     var cards=[
@@ -2609,25 +2645,31 @@ function lhSbSync(id){
     var hero='<div class="dth-hero">'
       +'<div class="dth-ey">'+(hn?lhEsc(hn)+(hl?' · '+lhEsc(hl):''):'')+'</div>'
       +'<div class="dth-ti"><span data-t="welcome">Bienvenue</span>'+(prenom?', '+lhEsc(prenom):'')+'</div>'
-      +'<div class="dth-tx" data-t="homeWelcomeTxt">'+lhEsc(lhT('homeWelcomeTxt')||'')+'</div></div>';
+      +'<div class="dth-tx" data-t="homeWelcomeShort">'+lhEsc(lhT('homeWelcomeShort')||'')+'</div></div>';
+    /* Zone d'accueil des carrousels mis en avant (déplacés depuis l'accueil mobile) */
+    var carZone='<div id="lh-dt-cars"></div>';
     var grid='<div class="dth-lb" data-t="dthQuick">Accès rapide</div><div class="dth-grid">';
     cards.forEach(function(c){
-      grid+='<button class="dth-card" data-go="'+c.ic+'"><span class="dth-ic"><svg viewBox="0 0 24 24">'+IC[c.ic]+'</svg></span>'
+      grid+='<button class="dth-card"><span class="dth-ic"><svg viewBox="0 0 24 24">'+IC[c.ic]+'</svg></span>'
         +'<span><span class="t" data-t="'+c.t+'">'+lhEsc(lhT(c.t)||'')+'</span><span class="d" data-t="'+c.d+'">'+lhEsc(lhT(c.d)||'')+'</span></span></button>';
     });
     grid+='</div>';
-    var foota='<div class="dth-foot"><div class="dth-qr"><img id="lh-dt-qr" alt="QR"><span data-t="sbScan">Ouvrir sur mon téléphone</span></div>'
-      +'<div class="dth-credit"><span data-t="poweredBy">Propulsé par</span> <strong>SolvIA</strong> · <a href="mailto:contact@solvia.pro">contact@solvia.pro</a></div></div>';
-    dh.innerHTML=hero+grid+foota;
+    dh.innerHTML=hero+carZone+grid;
     home.insertBefore(dh, home.firstChild);
-    /* clics des cartes (les .t/.d ont des <svg> data-go pour retrouver l'action) */
+    /* Déplacer les 3 bannières carrousel dans l'accueil desktop (elles gardent
+       leur logique : images live + masquage auto si la section n'existe pas). */
+    var carHost=dh.querySelector('#lh-dt-cars');
+    ['lh-home-car1','lh-home-car2','lh-home-car3'].forEach(function(cid){
+      var car=document.getElementById(cid); var banner=car?car.parentElement:null;
+      if(banner){ banner.classList.add('dth-banner'); carHost.appendChild(banner); }
+    });
+    /* clics des cartes */
     var idx=0;
     dh.querySelectorAll('.dth-card').forEach(function(btn){ var c=cards[idx++]; btn.onclick=c.go; });
-    /* QR de l'accueil */
-    try{ var el=document.getElementById('lh-dt-qr'); if(el&&typeof qrcode==='function'){ var q=qrcode(0,'M'); q.addData(location.href); q.make(); el.src=q.createDataURL(4,2); } }catch(e){}
-    /* on retire l'ancien footer mobile (doublon du crédit) sur desktop */
-    var oldFt=document.getElementById('lh-footer'); if(oldFt) oldFt.style.display='none';
   })();
+
+  /* QR de la sidebar (visible partout) */
+  try{ var qrel=document.getElementById('lh-sb-qr'); if(qrel&&typeof qrcode==='function'){ var qq=qrcode(0,'M'); qq.addData(location.href); qq.make(); qrel.src=qq.createDataURL(4,2); } }catch(e){}
 
   lhSbSync('scr-home');
 })();
