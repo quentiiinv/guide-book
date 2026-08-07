@@ -283,12 +283,11 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
   #lh-dt-home .dth-ey{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:700;position:relative}
   #lh-dt-home .dth-ti{font-size:29px;font-weight:800;color:#F7F3EC;line-height:1.12;margin:10px 0 12px;position:relative}
   #lh-dt-home .dth-tx{font-size:14px;line-height:1.7;color:rgba(247,243,236,0.72);max-width:56ch;position:relative}
-  /* Bandeau mis en avant : petites attentions (carrousel) */
-  #lh-dt-home #lh-dt-cars{margin:16px 0 0;display:flex;flex-direction:column;gap:14px}
-  #lh-dt-home #lh-dt-cars:empty{display:none;margin:0}
+  /* Bandeaux carrousel intercalés (petites attentions, petit-déj) */
+  #lh-dt-home .dth-slot{margin:16px 0 0}
+  #lh-dt-home .dth-slot:empty{display:none;margin:0}
   #lh-dt-home .dth-banner{height:172px!important;border-radius:18px!important;margin:0!important}
-  #lh-dt-home .dth-lb{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#A9812F;font-weight:700;margin:26px 0 14px}
-  #lh-dt-home .dth-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  #lh-dt-home .dth-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:16px}
   #lh-dt-home .dth-card{display:flex;align-items:center;gap:15px;background:#fff;border:1.5px solid transparent;border-radius:15px;padding:17px 20px;cursor:pointer;text-align:left;font-family:'Montserrat',sans-serif;box-shadow:0 2px 12px rgba(31,59,45,0.05);transition:border-color .16s,transform .16s}
   #lh-dt-home .dth-card:hover{border-color:#1F3B2D;transform:translateY(-2px)}
   #lh-dt-home .dth-ic{width:46px;height:46px;flex-shrink:0;border-radius:13px;background:#F1ECE3;display:flex;align-items:center;justify-content:center}
@@ -320,15 +319,21 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
   #lh-sidebar .sb-foot .lang-sel{width:100%;padding:7px 14px 7px 12px}
   #lh-sidebar .sb-foot .lang-dd{top:auto;bottom:calc(100% + 6px);left:0;transform:none;width:100%;max-height:240px}
   #lh-sidebar .sb-foot #lh-social{justify-content:flex-start;padding:0;gap:14px}
-  #lh-sidebar .sb-qr{display:flex;align-items:center;gap:12px}
-  #lh-sidebar .sb-qr img{width:58px;height:58px;background:#fff;padding:4px;border-radius:9px;image-rendering:pixelated;flex-shrink:0}
-  #lh-sidebar .sb-qr span{font-size:10.5px;font-weight:600;color:rgba(247,243,236,0.6);line-height:1.4}
+  /* Carte « Accès mobile » (QR) — plus visuelle */
+  #lh-sidebar .sb-qr{display:flex;align-items:center;gap:13px;background:rgba(247,243,236,0.06);
+    border:1px solid rgba(247,243,236,0.1);border-radius:14px;padding:11px 13px}
+  #lh-sidebar .sb-qr .sb-qr-img{background:#fff;padding:5px;border-radius:9px;line-height:0;flex-shrink:0}
+  #lh-sidebar .sb-qr img{width:56px;height:56px;image-rendering:pixelated;display:block}
+  #lh-sidebar .sb-qr .sb-qr-t{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#F7F3EC}
+  #lh-sidebar .sb-qr .sb-qr-dot{width:6px;height:6px;border-radius:50%;background:#C9A961;flex-shrink:0}
+  #lh-sidebar .sb-qr .sb-qr-d{font-size:10.5px;font-weight:500;color:rgba(247,243,236,0.55);line-height:1.4;margin-top:3px}
 
-  /* Footer SolvIA en bas de page (hors app, pleine largeur, comme le mobile) */
-  #lh-page-foot{display:block;text-align:center;padding:22px 20px 30px;background:#EFE9DE}
-  #lh-page-foot .pf1{font-size:9px;color:#b3ab9c;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
-  #lh-page-foot .pf1 strong{color:#8a8578;font-weight:700}
-  #lh-page-foot .pf2{font-size:10px;color:#b3ab9c;line-height:1.7}
+  /* Footer SolvIA : bas de page À DROITE (dans la zone contenu ; la sidebar ne bouge pas) */
+  #lh-page-foot{display:block;font-family:'Montserrat',sans-serif;margin-left:308px;text-align:right;
+    padding:16px 60px 26px;background:#EFE9DE}
+  #lh-page-foot .pf1{font-size:9px;color:#a9a293;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+  #lh-page-foot .pf1 strong{color:#7c7768;font-weight:700}
+  #lh-page-foot .pf2{font-size:10px;color:#a9a293;line-height:1.6}
   #lh-page-foot .pf2 a{color:#1F3B2D;font-weight:600;text-decoration:none}
 }
 </style>
@@ -426,7 +431,10 @@ var LH_T_EXTRA={
  sbScan:{fr:"Ouvrir sur mon téléphone",en:"Open on my phone",es:"Abrir en mi móvil",it:"Apri sul telefono",de:"Auf dem Handy öffnen",pt:"Abrir no telemóvel",nl:"Openen op mijn telefoon"},
  homeWelcomeTxt:{fr:"Tout ce qu'il faut pour un séjour serein est réuni ici : votre arrivée, le WiFi, le petit-déjeuner, notre restaurant, les meilleures adresses autour et quelques attentions pour vous faire plaisir. Belle arrivée parmi nous !",en:"Everything you need for a relaxing stay is right here: your arrival, WiFi, breakfast, our restaurant, the best spots nearby and a few little extras to treat yourself. So glad to have you with us!",es:"Aquí encontrará todo para una estancia tranquila: su llegada, el WiFi, el desayuno, nuestro restaurante, los mejores lugares de la zona y algunos detalles para darse un gusto. ¡Bienvenido!",it:"Qui trovi tutto per un soggiorno sereno: l'arrivo, il WiFi, la colazione, il nostro ristorante, i posti migliori nei dintorni e qualche coccola per te. Benvenuto!",de:"Hier finden Sie alles für einen entspannten Aufenthalt: Ihre Ankunft, WLAN, Frühstück, unser Restaurant, die besten Orte in der Nähe und ein paar kleine Extras. Schön, dass Sie da sind!",pt:"Aqui está tudo para uma estadia tranquila: a sua chegada, o WiFi, o pequeno-almoço, o nosso restaurante, os melhores locais à volta e alguns mimos para si. Bem-vindo!",nl:"Hier vindt u alles voor een ontspannen verblijf: uw aankomst, wifi, ontbijt, ons restaurant, de beste plekjes in de buurt en een paar extraatjes. Fijn dat u er bent!"},
  dthQuick:{fr:"Accès rapide",en:"Quick access",es:"Acceso rápido",it:"Accesso rapido",de:"Schnellzugriff",pt:"Acesso rápido",nl:"Snel naar"},
- homeWelcomeShort:{fr:"Nous sommes ravis de vous accueillir. Vous trouverez ici tout ce qu'il faut pour profiter pleinement de votre séjour.",en:"We're delighted to welcome you. You'll find here everything you need to make the most of your stay.",es:"Estamos encantados de recibirle. Aquí encontrará todo lo necesario para disfrutar plenamente de su estancia.",it:"Siamo lieti di accogliervi. Qui troverete tutto il necessario per godervi appieno il soggiorno.",de:"Wir freuen uns, Sie begrüßen zu dürfen. Hier finden Sie alles, was Sie für einen schönen Aufenthalt brauchen.",pt:"Estamos felizes por recebê-lo. Aqui encontrará tudo o que precisa para aproveitar ao máximo a sua estadia.",nl:"Wij verwelkomen u van harte. Hier vindt u alles wat u nodig heeft om optimaal van uw verblijf te genieten."}
+ homeWelcomeShort:{fr:"Nous sommes ravis de vous accueillir. Vous trouverez ici tout ce qu'il faut pour profiter pleinement de votre séjour.",en:"We're delighted to welcome you. You'll find here everything you need to make the most of your stay.",es:"Estamos encantados de recibirle. Aquí encontrará todo lo necesario para disfrutar plenamente de su estancia.",it:"Siamo lieti di accogliervi. Qui troverete tutto il necessario per godervi appieno il soggiorno.",de:"Wir freuen uns, Sie begrüßen zu dürfen. Hier finden Sie alles, was Sie für einen schönen Aufenthalt brauchen.",pt:"Estamos felizes por recebê-lo. Aqui encontrará tudo o que precisa para aproveitar ao máximo a sua estadia.",nl:"Wij verwelkomen u van harte. Hier vindt u alles wat u nodig heeft om optimaal van uw verblijf te genieten."},
+ sbMobile:{fr:"Accès mobile",en:"Mobile access",es:"Acceso móvil",it:"Accesso mobile",de:"Mobiler Zugang",pt:"Acesso móvel",nl:"Mobiele toegang"},
+ ciCodeLineFull:{fr:"Votre chambre est la {room} et votre code d'accès est {code}.",en:"Your room is {room} and your access code is {code}.",es:"Su habitación es la {room} y su código de acceso es {code}.",it:"La vostra camera è la {room} e il codice d'accesso è {code}.",de:"Ihr Zimmer ist {room} und Ihr Zugangscode lautet {code}.",pt:"O seu quarto é o {room} e o seu código de acesso é {code}.",nl:"Uw kamer is {room} en uw toegangscode is {code}."},
+ ciCodeLineRoom:{fr:"Votre chambre est la {room}.",en:"Your room is {room}.",es:"Su habitación es la {room}.",it:"La vostra camera è la {room}.",de:"Ihr Zimmer ist {room}.",pt:"O seu quarto é o {room}.",nl:"Uw kamer is {room}."}
 };
 (function(){
   for(var k in LH_T_EXTRA){ var t=LH_T_EXTRA[k]; for(var l in t){ if(LH_T[l]) LH_T[l][k]=t[l]; } }
@@ -434,6 +442,19 @@ var LH_T_EXTRA={
      non fournies -> elles retombent proprement sur l'anglais générique. */
   ['ciTxt','coTxt'].forEach(function(k){ for(var l in LH_T){ if(!(l in LH_T_EXTRA[k])) delete LH_T[l][k]; } });
 })();
+/* Rappel chambre + code, glissé dans le texte du check-in (pas en gros).
+   Se re-traduit via lhApplyCiCodeLine() appelé dans lhRelocalize(). */
+var lhCiRoom='', lhCiCode='';
+function lhApplyCiCodeLine(){
+  var el=document.getElementById('lh-ci-codeline'); if(!el) return;
+  if(!lhCiRoom){ el.style.display='none'; return; }
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  var tpl=lhCiCode?lhT('ciCodeLineFull'):lhT('ciCodeLineRoom');
+  var html=esc(tpl)
+    .replace('{room}','<strong>'+esc(lhCiRoom)+'</strong>')
+    .replace('{code}','<strong>'+esc(lhCiCode)+'</strong>');
+  el.innerHTML=html; el.style.display='';
+}
 function lhGo(id){
   if(id==='scr-pdj'&&!lhFetchDone){
     /* Fetch pas encore terminé — attendre */
@@ -512,6 +533,7 @@ function lhRelocalize(){
     if(typeof lhRenderXtraBanner==='function') lhRenderXtraBanner();
     if(typeof lhApplyExemples==='function') lhApplyExemples();
     if(typeof lhApplyContact==='function') lhApplyContact();
+    if(typeof lhApplyCiCodeLine==='function') lhApplyCiCodeLine();
   }catch(e){}
 }
 function lhToggleLang(){
@@ -1208,19 +1230,6 @@ function lhMarkPdjBooked(){
     <div><div class="s-ey" data-t="ciEy">Check-in · Check-out</div><div class="s-ti" data-t="ciTi">Arrivée / Départ</div></div>
   </div>
   <div class="s-body">
-    <!-- Rappel chambre + code (affiché seulement si transmis dans le lien) -->
-    <div class="cd" id="lh-ci-codes" style="display:none;background:rgba(201,169,97,0.10);border:1.5px solid rgba(201,169,97,0.3)">
-      <div style="display:flex;gap:16px;flex-wrap:wrap">
-        <div style="flex:1;min-width:120px">
-          <div class="cd-lb" data-t="gcChambre">Chambre</div>
-          <div class="cd-val" id="lh-ci-room" style="font-size:24px"></div>
-        </div>
-        <div style="flex:1;min-width:120px" id="lh-ci-code-wrap">
-          <div class="cd-lb" data-t="gcCode">Code d'accès</div>
-          <div class="cd-val" id="lh-ci-code" style="font-size:24px"></div>
-        </div>
-      </div>
-    </div>
     <div class="vid" id="lh-vid-box" onclick="lhPlayVideo()" style="display:none">
       <div class="play" id="lh-vid-play"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
       <div class="vid-lb" data-t="vidLb">Vidéo : comment accéder à l'hôtel</div>
@@ -1229,6 +1238,8 @@ function lhMarkPdjBooked(){
       <div class="cd-lb" data-t="ciFrom">Check-in à partir de</div>
       <div class="cd-val" id="lh-ci-in">15:00</div>
       <div class="cd-txt" data-t="ciTxt">Utilisez le code transmis par SMS pour ouvrir la porte principale et la boîte à cadenas.</div>
+      <!-- Rappel chambre + code, glissé dans le texte (affiché si transmis dans le lien) -->
+      <div class="cd-txt" id="lh-ci-codeline" style="display:none;margin-top:10px"></div>
     </div>
     <div class="cd">
       <div class="cd-lb" data-t="coBy">Check-out avant</div>
@@ -1697,23 +1708,17 @@ function lhApplyParams(params){
     if(gcCh)gcCh.style.display='block';
     var gcChV=document.getElementById('lh-gc-chambre-val');
     if(gcChV)gcChV.textContent='N°'+chambre;
-    /* Rappel dans l'écran check-in */
-    var ciCodes=document.getElementById('lh-ci-codes');
-    var ciRoom=document.getElementById('lh-ci-room');
-    if(ciRoom)ciRoom.textContent='N°'+chambre;
-    if(ciCodes)ciCodes.style.display='block';
+    /* Mémoriser pour la ligne « rappel » du check-in (glissée dans le texte) */
+    lhCiRoom='N°'+chambre;
     var urlCode=params.get?params.get('code'):params.code||'';
     if(urlCode){
       var gcCode=document.getElementById('lh-gc-code');
       var gcCodeV=document.getElementById('lh-gc-code-val');
       if(gcCode)gcCode.style.display='block';
       if(gcCodeV)gcCodeV.textContent=urlCode+' 🔑';
-      var ciCode=document.getElementById('lh-ci-code');
-      if(ciCode)ciCode.textContent=urlCode+' 🔑';
-    } else {
-      var ciCW=document.getElementById('lh-ci-code-wrap');
-      if(ciCW)ciCW.style.display='none';
+      lhCiCode=urlCode;
     }
+    lhApplyCiCodeLine();
   }
 
   /* Video URL — show video box if available */
@@ -2622,7 +2627,9 @@ function lhSbSync(id){
   var lw=document.getElementById('lh-lang-wrap'); if(lw) foot.appendChild(lw);
   var soc=document.getElementById('lh-social'); if(soc) foot.appendChild(soc);
   var qr=document.createElement('div'); qr.className='sb-qr';
-  qr.innerHTML='<img id="lh-sb-qr" alt="QR"><span data-t="sbScan">Ouvrir sur mon téléphone</span>';
+  qr.innerHTML='<div class="sb-qr-img"><img id="lh-sb-qr" alt="QR"></div>'
+    +'<div class="sb-qr-tx"><div class="sb-qr-t"><span class="sb-qr-dot"></span><span data-t="sbMobile">Accès mobile</span></div>'
+    +'<div class="sb-qr-d" data-t="sbScan">Ouvrir sur mon téléphone</div></div>';
   foot.appendChild(qr);
   sb.appendChild(foot);
 
@@ -2638,40 +2645,50 @@ function lhSbSync(id){
     if(host.parentNode) host.parentNode.insertBefore(pf, host.nextSibling);
   })();
 
-  /* ===== ACCUEIL DESKTOP : hero court + petites attentions en avant + onglets ===== */
+  /* ===== ACCUEIL DESKTOP (ordre comme le mobile) :
+     hero → petites attentions → [Arrivée, WiFi] → petit-déj → [Restaurant, Spa, Piscine, Sauna, Infos, Avis] ===== */
   (function(){
     var prenom=(typeof lhGuestPrenom!=='undefined'&&lhGuestPrenom)?lhGuestPrenom:'';
-    /* Onglets principaux d'abord (Arrivée, WiFi), puis Restaurant/Petit-déj, puis À découvrir. */
-    var cards=[
-      {t:'arr',   d:'arrD',        ic:'ci',   go:function(){lhGo('scr-ci');}},
-      {t:'wifi',  d:'wifiD',       ic:'wf',   go:function(){lhGo('scr-wf');}},
-      {t:'resto', d:'restoD',      ic:'rs',   go:function(){lhGo('scr-rs');}},
-      {t:'pdj',   d:'navPdjDesc',  ic:'pdj',  go:function(){lhGo('scr-pdj');}},
-      {t:'discTi',d:'discDs',      ic:'reco', go:function(){lhGo('scr-reco');}}
+    var g1=[
+      {t:'arr',  d:'arrD',  ic:'ci', go:function(){lhGo('scr-ci');}},
+      {t:'wifi', d:'wifiD', ic:'wf', go:function(){lhGo('scr-wf');}}
     ];
+    var g2=[
+      {t:'resto',      d:'restoD',      ic:'rs',    go:function(){lhGo('scr-rs');}},
+      {t:'spaTi',      d:'spaDs',       ic:'spa',   go:function(){lhOpenInfo('spa');}},
+      {t:'poolTi',     d:'poolDs',      ic:'pool',  go:function(){lhOpenInfo('piscine');}},
+      {t:'saunaTi',    d:'saunaDs',     ic:'sauna', go:function(){lhOpenInfo('sauna');}},
+      {t:'infos',      d:'infosD',      ic:'infos', go:function(){lhGo('scr-pr');}},
+      {t:'navAvisLbl', d:'navAvisDesc', ic:'avis',  go:function(){lhGo('scr-av');}}
+    ];
+    function gridHtml(list,id){
+      var h='<div class="dth-grid" id="'+id+'">';
+      list.forEach(function(c){
+        h+='<button class="dth-card"><span class="dth-ic"><svg viewBox="0 0 24 24">'+IC[c.ic]+'</svg></span>'
+          +'<span><span class="t" data-t="'+c.t+'">'+lhEsc(lhT(c.t)||'')+'</span><span class="d" data-t="'+c.d+'">'+lhEsc(lhT(c.d)||'')+'</span></span></button>';
+      });
+      return h+'</div>';
+    }
     var dh=document.createElement('div'); dh.id='lh-dt-home';
     var hero='<div class="dth-hero">'
       +'<div class="dth-ey">'+(hn?lhEsc(hn)+(hl?' · '+lhEsc(hl):''):'')+'</div>'
       +'<div class="dth-ti"><span data-t="welcome">Bienvenue</span>'+(prenom?', '+lhEsc(prenom):'')+'</div>'
       +'<div class="dth-tx" data-t="homeWelcomeShort">'+lhEsc(lhT('homeWelcomeShort')||'')+'</div></div>';
-    /* Bandeau petites attentions (mis en avant) */
-    var carZone='<div id="lh-dt-cars"></div>';
-    var grid='<div class="dth-lb" data-t="dthQuick">Accès rapide</div><div class="dth-grid">';
-    cards.forEach(function(c){
-      grid+='<button class="dth-card"><span class="dth-ic"><svg viewBox="0 0 24 24">'+IC[c.ic]+'</svg></span>'
-        +'<span><span class="t" data-t="'+c.t+'">'+lhEsc(lhT(c.t)||'')+'</span><span class="d" data-t="'+c.d+'">'+lhEsc(lhT(c.d)||'')+'</span></span></button>';
-    });
-    grid+='</div>';
-    dh.innerHTML=hero+carZone+grid;
+    dh.innerHTML=hero
+      +'<div class="dth-slot" id="lh-dt-carA"></div>'      /* petites attentions */
+      +gridHtml(g1,'lh-dt-g1')                               /* Arrivée, WiFi */
+      +'<div class="dth-slot" id="lh-dt-carB"></div>'      /* petit-déjeuner */
+      +gridHtml(g2,'lh-dt-g2');                              /* Restaurant, Spa, Piscine, Sauna, Infos, Avis */
     home.insertBefore(dh, home.firstChild);
-    /* On met SEULEMENT le bandeau petites attentions en avant (car3).
-       Les bannières petit-déj/resto restent masquées : ces onglets sont dans la grille. */
-    var carHost=dh.querySelector('#lh-dt-cars');
-    var car3=document.getElementById('lh-home-car3'); var banner=car3?car3.parentElement:null;
-    if(banner){ banner.classList.add('dth-banner'); carHost.appendChild(banner); }
+    /* Placer les bandeaux : car3 = petites attentions (slot A), car1 = petit-déj (slot B).
+       car2 (restaurant) reste masqué : Restaurant est un bouton. */
+    var c3=document.getElementById('lh-home-car3'), b3=c3?c3.parentElement:null;
+    if(b3){ b3.classList.add('dth-banner'); dh.querySelector('#lh-dt-carA').appendChild(b3); }
+    var c1=document.getElementById('lh-home-car1'), b1=c1?c1.parentElement:null;
+    if(b1){ b1.classList.add('dth-banner'); dh.querySelector('#lh-dt-carB').appendChild(b1); }
     /* clics des cartes */
-    var idx=0;
-    dh.querySelectorAll('.dth-card').forEach(function(btn){ var c=cards[idx++]; btn.onclick=c.go; });
+    var all=g1.concat(g2), idx=0;
+    dh.querySelectorAll('.dth-card').forEach(function(btn){ var c=all[idx++]; btn.onclick=c.go; });
   })();
 
   /* QR de la sidebar (visible partout) */
