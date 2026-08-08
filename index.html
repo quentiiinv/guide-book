@@ -112,6 +112,13 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 #lh-app .cd-lb{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-bottom:6px}
 #lh-app .cd-val{font-size:28px;font-weight:700;color:#1F3B2D;letter-spacing:2px}
 #lh-app .cd-txt{font-size:13px;color:#777;line-height:1.7;margin-top:8px}
+#lh-app .cd-ti{font-size:15px;font-weight:700;color:#1F3B2D;line-height:1.4}
+/* Séparateur de section (Arrivée / Départ) — clarifie l'écran check-in */
+#lh-app .ci-sec{display:flex;align-items:center;gap:11px;font-size:16px;font-weight:800;color:#1F3B2D;margin:2px 2px 12px}
+#lh-app .ci-sec + .cd, #lh-app .ci-sec + .cd + .cd{}
+#lh-app .s-body > .ci-sec:not(:first-of-type){margin-top:24px;padding-top:22px;border-top:1px solid rgba(31,59,45,0.08)}
+#lh-app .ci-sec .ci-sec-ic{width:32px;height:32px;border-radius:10px;background:rgba(31,59,45,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#lh-app .ci-sec .ci-sec-ic svg{width:17px;height:17px;stroke:#1F3B2D;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
 /* VIDEO */
 #lh-app .vid{background:linear-gradient(135deg,#1F3B2D,#2d5a3d);border-radius:16px;margin-bottom:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:12px}
@@ -285,25 +292,15 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 
   /* ===== ACCUEIL DESKTOP : on masque le contenu mobile de l'accueil et
      on montre le bloc dédié #lh-dt-home (construit en JS). ===== */
-  #scr-home > :not(#lh-dt-home):not(#lh-page-foot){display:none!important}
-  #lh-dt-home{display:block}
-  #lh-dt-home .dth-hero{background:#1F3B2D;border-radius:20px;padding:32px 38px;position:relative;overflow:hidden}
-  #lh-dt-home .dth-hero::before{content:'';position:absolute;top:-70px;right:-50px;width:220px;height:220px;border-radius:50%;background:rgba(201,169,97,0.08)}
-  #lh-dt-home .dth-hero::after{content:'';position:absolute;bottom:-60px;left:-30px;width:140px;height:140px;border-radius:50%;background:rgba(201,169,97,0.05)}
-  #lh-dt-home .dth-ey{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:#C9A961;font-weight:700;position:relative}
-  #lh-dt-home .dth-ti{font-size:29px;font-weight:800;color:#F7F3EC;line-height:1.12;margin:10px 0 12px;position:relative}
-  #lh-dt-home .dth-tx{font-size:14px;line-height:1.7;color:rgba(247,243,236,0.72);max-width:56ch;position:relative}
-  /* Bandeaux carrousel intercalés (petites attentions, petit-déj) */
-  #lh-dt-home .dth-slot{margin:16px 0 0}
-  #lh-dt-home .dth-slot:empty{display:none;margin:0}
-  #lh-dt-home .dth-banner{height:172px!important;border-radius:18px!important;margin:0!important}
-  #lh-dt-home .dth-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:16px}
-  #lh-dt-home .dth-card{display:flex;align-items:center;gap:15px;background:#fff;border:1.5px solid transparent;border-radius:15px;padding:17px 20px;cursor:pointer;text-align:left;font-family:'Montserrat',sans-serif;box-shadow:0 2px 12px rgba(31,59,45,0.05);transition:border-color .16s,transform .16s}
-  #lh-dt-home .dth-card:hover{border-color:#1F3B2D;transform:translateY(-2px)}
-  #lh-dt-home .dth-ic{width:46px;height:46px;flex-shrink:0;border-radius:13px;background:#F1ECE3;display:flex;align-items:center;justify-content:center}
-  #lh-dt-home .dth-ic svg{width:22px;height:22px;stroke:#1F3B2D;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-  #lh-dt-home .dth-card .t{display:block;font-size:14.5px;font-weight:700;color:#1F3B2D}
-  #lh-dt-home .dth-card .d{display:block;font-size:12px;color:#9a9a90;margin-top:3px}
+  /* ===== ACCUEIL DESKTOP = rendu mobile natif, agrandi et aéré ===== */
+  #scr-home .hero{border-radius:20px;padding:40px 44px 34px}
+  #scr-home .hero-ey{font-size:11px;letter-spacing:1.8px}
+  #scr-home .hero-t{font-size:30px;line-height:1.15}
+  #scr-home .hero-s{font-size:11px;letter-spacing:2px}
+  #scr-home [data-lh-sec]{height:190px!important}          /* bannières plus grandes qu'en mobile */
+  #scr-home .nav-g{gap:14px;padding-top:12px}
+  #scr-home .nav-c{padding:26px 12px 20px}
+  #scr-home .w-note{margin:12px 0 4px}
 
   /* ===== SIDEBAR (structure) — après le reset, donc le padding tient.
      Compactée pour tenir sans scroll, même avec tous les onglets. ===== */
@@ -453,6 +450,8 @@ var LH_T_EXTRA={
  sbMobile:{fr:"Accès mobile",en:"Mobile access",es:"Acceso móvil",it:"Accesso mobile",de:"Mobiler Zugang",pt:"Acesso móvel",nl:"Mobiele toegang"},
  ciCodeLineFull:{fr:"Votre chambre est la {room} et votre code d'accès est {code}.",en:"Your room is {room} and your access code is {code}.",es:"Su habitación es la {room} y su código de acceso es {code}.",it:"La vostra camera è la {room} e il codice d'accesso è {code}.",de:"Ihr Zimmer ist {room} und Ihr Zugangscode lautet {code}.",pt:"O seu quarto é o {room} e o seu código de acesso é {code}.",nl:"Uw kamer is {room} en uw toegangscode is {code}."},
  ciCodeLineRoom:{fr:"Votre chambre est la {room}.",en:"Your room is {room}.",es:"Su habitación es la {room}.",it:"La vostra camera è la {room}.",de:"Ihr Zimmer ist {room}.",pt:"O seu quarto é o {room}.",nl:"Uw kamer is {room}."},
+ ciArrTitle:{fr:"Votre arrivée",en:"Your arrival",es:"Su llegada",it:"Il vostro arrivo",de:"Ihre Ankunft",pt:"A sua chegada",nl:"Uw aankomst"},
+ ciDepTitle:{fr:"Votre départ",en:"Your departure",es:"Su salida",it:"La vostra partenza",de:"Ihre Abreise",pt:"A sua partida",nl:"Uw vertrek"},
  ciAddress:{fr:"Adresse",en:"Address",es:"Dirección",it:"Indirizzo",de:"Adresse",pt:"Morada",nl:"Adres"},
  ciGetThere:{fr:"Ouvrir l'itinéraire",en:"Open directions",es:"Abrir ruta",it:"Apri il percorso",de:"Route öffnen",pt:"Abrir rota",nl:"Route openen"}
 };
@@ -1303,6 +1302,9 @@ function lhMarkPdjBooked(){
       <div class="play" id="lh-vid-play"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
       <div class="vid-lb" data-t="vidLb">Vidéo : comment accéder à l'hôtel</div>
     </div>
+
+    <!-- ===== SECTION ARRIVÉE ===== -->
+    <div class="ci-sec"><span class="ci-sec-ic"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></span><span data-t="ciArrTitle">Votre arrivée</span></div>
     <div class="cd">
       <div class="cd-lb" data-t="ciFrom">Check-in à partir de</div>
       <div class="cd-val" id="lh-ci-in">15:00</div>
@@ -1317,6 +1319,9 @@ function lhMarkPdjBooked(){
       <div data-addr-txt style="margin-top:4px;font-size:15px;color:#1F3B2D;font-weight:600;line-height:1.5"></div>
       <div data-addr-btns style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"></div>
     </div>
+
+    <!-- ===== SECTION DÉPART ===== -->
+    <div class="ci-sec"><span class="ci-sec-ic"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></span><span data-t="ciDepTitle">Votre départ</span></div>
     <div class="cd">
       <div class="cd-lb" data-t="coBy">Check-out avant</div>
       <div class="cd-val" id="lh-ci-out">11:00</div>
@@ -1325,8 +1330,8 @@ function lhMarkPdjBooked(){
 
     <!-- LATE CHECK-OUT payant -->
     <div class="cd">
-      <div style="font-size:14px;font-weight:700;color:#1F3B2D;margin-bottom:4px">Prolonger votre matinée ?<span id="lh-lco-ex"></span></div>
-      <div style="font-size:12px;color:#888;line-height:1.6;margin-bottom:14px">Départ standard à <strong id="lh-lco-std">11:00</strong>. Envie de rester un peu plus&nbsp;? Réservez un départ tardif&nbsp;:</div>
+      <div class="cd-ti" style="margin-bottom:4px">Prolonger votre matinée ?<span id="lh-lco-ex"></span></div>
+      <div class="cd-txt" style="margin-bottom:14px">Départ standard à <strong id="lh-lco-std">11:00</strong>. Envie de rester un peu plus&nbsp;? Réservez un départ tardif&nbsp;:</div>
       <div id="lh-lco-opts"></div>
       <button class="lh-submit-dk" id="lh-lco-pay" onclick="lhPayLco()" disabled>Réserver mon départ tardif</button>
     </div>
@@ -2731,56 +2736,12 @@ function lhSbSync(id){
     lhMoveFooter();          /* le pose en bas de l'écran actif */
   })();
 
-  /* ===== ACCUEIL DESKTOP (ordre comme le mobile) :
-     hero → petites attentions → [Arrivée, WiFi] → petit-déj → [Restaurant, Spa, Piscine, Sauna, Infos, Avis] ===== */
-  (function(){
-    var prenom=(typeof lhGuestPrenom!=='undefined'&&lhGuestPrenom)?lhGuestPrenom:'';
-    var g1=[
-      {t:'arr',  d:'arrD',  ic:'ci', go:function(){lhGo('scr-ci');}},
-      {t:'wifi', d:'wifiD', ic:'wf', go:function(){lhGo('scr-wf');}}
-    ];
-    var g2=[
-      {t:'resto',      d:'restoD',      ic:'rs',    go:function(){lhGo('scr-rs');}},
-      {t:'spaTi',      d:'spaDs',       ic:'spa',   go:function(){lhOpenInfo('spa');}},
-      {t:'poolTi',     d:'poolDs',      ic:'pool',  go:function(){lhOpenInfo('piscine');}},
-      {t:'saunaTi',    d:'saunaDs',     ic:'sauna', go:function(){lhOpenInfo('sauna');}},
-      {t:'infos',      d:'infosD',      ic:'infos', go:function(){lhGo('scr-pr');}},
-      {t:'navAvisLbl', d:'navAvisDesc', ic:'avis',  go:function(){lhGo('scr-av');}}
-    ];
-    function gridHtml(list,id){
-      var h='<div class="dth-grid" id="'+id+'">';
-      list.forEach(function(c){
-        h+='<button class="dth-card"><span class="dth-ic"><svg viewBox="0 0 24 24">'+IC[c.ic]+'</svg></span>'
-          +'<span><span class="t" data-t="'+c.t+'">'+lhEsc(lhT(c.t)||'')+'</span><span class="d" data-t="'+c.d+'">'+lhEsc(lhT(c.d)||'')+'</span></span></button>';
-      });
-      return h+'</div>';
-    }
-    var dh=document.createElement('div'); dh.id='lh-dt-home';
-    var hero='<div class="dth-hero">'
-      +'<div class="dth-ey">'+(hn?lhEsc(hn)+(hl?' · '+lhEsc(hl):''):'')+'</div>'
-      +'<div class="dth-ti"><span data-t="welcome">Bienvenue</span>'+(prenom?', '+lhEsc(prenom):'')+'</div>'
-      +'<div class="dth-tx" data-t="homeWelcomeShort">'+lhEsc(lhT('homeWelcomeShort')||'')+'</div></div>';
-    /* Ordre comme mobile : bannière → boutons → bannière (séparation nette) */
-    dh.innerHTML=hero
-      +'<div class="dth-slot" id="lh-dt-carA"></div>'      /* petites attentions */
-      +gridHtml(g1,'lh-dt-g1')                               /* Arrivée, WiFi */
-      +'<div class="dth-slot" id="lh-dt-carB"></div>'      /* petit-déjeuner */
-      +gridHtml(g2,'lh-dt-g2')                               /* Restaurant, Spa, Piscine, Sauna, Infos, Avis */
-      +'<div class="dth-slot" id="lh-dt-carC"></div>';     /* restaurant (séparé du petit-déj par les boutons) */
-    home.insertBefore(dh, home.firstChild);
-    /* Adresse : déplacée juste sous le hero (visible dès l'accueil) */
-    var ha=document.getElementById('lh-home-address');
-    if(ha){ ha.style.margin='16px 0 0'; var heroEl=dh.querySelector('.dth-hero'); dh.insertBefore(ha, heroEl.nextSibling); }
-    /* Bandeaux : car3 = petites attentions (A), car1 = petit-déj (B), car2 = restaurant (C).
-       Chacun se masque tout seul si la section n'existe pas (data-lh-sec). */
-    [['lh-home-car3','#lh-dt-carA'],['lh-home-car1','#lh-dt-carB'],['lh-home-car2','#lh-dt-carC']].forEach(function(p){
-      var c=document.getElementById(p[0]), ban=c?c.parentElement:null;
-      if(ban){ ban.classList.add('dth-banner'); dh.querySelector(p[1]).appendChild(ban); }
-    });
-    /* clics des cartes */
-    var all=g1.concat(g2), idx=0;
-    dh.querySelectorAll('.dth-card').forEach(function(btn){ var c=all[idx++]; btn.onclick=c.go; });
-  })();
+  /* ===== ACCUEIL DESKTOP = rendu natif mobile =====
+     On NE reconstruit plus l'accueil : on laisse l'écran mobile s'afficher tel quel
+     (hero → adresse → bannière petites attentions → [Arrivée, WiFi] → bannière petit-déj
+     → [Petit-déj, Restaurant] → bannière restaurant → [À découvrir, Piscine] → [Spa, Sauna]
+     → [Infos, Avis]). La sidebar gère l'identité et la navigation ; les doublons
+     (chambre/code, langue, réseaux, crédit) ont été déplacés dans la sidebar / le footer. */
 
   /* ===== QR : sidebar + agrandissement plein écran au clic ===== */
   (function(){
