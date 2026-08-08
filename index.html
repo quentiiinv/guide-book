@@ -275,7 +275,7 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 
   /* ===== ACCUEIL DESKTOP : on masque le contenu mobile de l'accueil et
      on montre le bloc dédié #lh-dt-home (construit en JS). ===== */
-  #scr-home > :not(#lh-dt-home){display:none!important}
+  #scr-home > :not(#lh-dt-home):not(#lh-page-foot){display:none!important}
   #lh-dt-home{display:block}
   #lh-dt-home .dth-hero{background:#1F3B2D;border-radius:20px;padding:32px 38px;position:relative;overflow:hidden}
   #lh-dt-home .dth-hero::before{content:'';position:absolute;top:-70px;right:-50px;width:220px;height:220px;border-radius:50%;background:rgba(201,169,97,0.08)}
@@ -328,14 +328,22 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
   #lh-sidebar .sb-qr .sb-qr-dot{width:6px;height:6px;border-radius:50%;background:#C9A961;flex-shrink:0}
   #lh-sidebar .sb-qr .sb-qr-d{font-size:10.5px;font-weight:500;color:rgba(247,243,236,0.55);line-height:1.4;margin-top:3px}
 
-  /* Footer SolvIA : bas de page À DROITE (dans la zone contenu ; la sidebar ne bouge pas) */
-  #lh-page-foot{display:block;font-family:'Montserrat',sans-serif;margin-left:308px;text-align:right;
-    padding:16px 60px 26px;background:#EFE9DE}
+  /* Footer SolvIA : intégré en bas de CHAQUE page (poussé en bas via margin-top:auto) */
+  #lh-page-foot{display:block;font-family:'Montserrat',sans-serif;margin-top:auto;text-align:center;
+    padding:40px 0 2px}
   #lh-page-foot .pf1{font-size:9px;color:#a9a293;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
   #lh-page-foot .pf1 strong{color:#7c7768;font-weight:700}
   #lh-page-foot .pf2{font-size:10px;color:#a9a293;line-height:1.6}
   #lh-page-foot .pf2 a{color:#1F3B2D;font-weight:600;text-decoration:none}
 }
+/* ===== Modale QR (agrandissement) — élément créé en desktop uniquement ===== */
+#lh-qr-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;
+  background:rgba(20,25,22,0.72);cursor:pointer}
+#lh-qr-modal.open{display:flex}
+#lh-qr-modal .qm-box{background:#fff;border-radius:26px;padding:32px 32px 28px;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,0.45);cursor:default}
+#lh-qr-modal .qm-box img{width:min(72vw,340px);height:min(72vw,340px);image-rendering:pixelated;display:block;margin:0 auto;border-radius:6px}
+#lh-qr-modal .qm-t{margin-top:20px;font-size:17px;font-weight:800;color:#1F3B2D;font-family:'Montserrat',sans-serif}
+#lh-qr-modal .qm-d{margin-top:4px;font-size:13px;color:#8a8a80;font-family:'Montserrat',sans-serif}
 </style>
 
 <script>
@@ -455,6 +463,11 @@ function lhApplyCiCodeLine(){
     .replace('{code}','<strong>'+esc(lhCiCode)+'</strong>');
   el.innerHTML=html; el.style.display='';
 }
+/* Déplace le crédit SolvIA en bas de l'écran actif (desktop). No-op sur mobile. */
+function lhMoveFooter(){
+  var f=document.getElementById('lh-page-foot'); if(!f) return;
+  var scr=document.querySelector('#lh-app .scr.on'); if(scr && f.parentNode!==scr) scr.appendChild(f);
+}
 function lhGo(id){
   if(id==='scr-pdj'&&!lhFetchDone){
     /* Fetch pas encore terminé — attendre */
@@ -472,6 +485,7 @@ function lhGo(id){
     if(scr){scr.classList.add('on');scr.style.animation='lhFade 0.35s ease';}
     window.scrollTo(0,0);
     if(window.lhSbSync)lhSbSync('scr-pdj');
+    lhMoveFooter();
     lhPdjStep(2);
     return;
   }
@@ -480,6 +494,7 @@ function lhGo(id){
   window.scrollTo(0,0);
   document.getElementById('lh-app').scrollTop=0;
   if(window.lhSbSync)lhSbSync(id);
+  lhMoveFooter();
 }
 function lhSetLang(l){
   LH_LANG=l;
@@ -493,7 +508,7 @@ function lhSetLang(l){
   /* Update dd active */
   document.querySelectorAll('#lh-app .lang-dd button').forEach(function(b){b.classList.toggle('on',b.dataset.l===l);});
   /* Translate all (guide + panneau desktop) */
-  document.querySelectorAll('#lh-app [data-t], #lh-desktop-side [data-t], #lh-page-foot [data-t]').forEach(function(el){
+  document.querySelectorAll('#lh-app [data-t], #lh-desktop-side [data-t], #lh-page-foot [data-t], #lh-qr-modal [data-t]').forEach(function(el){
     var k=el.dataset.t;
     if(el.tagName==='A'){el.textContent=lhT(k);}
     else{el.innerHTML=lhT(k);}
@@ -2641,8 +2656,8 @@ function lhSbSync(id){
     var pf=document.createElement('div'); pf.id='lh-page-foot';
     pf.innerHTML='<div class="pf1"><span data-t="poweredBy">Propulsé par</span> <strong>SolvIA</strong></div>'
       +'<div class="pf2"><span data-t="footerDesc">Guide digital conçu sur mesure pour l\'hôtellerie. Envie d\'une solution similaire ?</span> <a href="mailto:contact@solvia.pro">contact@solvia.pro</a></div>';
-    var host=document.getElementById('lh-phone')||app;
-    if(host.parentNode) host.parentNode.insertBefore(pf, host.nextSibling);
+    document.body.appendChild(pf);
+    lhMoveFooter();          /* le pose en bas de l'écran actif */
   })();
 
   /* ===== ACCUEIL DESKTOP (ordre comme le mobile) :
@@ -2678,21 +2693,38 @@ function lhSbSync(id){
       +'<div class="dth-slot" id="lh-dt-carA"></div>'      /* petites attentions */
       +gridHtml(g1,'lh-dt-g1')                               /* Arrivée, WiFi */
       +'<div class="dth-slot" id="lh-dt-carB"></div>'      /* petit-déjeuner */
+      +'<div class="dth-slot" id="lh-dt-carC"></div>'      /* restaurant */
       +gridHtml(g2,'lh-dt-g2');                              /* Restaurant, Spa, Piscine, Sauna, Infos, Avis */
     home.insertBefore(dh, home.firstChild);
-    /* Placer les bandeaux : car3 = petites attentions (slot A), car1 = petit-déj (slot B).
-       car2 (restaurant) reste masqué : Restaurant est un bouton. */
-    var c3=document.getElementById('lh-home-car3'), b3=c3?c3.parentElement:null;
-    if(b3){ b3.classList.add('dth-banner'); dh.querySelector('#lh-dt-carA').appendChild(b3); }
-    var c1=document.getElementById('lh-home-car1'), b1=c1?c1.parentElement:null;
-    if(b1){ b1.classList.add('dth-banner'); dh.querySelector('#lh-dt-carB').appendChild(b1); }
+    /* Bandeaux : car3 = petites attentions (A), car1 = petit-déj (B), car2 = restaurant (C).
+       Chacun se masque tout seul si la section n'existe pas (data-lh-sec). */
+    [['lh-home-car3','#lh-dt-carA'],['lh-home-car1','#lh-dt-carB'],['lh-home-car2','#lh-dt-carC']].forEach(function(p){
+      var c=document.getElementById(p[0]), ban=c?c.parentElement:null;
+      if(ban){ ban.classList.add('dth-banner'); dh.querySelector(p[1]).appendChild(ban); }
+    });
     /* clics des cartes */
     var all=g1.concat(g2), idx=0;
     dh.querySelectorAll('.dth-card').forEach(function(btn){ var c=all[idx++]; btn.onclick=c.go; });
   })();
 
-  /* QR de la sidebar (visible partout) */
-  try{ var qrel=document.getElementById('lh-sb-qr'); if(qrel&&typeof qrcode==='function'){ var qq=qrcode(0,'M'); qq.addData(location.href); qq.make(); qrel.src=qq.createDataURL(4,2); } }catch(e){}
+  /* ===== QR : sidebar + agrandissement plein écran au clic ===== */
+  (function(){
+    function makeQR(el,size){ try{ if(el&&typeof qrcode==='function'){ var q=qrcode(0,'M'); q.addData(location.href); q.make(); el.src=q.createDataURL(size,2); } }catch(e){} }
+    makeQR(document.getElementById('lh-sb-qr'),4);
+    /* Modale QR */
+    var modal=document.createElement('div'); modal.id='lh-qr-modal';
+    modal.innerHTML='<div class="qm-box"><img id="lh-qr-big" alt="QR"><div class="qm-t" data-t="sbMobile">Accès mobile</div><div class="qm-d" data-t="sbScan">Ouvrir sur mon téléphone</div></div>';
+    document.body.appendChild(modal);
+    makeQR(document.getElementById('lh-qr-big'),10);
+    function openM(){ modal.classList.add('open'); }
+    function closeM(){ modal.classList.remove('open'); }
+    modal.addEventListener('click',closeM);           /* clic autour = fermer */
+    var box=modal.querySelector('.qm-box');
+    if(box) box.addEventListener('click',function(e){ e.stopPropagation(); });  /* clic sur le QR = ne ferme pas */
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeM(); });
+    var card=document.querySelector('#lh-sidebar .sb-qr');
+    if(card){ card.style.cursor='pointer'; card.addEventListener('click',openM); }
+  })();
 
   lhSbSync('scr-home');
 })();
