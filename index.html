@@ -2313,6 +2313,17 @@ var lhRecoFilter='Tout';
 /* Les catégories restent stockées en français (clé de filtre) ; on ne traduit
    que l'affichage. */
 function lhCatLabel(c){ var m={"Tout":"catAll","Restaurant":"resto","Activité":"catAct","Visite":"catVis"}[c]; return m?lhT(m):c; }
+/* Lien Maps d'une reco : construit depuis lat/lng (le lieu s'ouvre pinné sur
+   la carte). Le lien "search" brut de Google n'a aucun intérêt, on l'ignore
+   dès qu'on a des coordonnées ; sinon on retombe sur r.maps si présent. */
+function lhRecoMaps(r){
+  if(r&&r.lat!=null&&r.lng!=null&&r.lat!==''&&r.lng!=='') return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(r.lat+','+r.lng);
+  return (r&&r.maps)||'';
+}
+/* Filet de sécurité : on masque les catégories transport (aéroport, gares…)
+   qui n'ont aucun intérêt en reco. Le tri principal se fait à l'ingestion,
+   ceci n'attrape que ce qui aurait glissé. */
+var LH_RECO_EXCLUDE=/a[ée]roport|airport|gare|bus\s*station|station\s*de\s*bus|train\s*station|m[ée]tro|transit/i;
 function lhRenderReco(){
   var fh=document.getElementById('lh-reco-filters');
   if(fh){ var f='';
@@ -2321,7 +2332,9 @@ function lhRenderReco(){
   }
   var host=document.getElementById('lh-reco-list'); if(!host)return;
   var h='';
-  LH_RECOS.filter(function(r){return lhRecoFilter==='Tout'||r.cat===lhRecoFilter;}).forEach(function(r){
+  LH_RECOS.filter(function(r){return !(r.cat&&LH_RECO_EXCLUDE.test(r.cat));})
+          .filter(function(r){return lhRecoFilter==='Tout'||r.cat===lhRecoFilter;}).forEach(function(r){
+      var mapUrl=lhRecoMaps(r);
     h+='<div class="reco-card">'+lhMedia(r.photo,r.emoji,140)
       +'<div class="reco-bd">'
       +(r.cat?'<span class="reco-cat">'+lhEsc(lhCatLabel(r.cat))+'</span>':'')
@@ -2330,7 +2343,7 @@ function lhRenderReco(){
       +(r.note?'<span class="reco-note"><span class="reco-star">★</span> '+lhEsc((''+r.note).replace('.',','))+(r.avis?' <span class="reco-avis">('+lhEsc(''+r.avis)+')</span>':'')+'</span>':'')
       +'</div>'
       +(r.desc?'<div class="reco-ds">'+lhEsc(r.desc)+'</div>':'')
-      +(r.maps?'<a class="lh-maps" href="'+lhEsc(r.maps)+'" target="_blank" rel="noopener">'+lhIcon('pin')+' Google Maps</a>':'')
+      +(mapUrl?'<a class="lh-maps" href="'+lhEsc(mapUrl)+'" target="_blank" rel="noopener">'+lhIcon('pin')+' Google Maps</a>':'')
       +'</div></div>';
   });
   host.innerHTML=h||'<div style="text-align:center;color:#aaa;font-size:12px;padding:30px">'+lhEsc(lhT('recoEmpty'))+'</div>';
@@ -2403,7 +2416,7 @@ function lhApplySections(){
 var LH_SUPA_URL='https://nocifyylfyafbfppmykp.supabase.co';
 var LH_SUPA_KEY='sb_publishable_OKNvEE9qH7CMfjMXBmItNA_gSed6gjJ';
 
-var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","adresse":"89 Rue Charles de Gaulle, 78730 Saint-Arnoult-en-Yvelines","latitude":48.5726161,"longitude":1.941268,"slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"resto_lien_reservation":"https://bookings.zenchef.com/results?rid=375884","resto_lien_menu":"https://lharmony-yvelines.fr/restaurant","pdj_exemple":true,"extras_exemple":true,"pdj_images":[],"resto_images":[],"social":{"instagram":"https://www.instagram.com/lharmony_yvelines/","facebook":"https://www.facebook.com/lharmony.yvelines","linkedin":"","youtube":"","tiktok":"","twitter":""},"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","email":"contact@lharmony-yvelines.fr","lien_avis":"https://g.page/r/CY-wHW4vERgQEAE/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","code":"champagne","nom":"Bouteille de champagne","desc":"","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","code":"fleurs","nom":"Bouquet de fleurs","desc":"","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":""},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":""},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":null}},"recos":[{"nom":"La Table des Gourmets","cat":"Restaurant","trajetMode":"pied","trajetDuree":"6 min","desc":"","emoji":"⭐","photo":null,"maps":"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines","note":4.7,"avis":128},{"nom":"Le Moulin de la Renardière","cat":"Restaurant","trajetMode":"voiture","trajetDuree":"8 min","desc":"","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines","note":4.5,"avis":96},{"nom":"Forêt de Rambouillet","cat":"Activité","trajetMode":"voiture","trajetDuree":"15 min","desc":"","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet","note":4.7,"avis":2143},{"nom":"Château de Rambouillet","cat":"Visite","trajetMode":"voiture","trajetDuree":"18 min","desc":"","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet","note":4.5,"avis":5487}],"late_prix":20,"late_exemple":true,"infos":[{"icone":"parking","titre":"Parking gratuit","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"}]};
+var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","adresse":"89 Rue Charles de Gaulle, 78730 Saint-Arnoult-en-Yvelines","latitude":48.5726161,"longitude":1.941268,"slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"resto_lien_reservation":"https://bookings.zenchef.com/results?rid=375884","resto_lien_menu":"https://lharmony-yvelines.fr/restaurant","pdj_exemple":true,"extras_exemple":true,"pdj_images":[],"resto_images":[],"social":{"instagram":"https://www.instagram.com/lharmony_yvelines/","facebook":"https://www.facebook.com/lharmony.yvelines","linkedin":"","youtube":"","tiktok":"","twitter":""},"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","email":"contact@lharmony-yvelines.fr","lien_avis":"https://g.page/r/CY-wHW4vERgQEAE/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","code":"champagne","nom":"Bouteille de champagne","desc":"","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","code":"fleurs","nom":"Bouquet de fleurs","desc":"","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":""},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":""},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":null}},"recos":[{"nom":"La Table des Gourmets","cat":"Restaurant","trajetMode":"pied","trajetDuree":"6 min","desc":"","emoji":"⭐","photo":null,"maps":"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines","note":4.7,"avis":128,"lat":48.5731,"lng":1.9425},{"nom":"Le Moulin de la Renardière","cat":"Restaurant","trajetMode":"voiture","trajetDuree":"8 min","desc":"","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines","note":4.5,"avis":96,"lat":48.5602,"lng":1.9308},{"nom":"Forêt de Rambouillet","cat":"Activité","trajetMode":"voiture","trajetDuree":"15 min","desc":"","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet","note":4.7,"avis":2143,"lat":48.6000,"lng":1.9000},{"nom":"Château de Rambouillet","cat":"Visite","trajetMode":"voiture","trajetDuree":"18 min","desc":"","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet","note":4.5,"avis":5487,"lat":48.6449,"lng":1.8186}],"late_prix":20,"late_exemple":true,"infos":[{"icone":"parking","titre":"Parking gratuit","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"}]};
 
 /* Applique une fiche hôtel (snapshot ou fetch) au guidebook */
 /* ---------- Thème par hôtel (couleur principale + accent) ----------
@@ -2443,7 +2456,7 @@ function lhApplyHotel(d){
   }
   if(d.facilities){ for(var t in d.facilities){ if(!d.facilities.hasOwnProperty(t))continue; var f=d.facilities[t], o=LH_FACILITIES[t]||{};
       LH_FACILITIES[t]={titre:f.titre,emoji:f.emoji,photo:f.photo||o.photo||'',description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.prevoir,maps:f.maps}; } }
-  if(d.recos){ LH_RECOS=d.recos.map(function(r){ return {nom:r.nom,cat:r.cat,trajetMode:r.trajetMode,trajetDuree:r.trajetDuree,desc:r.desc,emoji:r.emoji,photo:r.photo||'',maps:r.maps,note:r.note,avis:r.avis}; }); }
+  if(d.recos){ LH_RECOS=d.recos.map(function(r){ return {nom:r.nom,cat:r.cat,trajetMode:r.trajetMode,trajetDuree:r.trajetDuree,desc:r.desc,emoji:r.emoji,photo:r.photo||'',maps:r.maps,note:r.note,avis:r.avis,lat:r.lat,lng:r.lng}; }); }
   if(d.infos){ LH_INFOS=d.infos.map(function(o){ return {icone:o.icone,titre:o.titre,texte:o.texte}; }); }
   if(d.social){ for(var sk in d.social){ if(d.social.hasOwnProperty(sk)) LH_SOCIAL[sk]=d.social[sk]||''; } }
   /* Photos : liens de la ligne hôtel prioritaires, sinon bucket Storage. */
@@ -2539,7 +2552,7 @@ function lhFetchHotel(slug){
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:lhMergeRows(res[0], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,code:e.code,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
-        recos:(res[2]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url,note:r.note,avis:r.avis_count};}),
+        recos:(res[2]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url,note:r.note,avis:r.avis_count,lat:r.lat,lng:r.lng};}),
         infos:lhMergeRows(res[3], hid, function(i){return i.icone;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
       });
       lhShowLoading(false);                       /* contenu prêt : on retire le chargement */
