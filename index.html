@@ -471,23 +471,37 @@ function lhApplyCiCodeLine(){
     .replace('{code}','<strong>'+esc(lhCiCode)+'</strong>');
   el.innerHTML=html; el.style.display='';
 }
-/* Carte adresse + boutons d'itinéraire (Google Maps / Waze / Plans).
-   Utilise l'adresse de l'hôtel ; masquée si aucune adresse. */
+/* Liens d'itinéraire — priorité à la précision : place_id (Google) puis lat/lng
+   (Waze/Plans), repli sur l'adresse texte. */
+function lhAddrLinks(){
+  var H=(typeof HOTEL!=='undefined')?HOTEL:{};
+  var addr=(H.adresse||'').toString().trim();
+  var lat=H.latitude, lng=H.longitude, pid=(H.place_id||'').toString().trim();
+  var hasLL=(lat!==undefined&&lat!==null&&lat!==''&&lng!==undefined&&lng!==null&&lng!=='');
+  var ll=hasLL?(lat+','+lng):'';
+  var q=encodeURIComponent(addr||((H.nom||'')+' '+(H.lieu||'')).trim());
+  var name=encodeURIComponent(H.nom||addr);
+  var g = pid ? ('https://www.google.com/maps/search/?api=1&query='+q+'&query_place_id='+encodeURIComponent(pid))
+        : hasLL ? ('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(ll))
+        : ('https://www.google.com/maps/search/?api=1&query='+q);
+  var w = hasLL ? ('https://waze.com/ul?ll='+encodeURIComponent(ll)+'&navigate=yes')
+        : ('https://waze.com/ul?q='+q+'&navigate=yes');
+  var a = hasLL ? ('https://maps.apple.com/?ll='+encodeURIComponent(ll)+'&q='+name)
+        : ('https://maps.apple.com/?q='+q);
+  return [{u:g,l:'Google Maps'},{u:w,l:'Waze'},{u:a,l:'Plans'}];
+}
+/* Remplit les blocs adresse (accueil + arrivée) ; masqués si aucune adresse. */
 function lhApplyAddress(){
-  var box=document.getElementById('lh-ci-address'); if(!box) return;
-  var addr=(typeof HOTEL!=='undefined'&&HOTEL.adresse)?String(HOTEL.adresse).trim():'';
-  if(!addr){ box.style.display='none'; return; }
-  var t=document.getElementById('lh-ci-addr-txt'); if(t) t.textContent=addr;
-  var q=encodeURIComponent(addr);
+  var addr=((typeof HOTEL!=='undefined'&&HOTEL.adresse)||'').toString().trim();
   var pin='<svg viewBox="0 0 24 24"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1112 6a2.5 2.5 0 010 5.5z"/></svg>';
-  var links=[
-    {u:'https://www.google.com/maps/search/?api=1&query='+q, l:'Google Maps'},
-    {u:'https://waze.com/ul?q='+q+'&navigate=yes',           l:'Waze'},
-    {u:'https://maps.apple.com/?q='+q,                        l:'Plans'}
-  ];
-  var b=document.getElementById('lh-ci-addr-btns');
-  if(b) b.innerHTML=links.map(function(x){ return '<a class="lh-nav-btn" href="'+x.u+'" target="_blank" rel="noopener">'+pin+x.l+'</a>'; }).join('');
-  box.style.display='';
+  var btns=lhAddrLinks().map(function(x){ return '<a class="lh-nav-btn" href="'+x.u+'" target="_blank" rel="noopener">'+pin+x.l+'</a>'; }).join('');
+  ['lh-ci-address','lh-home-address'].forEach(function(id){
+    var box=document.getElementById(id); if(!box) return;
+    if(!addr){ box.style.display='none'; return; }
+    var t=box.querySelector('[data-addr-txt]'); if(t) t.textContent=addr;
+    var b=box.querySelector('[data-addr-btns]'); if(b) b.innerHTML=btns;
+    box.style.display='';
+  });
 }
 /* Déplace le crédit SolvIA en bas de l'écran actif (desktop). No-op sur mobile. */
 function lhMoveFooter(){
@@ -1125,6 +1139,13 @@ function lhMarkPdjBooked(){
     <div class="lang-dd" id="lh-lang-dd"></div>
   </div>
 
+  <!-- ADRESSE + itinéraire (accueil) — déplacé dans l'accueil desktop par le builder -->
+  <div id="lh-home-address" style="display:none;background:#fff;border-radius:16px;padding:16px 18px;margin:0 0 10px;box-shadow:0 2px 10px rgba(31,59,45,0.04)">
+    <div style="font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700" data-t="ciAddress">Adresse</div>
+    <div data-addr-txt style="margin-top:6px;font-size:14px;color:#1F3B2D;font-weight:600;line-height:1.5"></div>
+    <div data-addr-btns style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"></div>
+  </div>
+
   <!-- EXTRAS banner (carrousel défilant, comme le restaurant) -->
   <div data-lh-sec="extras" onclick="lhGo('scr-extras')" style="position:relative;border-radius:16px;overflow:hidden;margin:0 0 10px;height:140px;cursor:pointer;background:#1F3B2D">
     <div id="lh-home-car3" style="display:flex;height:100%;transition:transform 0.5s ease"></div>
@@ -1286,8 +1307,8 @@ function lhMarkPdjBooked(){
     <!-- Adresse + itinéraire (Google Maps / Waze / Plans) -->
     <div class="cd" id="lh-ci-address" style="display:none">
       <div class="cd-lb" data-t="ciAddress">Adresse</div>
-      <div id="lh-ci-addr-txt" style="margin-top:4px;font-size:15px;color:#1F3B2D;font-weight:600;line-height:1.5"></div>
-      <div id="lh-ci-addr-btns" style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"></div>
+      <div data-addr-txt style="margin-top:4px;font-size:15px;color:#1F3B2D;font-weight:600;line-height:1.5"></div>
+      <div data-addr-btns style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"></div>
     </div>
     <div class="cd">
       <div class="cd-lb" data-t="coBy">Check-out avant</div>
@@ -1917,6 +1938,7 @@ var HOTEL = {
   nom: "L'Harmony",
   lieu: "Saint-Arnoult-en-Yvelines",
   adresse: "",
+  latitude: null, longitude: null, place_id: "",
   sections: {
     petitDej:   true,
     restaurant: true,
@@ -2355,7 +2377,11 @@ function lhApplyHotel(d){
   if(d.slug) LH_SLUG=d.slug;
   if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
-  if(d.adresse!==undefined){ HOTEL.adresse=d.adresse||''; lhApplyAddress(); }
+  if(d.adresse!==undefined) HOTEL.adresse=d.adresse||'';
+  if(d.latitude!==undefined) HOTEL.latitude=d.latitude;
+  if(d.longitude!==undefined) HOTEL.longitude=d.longitude;
+  if(d.place_id!==undefined) HOTEL.place_id=d.place_id||'';
+  if(d.adresse!==undefined||d.latitude!==undefined||d.place_id!==undefined) lhApplyAddress();
   if(d.logo_url) lhSetFavicon(d.logo_url);
   if(d.sections){ for(var k in d.sections){ if(d.sections.hasOwnProperty(k)) HOTEL.sections[k]=d.sections[k]; } }
   if(d.extras && d.extras.length){
@@ -2444,7 +2470,9 @@ function lhFetchHotel(slug){
       var fac={}; lhMergeRows(res[1], hid, function(f){return f.type;}).forEach(function(f){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
-        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, adresse:hotel.adresse, logo_url:hotel.logo_url,
+        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, adresse:hotel.adresse,
+        latitude:hotel.latitude, longitude:hotel.longitude, place_id:hotel.google_place_id,
+        logo_url:hotel.logo_url,
         wifi_reseau:hotel.wifi_reseau, wifi_motdepasse:hotel.wifi_motdepasse,
         checkin:hotel.checkin, checkout_std:hotel.checkout_std,
         resto_horaires:hotel.resto_horaires, resto_exemple:hotel.resto_exemple,
@@ -2732,6 +2760,9 @@ function lhSbSync(id){
       +gridHtml(g2,'lh-dt-g2')                               /* Restaurant, Spa, Piscine, Sauna, Infos, Avis */
       +'<div class="dth-slot" id="lh-dt-carC"></div>';     /* restaurant (séparé du petit-déj par les boutons) */
     home.insertBefore(dh, home.firstChild);
+    /* Adresse : déplacée juste sous le hero (visible dès l'accueil) */
+    var ha=document.getElementById('lh-home-address');
+    if(ha){ ha.style.margin='16px 0 0'; var heroEl=dh.querySelector('.dth-hero'); dh.insertBefore(ha, heroEl.nextSibling); }
     /* Bandeaux : car3 = petites attentions (A), car1 = petit-déj (B), car2 = restaurant (C).
        Chacun se masque tout seul si la section n'existe pas (data-lh-sec). */
     [['lh-home-car3','#lh-dt-carA'],['lh-home-car1','#lh-dt-carB'],['lh-home-car2','#lh-dt-carC']].forEach(function(p){
