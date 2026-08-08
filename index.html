@@ -244,10 +244,9 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
 #lh-app .reco-meta .reco-trajet{margin-bottom:0}
 #lh-app .reco-foot{display:flex;align-items:center;gap:10px;margin-top:2px}
 #lh-app .reco-foot .lh-maps{margin:0}
-#lh-app .reco-note-sq{margin-left:auto;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:56px;padding:6px 10px;background:rgba(var(--c-accent-rgb),0.14);border-radius:12px;line-height:1.15;flex-shrink:0}
-#lh-app .reco-note-sq .rns-top{display:inline-flex;align-items:center;gap:3px;font-size:14px;font-weight:800;color:var(--c-primary)}
+#lh-app .reco-note-sq{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(var(--c-accent-rgb),0.14);border-radius:20px;flex-shrink:0;font-size:13px;font-weight:800;color:var(--c-primary);line-height:1}
 #lh-app .reco-note-sq .rns-star{color:var(--c-accent);font-size:13px}
-#lh-app .reco-note-sq .rns-avis{font-size:10px;font-weight:600;color:#888;margin-top:1px}
+#lh-app .reco-note-sq .rns-avis{font-size:11px;font-weight:600;color:#888}
 #lh-app .reco-filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:4px;-webkit-overflow-scrolling:touch}
 #lh-app .reco-fl{flex-shrink:0;background:white;border:1.5px solid rgba(var(--c-primary-rgb),0.12);border-radius:20px;padding:8px 16px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;color:#777;cursor:pointer;transition:all 0.18s}
 #lh-app .reco-fl.on{background:var(--c-primary);color:var(--c-accent);border-color:var(--c-primary)}
@@ -2342,7 +2341,7 @@ function lhRenderReco(){
       var trajs=(r.trajets&&r.trajets.length)?r.trajets:(r.trajetMode?[{mode:r.trajetMode,duree:r.trajetDuree}]:[]);
       var trajHtml=trajs.map(function(t){return lhTrajet(t.mode,t.duree);}).join('');
       /* Note en badge carré, à droite de Google Maps */
-      var noteHtml=(r.note!=null&&r.note!=='')?('<span class="reco-note-sq"><span class="rns-top"><span class="rns-star">★</span>'+lhEsc((''+r.note).replace('.',','))+'</span>'+(r.avis?'<span class="rns-avis">('+lhEsc(''+r.avis)+')</span>':'')+'</span>'):'';
+      var noteHtml=(r.note!=null&&r.note!=='')?('<span class="reco-note-sq"><span class="rns-star">★</span><b>'+lhEsc((''+r.note).replace('.',','))+'</b>'+(r.avis?'<span class="rns-avis">('+lhEsc(''+r.avis)+')</span>':'')+'</span>'):'';
     h+='<div class="reco-card">'+lhMedia(r.photo,r.emoji,140)
       +'<div class="reco-bd">'
       +(r.cat?'<span class="reco-cat">'+lhEsc(lhCatLabel(r.cat))+'</span>':'')
