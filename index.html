@@ -252,6 +252,10 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 #lh-app .lh-nav-btn:active{transform:scale(.97)}
 #lh-app .lh-nav-btn svg{width:15px;height:15px;fill:currentColor}
 #lh-app .lh-nav-btn.alt{background:rgba(31,59,45,0.06);color:#1F3B2D}
+/* Version compacte (accueil) : petits boutons, adresse discrète */
+#lh-app .lh-addr-mini .lh-nav-btn{padding:7px 12px;font-size:11.5px;border-radius:9px;gap:5px;background:rgba(31,59,45,0.06);color:#1F3B2D}
+#lh-app .lh-addr-mini .lh-nav-btn:hover{background:rgba(31,59,45,0.12)}
+#lh-app .lh-addr-mini .lh-nav-btn svg{width:13px;height:13px}
 #lh-app .lh-maps svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 /* ============================================================
@@ -471,25 +475,27 @@ function lhApplyCiCodeLine(){
     .replace('{code}','<strong>'+esc(lhCiCode)+'</strong>');
   el.innerHTML=html; el.style.display='';
 }
-/* Liens d'itinéraire — priorité à la précision : place_id (Google) puis lat/lng
-   (Waze/Plans), repli sur l'adresse texte. */
+/* Liens d'itinéraire — ouvrent l'app en mode NAVIGATION (prêt à partir).
+   Précision : place_id (Google) + lat/lng (Waze/Plans), repli sur l'adresse texte. */
 function lhAddrLinks(){
   var H=(typeof HOTEL!=='undefined')?HOTEL:{};
   var addr=(H.adresse||'').toString().trim();
   var lat=H.latitude, lng=H.longitude, pid=(H.place_id||'').toString().trim();
-  var mapsUrl=(H.maps_url||'').toString().trim();   /* lien fiche Google prêt à l'emploi (prioritaire) */
+  var mapsUrl=(H.maps_url||'').toString().trim();   /* lien Google prêt à l'emploi (prioritaire) */
   var hasLL=(lat!==undefined&&lat!==null&&lat!==''&&lng!==undefined&&lng!==null&&lng!=='');
   var ll=hasLL?(lat+','+lng):'';
+  var dest=encodeURIComponent(hasLL?ll:(addr||((H.nom||'')+' '+(H.lieu||'')).trim()));
   var q=encodeURIComponent(addr||((H.nom||'')+' '+(H.lieu||'')).trim());
-  var name=encodeURIComponent(H.nom||addr);
+  /* Google : itinéraire (départ = position actuelle), lancement direct de la navigation */
   var g = mapsUrl ? mapsUrl
-        : pid ? ('https://www.google.com/maps/search/?api=1&query='+q+'&query_place_id='+encodeURIComponent(pid))
-        : hasLL ? ('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(ll))
-        : ('https://www.google.com/maps/search/?api=1&query='+q);
+        : 'https://www.google.com/maps/dir/?api=1&destination='+dest
+          +(pid?'&destination_place_id='+encodeURIComponent(pid):'')
+          +'&travelmode=driving&dir_action=navigate';
+  /* Waze : ouvre l'app et démarre la navigation */
   var w = hasLL ? ('https://waze.com/ul?ll='+encodeURIComponent(ll)+'&navigate=yes')
         : ('https://waze.com/ul?q='+q+'&navigate=yes');
-  var a = hasLL ? ('https://maps.apple.com/?ll='+encodeURIComponent(ll)+'&q='+name)
-        : ('https://maps.apple.com/?q='+q);
+  /* Plans (Apple) : itinéraire en voiture vers la destination */
+  var a = 'https://maps.apple.com/?daddr='+dest+'&dirflg=d';
   return [{u:g,l:'Google Maps'},{u:w,l:'Waze'},{u:a,l:'Plans'}];
 }
 /* Remplit les blocs adresse (accueil + arrivée) ; masqués si aucune adresse. */
@@ -1141,11 +1147,10 @@ function lhMarkPdjBooked(){
     <div class="lang-dd" id="lh-lang-dd"></div>
   </div>
 
-  <!-- ADRESSE + itinéraire (accueil) — déplacé dans l'accueil desktop par le builder -->
-  <div id="lh-home-address" style="display:none;background:#fff;border-radius:16px;padding:16px 18px;margin:0 0 10px;box-shadow:0 2px 10px rgba(31,59,45,0.04)">
-    <div style="font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:#C9A961;font-weight:700" data-t="ciAddress">Adresse</div>
-    <div data-addr-txt style="margin-top:6px;font-size:14px;color:#1F3B2D;font-weight:600;line-height:1.5"></div>
-    <div data-addr-btns style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"></div>
+  <!-- ADRESSE + itinéraire (accueil) — version compacte ; déplacé dans l'accueil desktop par le builder -->
+  <div id="lh-home-address" class="lh-addr-mini" style="display:none;background:#fff;border-radius:13px;padding:9px 11px;margin:0 0 10px;box-shadow:0 2px 10px rgba(31,59,45,0.04)">
+    <div data-addr-txt style="font-size:11px;color:#9a9a90;font-weight:500;line-height:1.4;margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+    <div data-addr-btns style="display:flex;gap:6px;flex-wrap:wrap"></div>
   </div>
 
   <!-- EXTRAS banner (carrousel défilant, comme le restaurant) -->
