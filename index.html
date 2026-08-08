@@ -477,11 +477,13 @@ function lhAddrLinks(){
   var H=(typeof HOTEL!=='undefined')?HOTEL:{};
   var addr=(H.adresse||'').toString().trim();
   var lat=H.latitude, lng=H.longitude, pid=(H.place_id||'').toString().trim();
+  var mapsUrl=(H.maps_url||'').toString().trim();   /* lien fiche Google prêt à l'emploi (prioritaire) */
   var hasLL=(lat!==undefined&&lat!==null&&lat!==''&&lng!==undefined&&lng!==null&&lng!=='');
   var ll=hasLL?(lat+','+lng):'';
   var q=encodeURIComponent(addr||((H.nom||'')+' '+(H.lieu||'')).trim());
   var name=encodeURIComponent(H.nom||addr);
-  var g = pid ? ('https://www.google.com/maps/search/?api=1&query='+q+'&query_place_id='+encodeURIComponent(pid))
+  var g = mapsUrl ? mapsUrl
+        : pid ? ('https://www.google.com/maps/search/?api=1&query='+q+'&query_place_id='+encodeURIComponent(pid))
         : hasLL ? ('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(ll))
         : ('https://www.google.com/maps/search/?api=1&query='+q);
   var w = hasLL ? ('https://waze.com/ul?ll='+encodeURIComponent(ll)+'&navigate=yes')
@@ -1938,7 +1940,7 @@ var HOTEL = {
   nom: "L'Harmony",
   lieu: "Saint-Arnoult-en-Yvelines",
   adresse: "",
-  latitude: null, longitude: null, place_id: "",
+  latitude: null, longitude: null, place_id: "", maps_url: "",
   sections: {
     petitDej:   true,
     restaurant: true,
@@ -2381,7 +2383,8 @@ function lhApplyHotel(d){
   if(d.latitude!==undefined) HOTEL.latitude=d.latitude;
   if(d.longitude!==undefined) HOTEL.longitude=d.longitude;
   if(d.place_id!==undefined) HOTEL.place_id=d.place_id||'';
-  if(d.adresse!==undefined||d.latitude!==undefined||d.place_id!==undefined) lhApplyAddress();
+  if(d.maps_url!==undefined) HOTEL.maps_url=d.maps_url||'';
+  if(d.adresse!==undefined||d.latitude!==undefined||d.place_id!==undefined||d.maps_url!==undefined) lhApplyAddress();
   if(d.logo_url) lhSetFavicon(d.logo_url);
   if(d.sections){ for(var k in d.sections){ if(d.sections.hasOwnProperty(k)) HOTEL.sections[k]=d.sections[k]; } }
   if(d.extras && d.extras.length){
@@ -2471,7 +2474,7 @@ function lhFetchHotel(slug){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
         slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, adresse:hotel.adresse,
-        latitude:hotel.latitude, longitude:hotel.longitude, place_id:hotel.google_place_id,
+        latitude:hotel.latitude, longitude:hotel.longitude, place_id:hotel.google_place_id, maps_url:hotel.google_maps_url,
         logo_url:hotel.logo_url,
         wifi_reseau:hotel.wifi_reseau, wifi_motdepasse:hotel.wifi_motdepasse,
         checkin:hotel.checkin, checkout_std:hotel.checkout_std,
