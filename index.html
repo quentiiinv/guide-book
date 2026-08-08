@@ -297,9 +297,12 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
   #scr-home .hero-ey{font-size:11px;letter-spacing:1.8px}
   #scr-home .hero-t{font-size:30px;line-height:1.15}
   #scr-home .hero-s{font-size:11px;letter-spacing:2px}
-  #scr-home [data-lh-sec]{height:190px!important}          /* bannières plus grandes qu'en mobile */
-  #scr-home .nav-g{gap:14px;padding-top:12px}
+  #scr-home > [data-lh-sec]{height:190px!important}        /* SEULEMENT les bannières (enfants directs), pas les cartes de nav */
+  #scr-home .nav-g{gap:14px;padding-top:0;margin-bottom:14px}
   #scr-home .nav-c{padding:26px 12px 20px}
+  /* toutes les cartes d'une même ligne à la même hauteur (le petit-déj est dans un wrapper) */
+  #scr-home .nav-g > [data-lh-sec="petitDej"]{display:flex}
+  #scr-home .nav-g > [data-lh-sec="petitDej"] > .nav-c{width:100%}
   #scr-home .w-note{margin:12px 0 4px}
 
   /* ===== SIDEBAR (structure) — après le reset, donc le padding tient.
@@ -312,14 +315,14 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
   #lh-sidebar .sb-city{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:#C9A961;font-weight:700;margin-top:4px}
   #lh-sidebar #lh-guest-card{padding:0 6px!important}
   #lh-sidebar #lh-guest-card>div>div{padding:10px 13px!important}
-  #lh-sidebar .sb-nav{display:flex;flex-direction:column;gap:1px;padding:0 4px}
-  #lh-sidebar .sb-item{display:flex;align-items:center;gap:12px;padding:7px 13px;border-radius:10px;cursor:pointer;
-    color:rgba(247,243,236,0.72);font-size:12.5px;font-weight:600;background:none;border:none;text-align:left;width:100%;
+  #lh-sidebar .sb-nav{display:flex;flex-direction:column;gap:2px;padding:0 4px}
+  #lh-sidebar .sb-item{display:flex;align-items:center;gap:13px;padding:8px 14px;border-radius:11px;cursor:pointer;
+    color:rgba(247,243,236,0.75);font-size:14px;font-weight:600;background:none;border:none;text-align:left;width:100%;
     font-family:'Montserrat',sans-serif;transition:background .16s,color .16s}
   #lh-sidebar .sb-item:hover{background:rgba(247,243,236,0.07);color:#F7F3EC}
   #lh-sidebar .sb-item.on{background:rgba(201,169,97,0.18);color:#F7F3EC}
-  #lh-sidebar .sb-item .sb-ic{width:18px;height:18px;flex-shrink:0}
-  #lh-sidebar .sb-item .sb-ic svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  #lh-sidebar .sb-item .sb-ic{width:20px;height:20px;flex-shrink:0}
+  #lh-sidebar .sb-item .sb-ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
   #lh-sidebar .sb-item.on .sb-ic svg{stroke:#C9A961}
   #lh-sidebar .sb-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;padding:10px 8px 0}
   #lh-sidebar .sb-foot .lang-wrap{padding:0;justify-content:flex-start;position:relative}
@@ -2686,12 +2689,12 @@ function lhSbSync(id){
 
   var items=[
     {k:'home', t:'sbHome',      ic:'home', go:function(){lhGo('scr-home');}},
+    {k:'xtra', t:'xtraTi',      ic:'xtra', go:function(){lhGo('scr-extras');}},
     {k:'ci',   t:'arr',         ic:'ci',   go:function(){lhGo('scr-ci');}},
     {k:'wf',   t:'wifi',        ic:'wf',   go:function(){lhGo('scr-wf');}},
     {k:'pdj',  t:'pdj',         ic:'pdj',  go:function(){lhGo('scr-pdj');}},
     {k:'rs',   t:'resto',       ic:'rs',   go:function(){lhGo('scr-rs');}},
     {k:'reco', t:'discTi',      ic:'reco', go:function(){lhGo('scr-reco');}},
-    {k:'xtra', t:'xtraTi',      ic:'xtra', go:function(){lhGo('scr-extras');}},
     {k:'spa',  t:'spaTi',       ic:'spa',  go:function(){lhOpenInfo('spa');}},
     {k:'pool', t:'poolTi',      ic:'pool', go:function(){lhOpenInfo('piscine');}},
     {k:'sauna',t:'saunaTi',     ic:'sauna',go:function(){lhOpenInfo('sauna');}},
