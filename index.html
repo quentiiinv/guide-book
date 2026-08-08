@@ -246,6 +246,12 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
 /* Lien Maps / itinéraire */
 #lh-app .lh-maps{display:inline-flex;align-items:center;gap:7px;background:rgba(31,59,45,0.05);color:#1F3B2D;border-radius:10px;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-decoration:none;margin-top:4px;transition:background 0.2s}
 #lh-app .lh-maps:hover{background:rgba(31,59,45,0.1)}
+/* Boutons d'itinéraire (Google Maps / Waze / Plans) */
+#lh-app .lh-nav-btn{display:inline-flex;align-items:center;gap:7px;background:#1F3B2D;color:#F7F3EC;border-radius:11px;padding:11px 16px;font-size:12.5px;font-weight:700;letter-spacing:.3px;text-decoration:none;transition:opacity .18s,transform .12s}
+#lh-app .lh-nav-btn:hover{opacity:.9}
+#lh-app .lh-nav-btn:active{transform:scale(.97)}
+#lh-app .lh-nav-btn svg{width:15px;height:15px;fill:currentColor}
+#lh-app .lh-nav-btn.alt{background:rgba(31,59,45,0.06);color:#1F3B2D}
 #lh-app .lh-maps svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 /* ============================================================
@@ -442,7 +448,9 @@ var LH_T_EXTRA={
  homeWelcomeShort:{fr:"Nous sommes ravis de vous accueillir. Vous trouverez ici tout ce qu'il faut pour profiter pleinement de votre séjour.",en:"We're delighted to welcome you. You'll find here everything you need to make the most of your stay.",es:"Estamos encantados de recibirle. Aquí encontrará todo lo necesario para disfrutar plenamente de su estancia.",it:"Siamo lieti di accogliervi. Qui troverete tutto il necessario per godervi appieno il soggiorno.",de:"Wir freuen uns, Sie begrüßen zu dürfen. Hier finden Sie alles, was Sie für einen schönen Aufenthalt brauchen.",pt:"Estamos felizes por recebê-lo. Aqui encontrará tudo o que precisa para aproveitar ao máximo a sua estadia.",nl:"Wij verwelkomen u van harte. Hier vindt u alles wat u nodig heeft om optimaal van uw verblijf te genieten."},
  sbMobile:{fr:"Accès mobile",en:"Mobile access",es:"Acceso móvil",it:"Accesso mobile",de:"Mobiler Zugang",pt:"Acesso móvel",nl:"Mobiele toegang"},
  ciCodeLineFull:{fr:"Votre chambre est la {room} et votre code d'accès est {code}.",en:"Your room is {room} and your access code is {code}.",es:"Su habitación es la {room} y su código de acceso es {code}.",it:"La vostra camera è la {room} e il codice d'accesso è {code}.",de:"Ihr Zimmer ist {room} und Ihr Zugangscode lautet {code}.",pt:"O seu quarto é o {room} e o seu código de acesso é {code}.",nl:"Uw kamer is {room} en uw toegangscode is {code}."},
- ciCodeLineRoom:{fr:"Votre chambre est la {room}.",en:"Your room is {room}.",es:"Su habitación es la {room}.",it:"La vostra camera è la {room}.",de:"Ihr Zimmer ist {room}.",pt:"O seu quarto é o {room}.",nl:"Uw kamer is {room}."}
+ ciCodeLineRoom:{fr:"Votre chambre est la {room}.",en:"Your room is {room}.",es:"Su habitación es la {room}.",it:"La vostra camera è la {room}.",de:"Ihr Zimmer ist {room}.",pt:"O seu quarto é o {room}.",nl:"Uw kamer is {room}."},
+ ciAddress:{fr:"Adresse",en:"Address",es:"Dirección",it:"Indirizzo",de:"Adresse",pt:"Morada",nl:"Adres"},
+ ciGetThere:{fr:"Ouvrir l'itinéraire",en:"Open directions",es:"Abrir ruta",it:"Apri il percorso",de:"Route öffnen",pt:"Abrir rota",nl:"Route openen"}
 };
 (function(){
   for(var k in LH_T_EXTRA){ var t=LH_T_EXTRA[k]; for(var l in t){ if(LH_T[l]) LH_T[l][k]=t[l]; } }
@@ -462,6 +470,24 @@ function lhApplyCiCodeLine(){
     .replace('{room}','<strong>'+esc(lhCiRoom)+'</strong>')
     .replace('{code}','<strong>'+esc(lhCiCode)+'</strong>');
   el.innerHTML=html; el.style.display='';
+}
+/* Carte adresse + boutons d'itinéraire (Google Maps / Waze / Plans).
+   Utilise l'adresse de l'hôtel ; masquée si aucune adresse. */
+function lhApplyAddress(){
+  var box=document.getElementById('lh-ci-address'); if(!box) return;
+  var addr=(typeof HOTEL!=='undefined'&&HOTEL.adresse)?String(HOTEL.adresse).trim():'';
+  if(!addr){ box.style.display='none'; return; }
+  var t=document.getElementById('lh-ci-addr-txt'); if(t) t.textContent=addr;
+  var q=encodeURIComponent(addr);
+  var pin='<svg viewBox="0 0 24 24"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1112 6a2.5 2.5 0 010 5.5z"/></svg>';
+  var links=[
+    {u:'https://www.google.com/maps/search/?api=1&query='+q, l:'Google Maps'},
+    {u:'https://waze.com/ul?q='+q+'&navigate=yes',           l:'Waze'},
+    {u:'https://maps.apple.com/?q='+q,                        l:'Plans'}
+  ];
+  var b=document.getElementById('lh-ci-addr-btns');
+  if(b) b.innerHTML=links.map(function(x){ return '<a class="lh-nav-btn" href="'+x.u+'" target="_blank" rel="noopener">'+pin+x.l+'</a>'; }).join('');
+  box.style.display='';
 }
 /* Déplace le crédit SolvIA en bas de l'écran actif (desktop). No-op sur mobile. */
 function lhMoveFooter(){
@@ -1256,6 +1282,13 @@ function lhMarkPdjBooked(){
       <!-- Rappel chambre + code, glissé dans le texte (affiché si transmis dans le lien) -->
       <div class="cd-txt" id="lh-ci-codeline" style="display:none;margin-top:10px"></div>
     </div>
+
+    <!-- Adresse + itinéraire (Google Maps / Waze / Plans) -->
+    <div class="cd" id="lh-ci-address" style="display:none">
+      <div class="cd-lb" data-t="ciAddress">Adresse</div>
+      <div id="lh-ci-addr-txt" style="margin-top:4px;font-size:15px;color:#1F3B2D;font-weight:600;line-height:1.5"></div>
+      <div id="lh-ci-addr-btns" style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"></div>
+    </div>
     <div class="cd">
       <div class="cd-lb" data-t="coBy">Check-out avant</div>
       <div class="cd-val" id="lh-ci-out">11:00</div>
@@ -1883,6 +1916,7 @@ function lhRsSlide(n){
 var HOTEL = {
   nom: "L'Harmony",
   lieu: "Saint-Arnoult-en-Yvelines",
+  adresse: "",
   sections: {
     petitDej:   true,
     restaurant: true,
@@ -2313,7 +2347,7 @@ function lhApplySections(){
 var LH_SUPA_URL='https://nocifyylfyafbfppmykp.supabase.co';
 var LH_SUPA_KEY='sb_publishable_OKNvEE9qH7CMfjMXBmItNA_gSed6gjJ';
 
-var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"resto_lien_reservation":"https://bookings.zenchef.com/results?rid=375884","resto_lien_menu":"https://lharmony-yvelines.fr/restaurant","pdj_exemple":true,"extras_exemple":true,"pdj_images":[],"resto_images":[],"social":{"instagram":"https://www.instagram.com/lharmony_yvelines/","facebook":"https://www.facebook.com/lharmony.yvelines","linkedin":"","youtube":"","tiktok":"","twitter":""},"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","email":"contact@lharmony-yvelines.fr","lien_avis":"https://g.page/r/CY-wHW4vERgQEAE/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","code":"champagne","nom":"Bouteille de champagne","desc":"","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","code":"fleurs","nom":"Bouquet de fleurs","desc":"","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":""},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":""},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":null}},"recos":[{"nom":"La Table des Gourmets","cat":"Restaurant","trajetMode":"pied","trajetDuree":"6 min","desc":"","emoji":"⭐","photo":null,"maps":"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"},{"nom":"Le Moulin de la Renardière","cat":"Restaurant","trajetMode":"voiture","trajetDuree":"8 min","desc":"","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines"},{"nom":"Forêt de Rambouillet","cat":"Activité","trajetMode":"voiture","trajetDuree":"15 min","desc":"","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet"},{"nom":"Château de Rambouillet","cat":"Visite","trajetMode":"voiture","trajetDuree":"18 min","desc":"","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet"}],"late_prix":20,"late_exemple":true,"infos":[{"icone":"parking","titre":"Parking gratuit","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"}]};
+var LH_DB = {"nom":"L'Harmony","lieu":"Saint-Arnoult-en-Yvelines","adresse":"12 rue des Tilleuls, 78730 Saint-Arnoult-en-Yvelines","slug":"lharmony","wifi_reseau":"L-Harmony","wifi_motdepasse":"bienvenue2026","checkin":"15:00","checkout_std":"11:00","resto_horaires":"Mer → Sam midi & soir · Dim midi","resto_exemple":true,"resto_lien_reservation":"https://bookings.zenchef.com/results?rid=375884","resto_lien_menu":"https://lharmony-yvelines.fr/restaurant","pdj_exemple":true,"extras_exemple":true,"pdj_images":[],"resto_images":[],"social":{"instagram":"https://www.instagram.com/lharmony_yvelines/","facebook":"https://www.facebook.com/lharmony.yvelines","linkedin":"","youtube":"","tiktok":"","twitter":""},"pdj_prix_adulte":12,"pdj_prix_enfant":6,"telephone":"+33130461214","email":"contact@lharmony-yvelines.fr","lien_avis":"https://g.page/r/CY-wHW4vERgQEAE/review","sections":{"petitDej":true,"restaurant":true,"piscine":true,"spa":true,"sauna":true,"extras":true,"recos":true,"avis":true,"infos":true},"extras":[{"id":"6118a624-9dea-4703-8f87-eb1ef806e685","code":"champagne","nom":"Bouteille de champagne","desc":"","prix":59,"emoji":"🍾","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/champagne.jpg"},{"id":"408e7654-ad35-4949-b8e1-c6587983066e","code":"fleurs","nom":"Bouquet de fleurs","desc":"","prix":35,"emoji":"💐","photo":"https://nocifyylfyafbfppmykp.supabase.co/storage/v1/object/public/extras/fleurs.jpg"}],"facilities":{"spa":{"titre":"Spa","emoji":"🧖","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":""},"piscine":{"titre":"Piscine","emoji":"🏊","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":""},"sauna":{"titre":"Sauna","emoji":"🔥","photo":null,"description":"","horaires":"","acces":"","prevoir":"","maps":null}},"recos":[{"nom":"La Table des Gourmets","cat":"Restaurant","trajetMode":"pied","trajetDuree":"6 min","desc":"","emoji":"⭐","photo":null,"maps":"https://www.google.com/maps/search/restaurant+gastronomique+Yvelines"},{"nom":"Le Moulin de la Renardière","cat":"Restaurant","trajetMode":"voiture","trajetDuree":"8 min","desc":"","emoji":"🍽️","photo":null,"maps":"https://www.google.com/maps/search/restaurant+Yvelines"},{"nom":"Forêt de Rambouillet","cat":"Activité","trajetMode":"voiture","trajetDuree":"15 min","desc":"","emoji":"🌲","photo":null,"maps":"https://www.google.com/maps/search/Foret+de+Rambouillet"},{"nom":"Château de Rambouillet","cat":"Visite","trajetMode":"voiture","trajetDuree":"18 min","desc":"","emoji":"🏰","photo":null,"maps":"https://www.google.com/maps/search/Chateau+de+Rambouillet"}],"late_prix":20,"late_exemple":true,"infos":[{"icone":"parking","titre":"Parking gratuit","texte":"En face de l'hôtel"},{"icone":"animaux","titre":"Animaux acceptés","texte":"Supplément de 8€ par séjour"},{"icone":"nonfumeur","titre":"Non-fumeur","texte":"Interdit de fumer dans la chambre"}]};
 
 /* Applique une fiche hôtel (snapshot ou fetch) au guidebook */
 function lhApplyHotel(d){
@@ -2321,6 +2355,7 @@ function lhApplyHotel(d){
   if(d.slug) LH_SLUG=d.slug;
   if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
+  if(d.adresse!==undefined){ HOTEL.adresse=d.adresse||''; lhApplyAddress(); }
   if(d.logo_url) lhSetFavicon(d.logo_url);
   if(d.sections){ for(var k in d.sections){ if(d.sections.hasOwnProperty(k)) HOTEL.sections[k]=d.sections[k]; } }
   if(d.extras && d.extras.length){
@@ -2409,7 +2444,7 @@ function lhFetchHotel(slug){
       var fac={}; lhMergeRows(res[1], hid, function(f){return f.type;}).forEach(function(f){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
-        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, logo_url:hotel.logo_url,
+        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, adresse:hotel.adresse, logo_url:hotel.logo_url,
         wifi_reseau:hotel.wifi_reseau, wifi_motdepasse:hotel.wifi_motdepasse,
         checkin:hotel.checkin, checkout_std:hotel.checkout_std,
         resto_horaires:hotel.resto_horaires, resto_exemple:hotel.resto_exemple,
@@ -2689,12 +2724,13 @@ function lhSbSync(id){
       +'<div class="dth-ey">'+(hn?lhEsc(hn)+(hl?' · '+lhEsc(hl):''):'')+'</div>'
       +'<div class="dth-ti"><span data-t="welcome">Bienvenue</span>'+(prenom?', '+lhEsc(prenom):'')+'</div>'
       +'<div class="dth-tx" data-t="homeWelcomeShort">'+lhEsc(lhT('homeWelcomeShort')||'')+'</div></div>';
+    /* Ordre comme mobile : bannière → boutons → bannière (séparation nette) */
     dh.innerHTML=hero
       +'<div class="dth-slot" id="lh-dt-carA"></div>'      /* petites attentions */
       +gridHtml(g1,'lh-dt-g1')                               /* Arrivée, WiFi */
       +'<div class="dth-slot" id="lh-dt-carB"></div>'      /* petit-déjeuner */
-      +'<div class="dth-slot" id="lh-dt-carC"></div>'      /* restaurant */
-      +gridHtml(g2,'lh-dt-g2');                              /* Restaurant, Spa, Piscine, Sauna, Infos, Avis */
+      +gridHtml(g2,'lh-dt-g2')                               /* Restaurant, Spa, Piscine, Sauna, Infos, Avis */
+      +'<div class="dth-slot" id="lh-dt-carC"></div>';     /* restaurant (séparé du petit-déj par les boutons) */
     home.insertBefore(dh, home.firstChild);
     /* Bandeaux : car3 = petites attentions (A), car1 = petit-déj (B), car2 = restaurant (C).
        Chacun se masque tout seul si la section n'existe pas (data-lh-sec). */
