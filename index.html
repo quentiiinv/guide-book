@@ -280,7 +280,8 @@ html,body{margin:0;padding:0;background:#F7F3EC;min-height:100%}
   #lh-sidebar{display:flex}
   /* Zone de contenu = l'écran actif, colonne de lecture confortable */
   #lh-app > .scr.on{flex:1;min-width:0;max-width:none;padding:48px 64px 72px;background:#F7F3EC}
-  #lh-app > .scr.on > *{max-width:900px;width:100%;margin-left:auto;margin-right:auto}
+  /* !important pour battre les margin inline des bannières (margin:0) et tout centrer pareil */
+  #lh-app > .scr.on > *{max-width:940px;width:100%;margin-left:auto!important;margin-right:auto!important}
   /* Barre verte des sous-écrans : plus de bouton retour (la sidebar gère la nav) */
   #lh-app .s-hdr{position:static;box-shadow:none;padding:26px 30px}
   #lh-app .s-hdr .bk{display:none}
