@@ -1796,7 +1796,7 @@ function lhApplyParams(params){
   if(prenom){
     lhGuestPrenom=prenom;
     var ht=document.querySelector('#lh-app .hero-t');
-    if(ht){ht.innerHTML=lhT('welcome')+' '+lhT('welSub')+',<br>'+prenom;}
+    if(ht){ht.innerHTML=lhT('welcome')+' '+lhT('welSub')+(prenom?',<br>'+prenom:'');}
   }
 
   /* Show guest card */
@@ -1937,7 +1937,7 @@ function lhApplyParams(params){
   /* DÉMO PROSPECTION : sans token ni paramètres, on affiche une chambre et un
      code d'accès fictifs pour que l'hôtel prospecté voie le rendu réel.
      Les vrais paramètres (postMessage Hostinger) écrasent ces valeurs. */
-  lhApplyParams({ prenom:'Camille', chambre:'204', code:'A1856' });
+  lhApplyParams(new URLSearchParams(location.search));
 })();
 
 function lhHomeCar(c,n){
