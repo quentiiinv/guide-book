@@ -2406,6 +2406,12 @@ function lhApplySections(){
   document.querySelectorAll('#lh-app [data-lh-sec]').forEach(function(el){
     el.style.display = (S[el.getAttribute('data-lh-sec')]===false) ? 'none' : '';
   });
+  /* Nav latérale : masquer les entrées dont la section est désactivée (clés nav -> clés sections) */
+  var NAVSEC={xtra:'extras',pdj:'petitDej',rs:'restaurant',reco:'recos',pool:'piscine',spa:'spa',sauna:'sauna',infos:'infos',avis:'avis'};
+  document.querySelectorAll('#lh-sidebar .sb-item[data-k]').forEach(function(el){
+    var sk=NAVSEC[el.getAttribute('data-k')];
+    if(sk) el.style.display = (S[sk]===false) ? 'none' : '';
+  });
   /* Replier les rangées de tuiles devenues entièrement vides */
   document.querySelectorAll('#scr-home .nav-g').forEach(function(row){
     var anyVisible=[].slice.call(row.children).some(function(k){ return k.style.display!=='none'; });
@@ -2449,6 +2455,7 @@ function lhApplyHotel(d){
   if(d.slug) LH_SLUG=d.slug;
   if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
+  try{ var _sn=document.querySelector('#lh-sidebar .sb-name'); if(_sn) _sn.textContent=HOTEL.nom||''; var _sc=document.querySelector('#lh-sidebar .sb-city'); if(_sc) _sc.textContent=HOTEL.lieu||''; }catch(e){}
   if(d.adresse!==undefined) HOTEL.adresse=d.adresse||'';
   if(d.latitude!==undefined) HOTEL.latitude=d.latitude;
   if(d.longitude!==undefined) HOTEL.longitude=d.longitude;
