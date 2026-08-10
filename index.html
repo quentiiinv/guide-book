@@ -2580,19 +2580,36 @@ function lhContrast(a,b){ var l1=lhLum(a), l2=lhLum(b); var hi=Math.max(l1,l2), 
 var LH_DEF_PRIMARY=[35,32,56];    /* #232038 navy profond (DA premium) */
 var LH_DEF_ACCENT=[139,143,217];  /* #8B8FD9 périwinkle doux */
 var LH_CREAM=[250,246,238];
+/* ---- Conversions RGB <-> HSL (pour dériver la palette depuis la teinte) ---- */
+function lhRgbToHsl(c){ var r=c[0]/255,g=c[1]/255,b=c[2]/255; var mx=Math.max(r,g,b),mn=Math.min(r,g,b); var h=0,s=0,l=(mx+mn)/2;
+  if(mx!==mn){ var d=mx-mn; s=l>0.5?d/(2-mx-mn):d/(mx+mn);
+    if(mx===r)h=(g-b)/d+(g<b?6:0); else if(mx===g)h=(b-r)/d+2; else h=(r-g)/d+4; h*=60; }
+  return {h:h,s:s,l:l}; }
+function lhHslToRgb(h,s,l){ h=(((h%360)+360)%360)/360; var r,g,b;
+  if(s===0){ r=g=b=l; } else {
+    function q2(p,q,t){ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; }
+    var q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+    r=q2(p,q,h+1/3); g=q2(p,q,h); b=q2(p,q,h-1/3);
+  }
+  return [Math.round(r*255),Math.round(g*255),Math.round(b*255)]; }
+/* Référence : la paire navy #232038 -> périwinkle #8B8FD9 qu'on aime.
+   navy      = H≈248, S≈0.275, L≈0.173
+   périwinkle= H≈236 (=248-12), S≈0.507, L≈0.698
+   -> Depuis N'IMPORTE QUELLE couleur de marque scrapée, on garde SA TEINTE,
+      on la FONCE au niveau du navy (primaire), et on génère la secondaire avec
+      exactement le même écart (plus claire, plus saturée, -12° de teinte).
+      Chaque hôtel obtient ainsi la même harmonie premium, dans sa couleur. */
 function lhApplyTheme(primary, accent){
   var root=document.documentElement.style;
   var pr=lhHexToRgb(primary)||LH_DEF_PRIMARY;
-  var p=lhDarkenForText(pr);                      /* assez foncé pour du texte crème */
+  var hsl=lhRgbToHsl(pr);
+  /* Couleur quasi neutre (gris/noir/blanc) : pas de teinte fiable -> on garde
+     la teinte du navy par défaut pour éviter une couleur au hasard. */
+  var H = (hsl.s < 0.12) ? 248 : hsl.h;
+  var p = lhHslToRgb(H, 0.275, 0.173);           /* PRIMAIRE : foncé, teinte de marque */
   root.setProperty('--c-primary', lhRgbHex(p)); root.setProperty('--c-primary-rgb', p.join(','));
-  var ar=lhHexToRgb(accent)||LH_DEF_ACCENT;
-  /* SÉCURITÉ LISIBILITÉ : l'accent sert de highlight SUR le fond primaire (foncé)
-     et parfois sur le crème (clair). S'il ne contraste pas assez avec le primaire
-     (ex. vert foncé sur vert foncé) ou s'il est trop clair pour le crème,
-     on retombe sur l'accent par défaut ; en dernier recours, blanc. */
-  if(lhContrast(ar,p) < 2.2 || lhContrast(ar,LH_CREAM) < 1.5){ ar=LH_DEF_ACCENT; }
-  if(lhContrast(ar,p) < 2.2){ ar=[255,255,255]; }   /* ultime recours si primaire très clair */
-  root.setProperty('--c-accent', lhRgbHex(ar)); root.setProperty('--c-accent-rgb', ar.join(','));
+  var a = lhHslToRgb(H - 12, 0.507, 0.698);      /* SECONDAIRE : même écart que périwinkle */
+  root.setProperty('--c-accent', lhRgbHex(a)); root.setProperty('--c-accent-rgb', a.join(','));
 }
 /* Logo sidebar (desktop) : on n'affiche le favicon QUE s'il contient vraiment
    quelque chose. On écarte les favicons génériques connus (Wix pfavico…) et on
