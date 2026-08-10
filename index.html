@@ -307,7 +307,10 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
   /* ===== ACCUEIL DESKTOP : on masque le contenu mobile de l'accueil et
      on montre le bloc dédié #lh-dt-home (construit en JS). ===== */
   /* ===== ACCUEIL DESKTOP = rendu mobile natif, agrandi et aéré ===== */
-  #scr-home .hero{border-radius:20px 20px 0 0;padding:40px 44px 34px}
+  #scr-home .hero{border-radius:20px 20px 0 0;padding:40px 44px 34px;margin-bottom:0}
+  /* Header + adresse = UN SEUL bloc collé : jonction à bord droit (pas d'arrondi),
+     aucun espace, arrondis seulement en haut (header) et en bas (adresse). */
+  #scr-home #lh-home-address{border-radius:0 0 20px 20px!important;margin:0 0 14px!important;box-shadow:0 12px 30px -14px rgba(var(--c-primary-rgb),0.14)!important;padding:16px 20px!important}
   #scr-home .hero-ey{font-size:11px;letter-spacing:1.8px}
   #scr-home .hero-t{font-size:30px;line-height:1.15}
   #scr-home .hero-s{font-size:11px;letter-spacing:2px}
