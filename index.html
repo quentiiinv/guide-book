@@ -2609,24 +2609,45 @@ function lhMergeRows(rows, hid, keyOf){
   return order.map(function(k){ return map[k]; }).filter(function(r){ return r.actif!==false; });
 }
 
-/* Infos pratiques = détection auto depuis hotels.amenities (brut) via le
-   catalogue LH_AMENITY_RULES. Les lignes hotel_infos éventuelles servent
-   uniquement de surcharge manuelle (même icône = texte/titre personnalisé,
-   actif=false = masqué). Rien à saisir en base pour le cas standard. */
+/* Infos pratiques = CATALOGUE ÉDITABLE en base (table hotel_infos, lignes
+   partagées hotel_id=null). Chaque ligne = icône + titre + texte + keywords
+   (mots séparés par des virgules). Si un mot-clé apparaît dans une amenity de
+   l'hôtel -> l'info s'affiche. Tout est modifiable en base, RIEN dans le code.
+   - Lignes par hôtel (hotel_id renseigné) = surcharge (même icône) ou ajout
+     manuel ; actif=false masque.
+   - Repli : si le catalogue n'a pas pu être chargé (hors-ligne), on retombe
+     sur les règles LH_AMENITY_RULES codées en secours. */
 function lhBuildInfos(amenities, rows, hid){
-  var auto=lhAmenitiesToInfos(amenities);
+  rows = rows||[];
+  var amens=(amenities||[]).map(function(a){ return String(a||'').toLowerCase(); });
+  function matches(kw){
+    if(!kw) return false;
+    return String(kw).toLowerCase().split(',').map(function(s){return s.trim();}).filter(Boolean)
+      .some(function(k){ return amens.some(function(a){ return a.indexOf(k)!==-1; }); });
+  }
+  var catalog =rows.filter(function(r){ return r.hotel_id==null; });
+  var perHotel=rows.filter(function(r){ return r.hotel_id===hid; });
   var over={}, hidden={};
-  lhMergeRows(rows||[], hid, function(i){return i.icone;}).forEach(function(r){ over[r.icone]=r; });
-  (rows||[]).forEach(function(r){ if(r.actif===false && (r.hotel_id===hid||r.hotel_id==null)) hidden[r.icone]=1; });
+  perHotel.forEach(function(r){ over[r.icone]=r; if(r.actif===false) hidden[r.icone]=1; });
+  catalog.forEach(function(r){ if(r.actif===false) hidden[r.icone]=1; });   /* désactiver une info pour tous */
+
   var out=[], seen={};
-  auto.forEach(function(o){
-    if(hidden[o.icone]) return;
-    var m=over[o.icone];
-    out.push({icone:o.icone, titre:(m&&m.titre)||o.titre, texte:(m&&m.texte)||o.texte});
-    seen[o.icone]=1;
+  catalog.sort(function(a,b){ return (a.ordre||0)-(b.ordre||0); });
+  catalog.forEach(function(r){
+    if(r.actif===false) return;
+    if(!matches(r.keywords)) return;               /* affichée seulement si un mot-clé matche */
+    if(hidden[r.icone] || seen[r.icone]) return;
+    var m=over[r.icone];                            /* surcharge éventuelle par hôtel */
+    out.push({icone:r.icone, titre:(m&&m.titre)||r.titre, texte:(m&&m.texte)||r.texte});
+    seen[r.icone]=1;
   });
-  /* Lignes manuelles sur un concept non détecté auto -> on les ajoute quand même. */
-  Object.keys(over).forEach(function(ic){ if(seen[ic]||hidden[ic]) return; var m=over[ic]; if(m.titre) out.push({icone:m.icone,titre:m.titre,texte:m.texte}); });
+  /* Ajouts manuels par hôtel (icône hors catalogue) -> toujours affichés. */
+  perHotel.forEach(function(r){
+    if(r.actif===false || seen[r.icone] || !r.titre) return;
+    out.push({icone:r.icone, titre:r.titre, texte:r.texte}); seen[r.icone]=1;
+  });
+  /* Repli hors-ligne : aucune ligne catalogue chargée -> règles codées. */
+  if(!catalog.length && amens.length) return lhAmenitiesToInfos(amenities);
   return out;
 }
 
