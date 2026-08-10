@@ -599,10 +599,7 @@ function lhSetLang(l){
     el.placeholder=lhT(el.dataset.tPh);
   });
   /* Re-apply personalised welcome text (overwritten innerHTML loses its data-t span) */
-  if(lhGuestPrenom){
-    var ht2=document.querySelector('#lh-app .hero-t');
-    if(ht2){ht2.innerHTML=lhT('welcome')+' '+lhT('welSub')+',<br>'+lhGuestPrenom;}
-  }
+  if(lhGuestPrenom||lhHostPrenom){ lhRenderWelcome(); }
   /* Translate select first options */
   document.querySelectorAll('#lh-app select [data-t]').forEach(function(el){
     el.textContent=lhT(el.dataset.t);
@@ -757,6 +754,18 @@ var lhPdjPrepaidEnfant=0;
 var lhPdjClientData={};
 var lhGuestToken='';
 var lhGuestPrenom='';
+var lhHostPrenom='';   /* prénom du dirigeant (fallback perso quand pas de prénom invité) */
+/* Rend le titre d'accueil « Bienvenue chez vous, <Prénom> ».
+   Priorité : prénom invité (?prenom=) puis, à défaut, prénom du dirigeant. */
+function lhRenderWelcome(){
+  var nm=lhGuestPrenom||lhHostPrenom||'';
+  if(!nm) return;   /* pas de prénom -> on laisse le titre statique (spans data-t traduits automatiquement) */
+  var ht=document.querySelector('#lh-app .hero-t'); if(!ht) return;
+  var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+  /* On garde le design 2 lignes : « Bienvenue » puis « chez vous » en italique,
+     et on accroche le prénom à la ligne italique. */
+  ht.innerHTML=esc(lhT('welcome'))+'<br><em>'+esc(lhT('welSub'))+', '+esc(nm)+'</em>';
+}
 var lhVideoUrl='';
 var lhFetchDone=false; /* true quand le fetch n8n est terminé */
 
@@ -1812,11 +1821,8 @@ function lhApplyParams(params){
   var band=document.getElementById('lh-personal-band');
   if(band) band.style.display='block';
 
-  if(prenom){
-    lhGuestPrenom=prenom;
-    var ht=document.querySelector('#lh-app .hero-t');
-    if(ht){ht.innerHTML=lhT('welcome')+' '+lhT('welSub')+(prenom?',<br>'+prenom:'');}
-  }
+  if(prenom){ lhGuestPrenom=prenom; }
+  lhRenderWelcome();   /* prénom invité si fourni, sinon prénom du dirigeant */
 
   /* Show guest card */
   var gcard=document.getElementById('lh-guest-card');
@@ -2499,7 +2505,8 @@ function lhApplySections(){
     el.style.display = (S[el.getAttribute('data-lh-sec')]===false) ? 'none' : '';
   });
   /* Nav latérale : masquer les entrées dont la section est désactivée (clés nav -> clés sections) */
-  var NAVSEC={xtra:'extras',pdj:'petitDej',rs:'restaurant',reco:'recos',pool:'piscine',spa:'spa',sauna:'sauna',infos:'infos',avis:'avis'};
+  /* Infos : TOUJOURS visible dans la nav (parking, règles, équipements) -> pas de clé 'infos' ici. */
+  var NAVSEC={xtra:'extras',pdj:'petitDej',rs:'restaurant',reco:'recos',pool:'piscine',spa:'spa',sauna:'sauna',avis:'avis'};
   document.querySelectorAll('#lh-sidebar .sb-item[data-k]').forEach(function(el){
     var sk=NAVSEC[el.getAttribute('data-k')];
     if(sk) el.style.display = (S[sk]===false) ? 'none' : '';
@@ -2649,6 +2656,7 @@ function lhApplyHotel(d){
   if(d.slug) LH_SLUG=d.slug;
   if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
+  if(d.hote_prenom!==undefined){ lhHostPrenom=(d.hote_prenom||'').trim(); lhRenderWelcome(); }
   try{ var _sn=document.querySelector('#lh-sidebar .sb-name'); if(_sn) _sn.textContent=HOTEL.nom||''; var _sc=document.querySelector('#lh-sidebar .sb-city'); if(_sc) _sc.textContent=HOTEL.lieu||'';
     lhSetSidebarLogo((d&&d.logo_url)||HOTEL.logo); }catch(e){}
   if(d.adresse!==undefined) HOTEL.adresse=d.adresse||'';
@@ -2685,8 +2693,12 @@ function lhApplyHotel(d){
   var dey=document.getElementById('lh-dt-hotel'); if(dey&&d.nom) dey.textContent=d.nom+(d.lieu?' · '+d.lieu:'');
   /* Champs texte lus directement depuis la ligne Supabase (vide = vide) */
   function lhSet(id,v){ var e=document.getElementById(id); if(e && v!==undefined) e.textContent=(v==null?'':v); }
-  lhSet('lh-wf-net', d.wifi_reseau);
-  lhSet('lh-wf-pwd', d.wifi_motdepasse);
+  /* WiFi : si l'hôtel n'a pas renseigné ses identifiants, on met un exemple
+     lisible (réseau = nom de l'hôtel, mot de passe placeholder) plutôt que du vide. */
+  var _wnet=(d.wifi_reseau&&(''+d.wifi_reseau).trim())?d.wifi_reseau:((HOTEL.nom||'WiFi')+' - WiFi');
+  var _wpwd=(d.wifi_motdepasse&&(''+d.wifi_motdepasse).trim())?d.wifi_motdepasse:'1234';
+  lhSet('lh-wf-net', _wnet);
+  lhSet('lh-wf-pwd', _wpwd);
   lhSet('lh-ci-in',  d.checkin);
   if(d.checkout_std!==undefined){ lhSet('lh-ci-out', d.checkout_std); lhSet('lh-lco-std', d.checkout_std); LH_CHECKOUT_STD=d.checkout_std||LH_CHECKOUT_STD; }
   /* Restaurant : phrase d'horaires personnalisable par hôtel + tag « Exemple »
@@ -2788,7 +2800,7 @@ function lhFetchHotel(slug){
       var fac={}; lhMergeRows(res[1], hid, function(f){return f.type;}).forEach(function(f){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
-        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, adresse:hotel.adresse,
+        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, adresse:hotel.adresse, hote_prenom:hotel.hote_prenom,
         latitude:hotel.latitude, longitude:hotel.longitude, place_id:hotel.google_place_id, maps_url:hotel.google_maps_url,
         logo_url:hotel.logo_url,
         couleur_principale:hotel.couleur_principale, couleur_accent:hotel.couleur_accent,
