@@ -2807,7 +2807,8 @@ function lhApplyPhotos(bucket, trackIds, rowImages){
 (function(){
   var t=document.getElementById('lh-extras-title'); if(t)t.textContent=LH_EXTRAS_TITLE;
   var hb=document.getElementById('lh-home-xtra-title'); if(hb)hb.textContent=LH_EXTRAS_TITLE;
-  var slug=(new URLSearchParams(location.search)).get('hotel')||LH_DB.slug||'lharmony';
+  var _qs=new URLSearchParams(location.search);
+  var slug=_qs.get('hotel')||_qs.get('slug')||LH_DB.slug||'lharmony';  /* accepte ?hotel= ET ?slug= */
   /* La démo L'Harmony s'affiche instantanément via le snapshot. Pour tout autre
      hôtel, on n'affiche PAS L'Harmony (pas de flash) : écran de chargement le
      temps que le vrai contenu arrive de Supabase. */
