@@ -2461,38 +2461,43 @@ function lhApplySections(){
 }
 
 /* ---------- Accueil : rythme « carousel + 2 cases » sans trou ----------
-   Ordre demandé :
-   - Carousels (bannières pleine largeur) par priorité : petit-déj, restaurant,
-     petites attentions.
-   - Cases (tuiles) par priorité : Arrivée/Départ, WiFi, Petit-déj, Restaurant,
-     Piscine, Spa, Sauna, À découvrir, Infos, Avis.
-   On alterne 1 carousel puis 2 cases, en ne prenant QUE les éléments visibles.
-   Résultat : jamais de cellule vide au milieu ; si une case reste seule à la
-   fin, elle s'étale sur toute la largeur. */
+   Règles :
+   - Arrivée/Départ + WiFi sont TOUJOURS les 2 premières cases. RIEN ne passe
+     au-dessus, sauf éventuellement le carousel « Petites attentions ».
+   - Petit-déj et Restaurant (carousels) viennent donc SOUS Arrivée/WiFi.
+   - Priorité des carousels : Petites attentions, Petit-déj, Restaurant.
+   - Priorité des cases : Arrivée/Départ, WiFi, Petit-déj, Restaurant, Piscine,
+     Spa, Sauna, À découvrir, Infos, Avis.
+   On alterne ensuite 1 carousel + 2 cases, en ne gardant QUE les éléments
+   visibles -> jamais de cellule vide ; une case seule en fin s'étale en pleine
+   largeur. */
 function lhLayoutHome(){
   var flow=document.getElementById('lh-home-flow'); if(!flow) return;
   function vis(n){ return n && n.style.display!=='none'; }
   var CAR={}, CAS={};
   flow.querySelectorAll('[data-home-car]').forEach(function(n){ CAR[n.getAttribute('data-home-car')]=n; });
   flow.querySelectorAll('[data-home-case]').forEach(function(n){ CAS[n.getAttribute('data-home-case')]=n; });
-  var carOrder=['pdj','resto','extras'];
-  var caseOrder=['ci','wifi','pdj','resto','piscine','spa','sauna','recos','infos','avis'];
-  var cars =carOrder .map(function(k){return CAR[k];}).filter(vis);
-  var cases=caseOrder.map(function(k){return CAS[k];}).filter(vis);
   /* reset spans précédents */
   flow.querySelectorAll('[data-home-span]').forEach(function(n){ n.style.gridColumn=''; n.removeAttribute('data-home-span'); });
-  /* séquence : 1 carousel + 2 cases, en boucle */
-  var seq=[], ci=0, ki=0;
+
+  var extras=CAR['extras'];                                   /* seul carousel autorisé tout en haut */
+  var firstCases=['ci','wifi'].map(function(k){return CAS[k];}).filter(vis);
+  var cars =['pdj','resto'].map(function(k){return CAR[k];}).filter(vis);
+  var cases=['pdj','resto','piscine','spa','sauna','recos','infos','avis'].map(function(k){return CAS[k];}).filter(vis);
+
+  var seq=[];
+  if(vis(extras)) seq.push(extras);                           /* Petites attentions au sommet si présent */
+  firstCases.forEach(function(n){ seq.push(n); });            /* Arrivée/Départ + WiFi, rien au-dessus */
+
+  var ci=0, ki=0;
   while(ci<cars.length || ki<cases.length){
-    if(ci<cars.length) seq.push(cars[ci++]);
-    for(var t=0;t<2 && ki<cases.length;t++){
-      var isLastCase=(ki===cases.length-1);
-      var startsPair=(t===0);
-      if(isLastCase && startsPair){ cases[ki].style.gridColumn='1 / -1'; cases[ki].setAttribute('data-home-span','1'); } /* case seule -> pleine largeur */
+    if(ci<cars.length) seq.push(cars[ci++]);                  /* 1 carousel */
+    for(var t=0;t<2 && ki<cases.length;t++){                  /* + 2 cases */
+      if(t===0 && ki===cases.length-1){ cases[ki].style.gridColumn='1 / -1'; cases[ki].setAttribute('data-home-span','1'); } /* case seule -> pleine largeur */
       seq.push(cases[ki++]);
     }
   }
-  /* on réordonne physiquement (les nœuds masqués passent à la fin, hors flux) */
+  /* réordonnement physique ; les nœuds masqués passent à la fin (hors flux) */
   seq.forEach(function(n){ flow.appendChild(n); });
   [].slice.call(flow.children).forEach(function(n){ if(!vis(n)) flow.appendChild(n); });
 }
