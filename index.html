@@ -325,6 +325,7 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
     background:var(--c-primary);color:var(--c-cream);position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:none}
   #lh-sidebar::-webkit-scrollbar{width:0;display:none}
   #lh-sidebar .sb-brand{padding:0 12px}
+  #lh-sidebar .sb-logo{height:42px;width:auto;max-width:140px;object-fit:contain;display:block;margin:0 0 10px;background:#fff;border-radius:9px;padding:5px}
   #lh-sidebar .sb-name{font-size:18px;font-weight:800;color:var(--c-cream);line-height:1.2}
   #lh-sidebar .sb-city{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--c-accent);font-weight:700;margin-top:4px}
   #lh-note-generic{display:none!important} #lh-sidebar #lh-guest-card{padding:0 6px!important}
@@ -1082,9 +1083,17 @@ function lhConfirmPdj(){
 /* end forms */
 /* PLAY VIDEO — replace button with inline player */
 function lhPlayVideo(){
-  if(!lhVideoUrl)return;
-  var box=document.getElementById('lh-vid-box');
-  if(!box)return;
+  var box=document.getElementById('lh-vid-box'); if(!box)return;
+  if(!lhVideoUrl){
+    /* Pas de vraie vidéo (mode prospect) : on montre que c'est possible. */
+    box.style.padding='0';box.style.cursor='default';box.onclick=null;
+    box.innerHTML='<div style="width:100%;border-radius:16px;background:var(--c-primary);color:var(--c-cream);padding:26px 18px;text-align:center;font-family:Montserrat,sans-serif">'
+      +'<div style="font-size:32px;margin-bottom:8px">🎬</div>'
+      +'<div style="font-weight:700;margin-bottom:5px">Vidéo (exemple)</div>'
+      +'<div style="font-size:12px;line-height:1.6;color:rgba(var(--c-cream-rgb),0.75)">Ici, votre établissement pourra ajouter une courte vidéo montrant comment accéder à l\'hôtel et récupérer les clés.</div>'
+      +'</div>';
+    return;
+  }
   box.style.padding='0';box.style.cursor='default';box.onclick=null;
   box.innerHTML='<video controls autoplay playsinline style="width:100%;border-radius:16px;display:block" src="'+lhVideoUrl+'"></video>';
 }
@@ -1321,7 +1330,7 @@ function lhMarkPdjBooked(){
     <div><div class="s-ey" data-t="ciEy">Check-in · Check-out</div><div class="s-ti" data-t="ciTi">Arrivée / Départ</div></div>
   </div>
   <div class="s-body">
-    <div class="vid" id="lh-vid-box" onclick="lhPlayVideo()" style="display:none">
+    <div class="vid" id="lh-vid-box" onclick="lhPlayVideo()">
       <div class="play" id="lh-vid-play"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
       <div class="vid-lb" data-t="vidLb">Vidéo : comment accéder à l'hôtel</div>
     </div>
@@ -1789,7 +1798,13 @@ function lhApplyParams(params){
   var pdj=parseInt(params.get?params.get('pdj'):params.pdj||'0',10);
   var pdjEnfant=parseInt(params.get?params.get('pdj_enfant'):params.pdj_enfant||'0',10);
 
-  if(!prenom && !chambre && !pdj) return;
+  /* Mode prospect/démo : par défaut on montre TOUJOURS une chambre + un code
+     d'exemple (peu importe qu'ils soient identiques pour tous), pour que la
+     carte invité ne soit jamais vide. Un vrai lien client (?chambre=&code=)
+     remplace ces valeurs. */
+  var code=params.get?(params.get('code')||''):(params.code||'');
+  if(!chambre){ chambre='6'; }
+  if(!code){ code='8721'; }
 
   var band=document.getElementById('lh-personal-band');
   if(band) band.style.display='block';
@@ -1814,7 +1829,7 @@ function lhApplyParams(params){
     if(gcChV)gcChV.textContent='N°'+chambre;
     /* Mémoriser pour la ligne « rappel » du check-in (glissée dans le texte) */
     lhCiRoom='N°'+chambre;
-    var urlCode=params.get?params.get('code'):params.code||'';
+    var urlCode=code;
     if(urlCode){
       var gcCode=document.getElementById('lh-gc-code');
       var gcCodeV=document.getElementById('lh-gc-code-val');
@@ -2376,21 +2391,29 @@ var LH_RECO_EXCLUDE=/a[ée]roport|airport|gare|bus\s*station|station\s*de\s*bus|
    dans l'hôtel, mise en forme par le guidebook. */
 function lhNearbyToRecos(nearby){
   if(!nearby || !nearby.length) return [];
-  return nearby.slice(0,12).filter(function(n){ return n && n.name; }).map(function(n){
-    var cat=n.category||n.type||'À voir', catL=String(cat).toLowerCase();
-    var emoji = catL.indexOf('restaurant')!==-1?'🍽️'
-      : catL.indexOf('bar')!==-1?'🍷'
-      : (catL.indexOf('parc')!==-1||catL.indexOf('jardin')!==-1)?'🌳'
-      : (catL.indexOf('mus')!==-1||catL.indexOf('monument')!==-1)?'🏛️':'📍';
-    var desc = n.rating ? ('★ '+n.rating+(n.reviews?(' · '+n.reviews+' avis'):'')) : '';
+  var EXCL=/a[ée]roport|airport|gare|station|m[ée]tro|transit|\bbus\b/i;   /* pas les transports */
+  var out=[];
+  nearby.forEach(function(n){
+    if(!n || !n.name) return;
+    var raw=String(n.category||n.type||'');
+    if(EXCL.test(raw) || EXCL.test(n.name)) return;
+    var rl=raw.toLowerCase();
+    /* on range chaque lieu dans une des 3 familles du filtre (Restaurant / Activité / Visite) */
+    var cat = (rl.indexOf('restaurant')!==-1||rl.indexOf('bar')!==-1||rl.indexOf('caf')!==-1||rl.indexOf('brasserie')!==-1||rl.indexOf('pizz')!==-1||rl.indexOf('bistro')!==-1)
+        ? 'Restaurant'
+      : (rl.indexOf('parc')!==-1||rl.indexOf('jardin')!==-1||rl.indexOf('for')!==-1||rl.indexOf('nature')!==-1||rl.indexOf('activ')!==-1||rl.indexOf('sport')!==-1||rl.indexOf('plage')!==-1||rl.indexOf('vall')!==-1)
+        ? 'Activité'
+      : 'Visite';
+    var emoji = cat==='Restaurant'?'🍽️':cat==='Activité'?'🌳':'🏛️';
     var trs = n.transportations||[];
     var pick = trs.filter(function(t){return t.type==='Walking';})[0] || trs[0];
     var mode = pick ? (pick.type==='Walking'?'pied':pick.type==='Public transport'?'transports':'voiture') : '';
     var g = n.gps_coordinates||n.gps||{};
-    return {nom:n.name, cat:cat, desc:desc, emoji:emoji, maps:n.link||'', photo:n.thumbnail||'',
+    out.push({nom:n.name, cat:cat, desc:n.description||'', emoji:emoji, maps:n.link||'', photo:n.thumbnail||'',
       note:n.rating, avis:n.reviews, trajetMode:mode, trajetDuree:(pick?pick.duration:''),
-      lat:g.latitude||n.lat, lng:g.longitude||n.lng};
+      lat:g.latitude||n.lat, lng:g.longitude||n.lng});
   });
+  return out.slice(0,40);
 }
 function lhRenderReco(){
   var fh=document.getElementById('lh-reco-filters');
@@ -2559,14 +2582,15 @@ function lhApplyHotel(d){
   if(d.slug) LH_SLUG=d.slug;
   if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
-  try{ var _sn=document.querySelector('#lh-sidebar .sb-name'); if(_sn) _sn.textContent=HOTEL.nom||''; var _sc=document.querySelector('#lh-sidebar .sb-city'); if(_sc) _sc.textContent=HOTEL.lieu||''; }catch(e){}
+  try{ var _sn=document.querySelector('#lh-sidebar .sb-name'); if(_sn) _sn.textContent=HOTEL.nom||''; var _sc=document.querySelector('#lh-sidebar .sb-city'); if(_sc) _sc.textContent=HOTEL.lieu||'';
+    var _sl=document.querySelector('#lh-sidebar .sb-logo'); if(_sl){ var _lg=(d&&d.logo_url)||HOTEL.logo; if(_lg){ _sl.src=_lg; _sl.style.display=''; } else { _sl.style.display='none'; } } }catch(e){}
   if(d.adresse!==undefined) HOTEL.adresse=d.adresse||'';
   if(d.latitude!==undefined) HOTEL.latitude=d.latitude;
   if(d.longitude!==undefined) HOTEL.longitude=d.longitude;
   if(d.place_id!==undefined) HOTEL.place_id=d.place_id||'';
   if(d.maps_url!==undefined) HOTEL.maps_url=d.maps_url||'';
   if(d.adresse!==undefined||d.latitude!==undefined||d.place_id!==undefined||d.maps_url!==undefined) lhApplyAddress();
-  if(d.logo_url) lhSetFavicon(d.logo_url);
+  if(d.logo_url){ HOTEL.logo=d.logo_url; lhSetFavicon(d.logo_url); }
   if(d.couleur_principale!==undefined||d.couleur_accent!==undefined) lhApplyTheme(d.couleur_principale, d.couleur_accent);
   if(d.sections){ for(var k in d.sections){ if(d.sections.hasOwnProperty(k)) HOTEL.sections[k]=d.sections[k]; } }
   if(d.extras && d.extras.length){
@@ -2600,7 +2624,7 @@ function lhApplyHotel(d){
   if(d.checkout_std!==undefined){ lhSet('lh-ci-out', d.checkout_std); lhSet('lh-lco-std', d.checkout_std); LH_CHECKOUT_STD=d.checkout_std||LH_CHECKOUT_STD; }
   /* Restaurant : phrase d'horaires personnalisable par hôtel + tag « Exemple »
      tant que l'hôtel n'a pas renseigné ses vrais horaires. */
-  if(d.resto_horaires!==undefined){ var rh=document.getElementById('lh-home-rs-hours'); if(rh) rh.textContent=(d.resto_horaires==null?'':d.resto_horaires); }
+  if(d.resto_horaires!==undefined){ var rh=document.getElementById('lh-home-rs-hours'); if(rh) rh.textContent=(d.resto_horaires && (''+d.resto_horaires).trim()) ? d.resto_horaires : 'Service midi & soir'; }
   if(d.resto_exemple!==undefined) LH_RESTO_EXEMPLE=d.resto_exemple;
   if(d.pdj_exemple!==undefined)   LH_PDJ_EXEMPLE=d.pdj_exemple;
   if(d.extras_exemple!==undefined)LH_EXTRAS_EXEMPLE=d.extras_exemple;
@@ -2913,7 +2937,9 @@ function lhSbSync(id){
   var brand=document.createElement('div'); brand.className='sb-brand';
   var hn=(typeof HOTEL!=='undefined'&&HOTEL.nom)?HOTEL.nom:'';
   var hl=(typeof HOTEL!=='undefined'&&HOTEL.lieu)?HOTEL.lieu:'';
-  brand.innerHTML='<div class="sb-name">'+lhEsc(hn||'')+'</div>'+(hl?'<div class="sb-city">'+lhEsc(hl)+'</div>':'');
+  var hlogo=(typeof HOTEL!=='undefined'&&HOTEL.logo)?HOTEL.logo:'';
+  brand.innerHTML='<img class="sb-logo" src="'+lhEsc(hlogo)+'" alt="" onerror="this.style.display=\'none\'"'+(hlogo?'':' style="display:none"')+'>'
+    +'<div class="sb-name">'+lhEsc(hn||'')+'</div>'+(hl?'<div class="sb-city">'+lhEsc(hl)+'</div>':'');
   sb.appendChild(brand);
 
   /* --- Chambre + code (nœud existant, reste synchronisé) --- */
