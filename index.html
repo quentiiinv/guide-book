@@ -2629,7 +2629,13 @@ function lhSetSidebarLogo(url){
   var el=document.querySelector('#lh-sidebar .sb-logo'); if(!el) return;
   el.style.display='none'; el.style.background='';
   if(!url || LH_LOGO_SKIP.test(url)) return;
-  function show(bg){ el.src=url; el.style.background=bg?'#fff':''; el.style.display=''; }
+  /* Normalisation : protocole-relatif + upgrade http->https (sinon la page https
+     bloque l'image « mixed content » et le logo disparaît). */
+  if(/^\/\//.test(url)) url='https:'+url;
+  if(location.protocol==='https:' && /^http:\/\//i.test(url)) url=url.replace(/^http:/i,'https:');
+  /* Un logo « blanc » (fait pour fond sombre) reste sans fond blanc -> visible sur la sidebar. */
+  var isWhiteLogo=/white|blanc|light|dark|inver/i.test(url);
+  function show(bg){ el.src=url; el.style.background=(bg&&!isWhiteLogo)?'#fff':''; el.style.display=''; }
   var test=new Image(); test.crossOrigin='anonymous';
   test.onload=function(){
     try{
