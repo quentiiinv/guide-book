@@ -325,7 +325,7 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
     background:var(--c-primary);color:var(--c-cream);position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:none}
   #lh-sidebar::-webkit-scrollbar{width:0;display:none}
   #lh-sidebar .sb-brand{padding:0 12px}
-  #lh-sidebar .sb-logo{height:42px;width:auto;max-width:140px;object-fit:contain;display:block;margin:0 0 10px;background:#fff;border-radius:9px;padding:5px}
+  #lh-sidebar .sb-logo{height:42px;width:auto;max-width:140px;object-fit:contain;display:none;margin:0 0 10px;border-radius:9px;padding:5px}
   #lh-sidebar .sb-name{font-size:18px;font-weight:800;color:var(--c-cream);line-height:1.2}
   #lh-sidebar .sb-city{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--c-accent);font-weight:700;margin-top:4px}
   #lh-note-generic{display:none!important} #lh-sidebar #lh-guest-card{padding:0 6px!important}
@@ -2591,13 +2591,46 @@ function lhApplyTheme(primary, accent){
   if(lhContrast(ar,p) < 2.2){ ar=[255,255,255]; }   /* ultime recours si primaire très clair */
   root.setProperty('--c-accent', lhRgbHex(ar)); root.setProperty('--c-accent-rgb', ar.join(','));
 }
+/* Logo sidebar (desktop) : on n'affiche le favicon QUE s'il contient vraiment
+   quelque chose. On écarte les favicons génériques connus (Wix pfavico…) et on
+   teste réellement l'image (canvas) : si elle est transparente / vide / unie,
+   on masque -> pas de vilain carré blanc. Si l'image est cross-origin sans CORS
+   (canvas illisible), on l'affiche sans fond (un favicon transparent reste alors
+   invisible plutôt qu'un carré blanc). */
+var LH_LOGO_SKIP=/parastorage|pfavico|wixstatic\.com\/.*(favicon|blank)|s\.w\.org\/images\/core|gravatar\.com\/avatar\/[0]+|placeholder|default[-_]?favicon|no[-_]?favicon/i;
+function lhSetSidebarLogo(url){
+  var el=document.querySelector('#lh-sidebar .sb-logo'); if(!el) return;
+  el.style.display='none'; el.style.background='';
+  if(!url || LH_LOGO_SKIP.test(url)) return;
+  function show(bg){ el.src=url; el.style.background=bg?'#fff':''; el.style.display=''; }
+  var test=new Image(); test.crossOrigin='anonymous';
+  test.onload=function(){
+    try{
+      var w=Math.min(32,test.naturalWidth||32), h=Math.min(32,test.naturalHeight||32);
+      if(!w||!h){ el.style.display='none'; return; }
+      var c=document.createElement('canvas'); c.width=w; c.height=h;
+      var cx=c.getContext('2d'); cx.drawImage(test,0,0,w,h);
+      var d=cx.getImageData(0,0,w,h).data, opaque=0, r0=d[0],g0=d[1],b0=d[2], uni=true;
+      for(var i=0;i<d.length;i+=4){ if(d[i+3]>16) opaque++; if(d[i]!==r0||d[i+1]!==g0||d[i+2]!==b0) uni=false; }
+      if(opaque/(w*h) < 0.03 || uni){ el.style.display='none'; return; }   /* vide / transparent / uni */
+      show(true);
+    }catch(e){ show(false); }   /* canvas bloqué (CORS) -> on affiche sans fond blanc */
+  };
+  test.onerror=function(){
+    var t2=new Image();
+    t2.onload=function(){ show(false); };
+    t2.onerror=function(){ el.style.display='none'; };
+    t2.src=url;
+  };
+  test.src=url;
+}
 function lhApplyHotel(d){
   if(!d) return;
   if(d.slug) LH_SLUG=d.slug;
   if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
   try{ var _sn=document.querySelector('#lh-sidebar .sb-name'); if(_sn) _sn.textContent=HOTEL.nom||''; var _sc=document.querySelector('#lh-sidebar .sb-city'); if(_sc) _sc.textContent=HOTEL.lieu||'';
-    var _sl=document.querySelector('#lh-sidebar .sb-logo'); if(_sl){ var _lg=(d&&d.logo_url)||HOTEL.logo; if(_lg){ _sl.src=_lg; _sl.style.display=''; } else { _sl.style.display='none'; } } }catch(e){}
+    lhSetSidebarLogo((d&&d.logo_url)||HOTEL.logo); }catch(e){}
   if(d.adresse!==undefined) HOTEL.adresse=d.adresse||'';
   if(d.latitude!==undefined) HOTEL.latitude=d.latitude;
   if(d.longitude!==undefined) HOTEL.longitude=d.longitude;
