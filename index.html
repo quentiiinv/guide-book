@@ -59,6 +59,14 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
 #lh-app .hero-t{font-size:21px;font-weight:700;color:var(--c-cream);line-height:1.15;margin-bottom:3px}
 #lh-app .hero-t em{font-style:italic;color:var(--c-accent);font-weight:400}
 #lh-app .hero-s{font-size:9px;color:rgba(var(--c-cream-rgb),0.45);letter-spacing:2px;font-weight:300}
+/* DA premium : on INVERSE le header + les carousels -> fond violet clair, texte
+   foncé (la barre de nav de gauche, elle, reste sombre). Réalisé en redéfinissant
+   les variables de couleur UNIQUEMENT sur ces éléments : le fond (--c-primary)
+   devient périwinkle, le texte (--c-cream) et les accents (--c-accent) deviennent
+   le navy foncé. Toutes les règles existantes s'inversent automatiquement. */
+#lh-app .hero,#lh-app .lh-car-full{--c-primary:#A6AAE4;--c-primary-rgb:166,170,228;--c-cream:#232038;--c-cream-rgb:35,32,56;--c-accent:#232038;--c-accent-rgb:35,32,56}
+#lh-app .hero::before{background:rgba(255,255,255,0.16)}
+#lh-app .hero::after{background:rgba(255,255,255,0.12)}
 /* Badge « Exemple » — contenu illustratif tant que l'hôtel n'a pas fourni le vrai */
 #lh-app .lh-ex-tag{display:inline-block;vertical-align:middle;margin-left:6px;padding:1px 6px;border-radius:6px;background:rgba(var(--c-accent-rgb),0.18);color:var(--c-accent);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 #lh-app .lh-ex-tag.dk{background:rgba(var(--c-primary-rgb),0.10);color:var(--c-primary)}
