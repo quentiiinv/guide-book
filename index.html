@@ -2371,6 +2371,27 @@ function lhRecoMaps(r){
    qui n'ont aucun intérêt en reco. Le tri principal se fait à l'ingestion,
    ceci n'attrape que ce qui aurait glissé. */
 var LH_RECO_EXCLUDE=/a[ée]roport|airport|gare|bus\s*station|station\s*de\s*bus|train\s*station|m[ée]tro|transit/i;
+/* Recos « à découvrir » construites depuis la colonne brute hotels.nearby
+   (mêmes règles que côté base). Comme les amenities/infos : donnée brute posée
+   dans l'hôtel, mise en forme par le guidebook. */
+function lhNearbyToRecos(nearby){
+  if(!nearby || !nearby.length) return [];
+  return nearby.slice(0,12).filter(function(n){ return n && n.name; }).map(function(n){
+    var cat=n.category||n.type||'À voir', catL=String(cat).toLowerCase();
+    var emoji = catL.indexOf('restaurant')!==-1?'🍽️'
+      : catL.indexOf('bar')!==-1?'🍷'
+      : (catL.indexOf('parc')!==-1||catL.indexOf('jardin')!==-1)?'🌳'
+      : (catL.indexOf('mus')!==-1||catL.indexOf('monument')!==-1)?'🏛️':'📍';
+    var desc = n.rating ? ('★ '+n.rating+(n.reviews?(' · '+n.reviews+' avis'):'')) : '';
+    var trs = n.transportations||[];
+    var pick = trs.filter(function(t){return t.type==='Walking';})[0] || trs[0];
+    var mode = pick ? (pick.type==='Walking'?'pied':pick.type==='Public transport'?'transports':'voiture') : '';
+    var g = n.gps_coordinates||n.gps||{};
+    return {nom:n.name, cat:cat, desc:desc, emoji:emoji, maps:n.link||'', photo:n.thumbnail||'',
+      note:n.rating, avis:n.reviews, trajetMode:mode, trajetDuree:(pick?pick.duration:''),
+      lat:g.latitude||n.lat, lng:g.longitude||n.lng};
+  });
+}
 function lhRenderReco(){
   var fh=document.getElementById('lh-reco-filters');
   if(fh){ var f='';
@@ -2692,7 +2713,9 @@ function lhFetchHotel(slug){
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:lhMergeRows(res[0], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,code:e.code,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
-        recos:(res[2]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url,note:r.note,avis:r.avis_count,lat:r.lat,lng:r.lng,trajets:r.trajets};}),
+        recos:(hotel.nearby && hotel.nearby.length)
+              ? lhNearbyToRecos(hotel.nearby)
+              : (res[2]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url,note:r.note,avis:r.avis_count,lat:r.lat,lng:r.lng,trajets:r.trajets};}),
         infos:lhBuildInfos(hotel.amenities, res[3], hid)
       });
       lhShowLoading(false);                       /* contenu prêt : on retire le chargement */
