@@ -1174,35 +1174,77 @@ function lhMarkPdjBooked(){
     <div data-addr-btns style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center"></div>
   </div>
 
-  <!-- EXTRAS banner (carrousel défilant, comme le restaurant) -->
-  <div data-lh-sec="extras" onclick="lhGo('scr-extras')" style="position:relative;border-radius:16px;overflow:hidden;margin:0 0 10px;height:140px;cursor:pointer;background:var(--c-primary)">
-    <div id="lh-home-car3" style="display:flex;height:100%;transition:transform 0.5s ease"></div>
-    <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(var(--c-primary-rgb),0.85) 0%,rgba(var(--c-primary-rgb),0.15) 60%,transparent 100%)"></div>
-    <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="font-size:15px;font-weight:700;color:var(--c-cream)" id="lh-home-xtra-title">Petites attentions</div><span id="lh-home-xtra-ex"></span></div>
-      <div style="font-size:10px;color:rgba(var(--c-cream-rgb),0.6)" data-t="xtraDs">Champagne, panier de bienvenue, fleurs…</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-        <div style="font-size:13px;font-weight:700;color:var(--c-accent)"><span data-t="xtraFrom">À partir de</span> 29€</div>
-        <div style="background:var(--c-accent);color:var(--c-primary);border-radius:8px;padding:6px 14px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase"><span data-t="xtraCta">Découvrir</span> →</div>
-      </div>
-    </div>
-    <div id="lh-home-car3-dots" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:5px"></div>
-  </div>
-
-  <!-- LIGNE 1: Arrivée + WiFi -->
-  <div class="nav-g">
+  <!-- ===== ACCUEIL : une seule grille en ruissellement (aucun trou) =====
+       Ordre de priorité : Arrivée/Départ toujours 1re, puis WiFi + Infos,
+       puis Petit-déj / Restaurant, puis le reste. Les sections coupées
+       (data-lh-sec) sont retirées du flux -> les tuiles remontent, pas de trou. -->
+  <div class="nav-g" id="lh-home-tiles">
+    <!-- 1. Arrivée / Départ (toujours) -->
     <div class="nav-c" onclick="lhGo('scr-ci')">
       <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
       <div class="nav-lb" data-t="arr">Arrivée / Départ</div>
       <div class="nav-ds" data-t="arrD">Check-in & check-out</div>
     </div>
+    <!-- 2. WiFi (toujours) -->
     <div class="nav-c" onclick="lhGo('scr-wf')">
       <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg></div>
       <div class="nav-lb" data-t="wifi">WiFi</div>
       <div class="nav-ds" data-t="wifiD">Connexion internet</div>
     </div>
+    <!-- 3. Infos (toujours) -->
+    <div class="nav-c" onclick="lhGo('scr-pr')">
+      <div class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+      <div class="nav-lb" data-t="infos">Infos</div>
+      <div class="nav-ds" data-t="infosD">Parking & règles</div>
+    </div>
+    <!-- 4. Petit-déj -->
+    <div data-lh-sec="petitDej" style="position:relative;display:flex">
+      <div class="nav-c" id="lh-pdj-tile" onclick="lhGo('scr-pdj')" style="position:relative;width:100%">
+        <div id="lh-pdj-badge" style="display:none;position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#e74c3c;border:2px solid white;color:white;font-size:12px;font-weight:800;align-items:center;justify-content:center;z-index:5;line-height:1">!</div>
+        <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg></div>
+        <div class="nav-lb" data-t="pdj">Petit-déj</div>
+        <div class="nav-ds" data-t="navPdjDesc">Réserver · 12€ / pers.</div>
+      </div>
+    </div>
+    <!-- 5. Restaurant -->
+    <div data-lh-sec="restaurant" class="nav-c" onclick="lhGo('scr-rs')">
+      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m-7.07-2.93l.7-.7m12.73-12.73l.7-.7M3 12h1m16 0h1m-2.93 7.07l-.7-.7M5.64 5.64l-.7-.7"/><circle cx="12" cy="12" r="4"/></svg></div>
+      <div class="nav-lb" data-t="resto">Restaurant</div>
+      <div class="nav-ds" data-t="restoD">Menu & réservation</div>
+    </div>
+    <!-- 6. À découvrir -->
+    <div data-lh-sec="recos" class="nav-c" onclick="lhGo('scr-reco')">
+      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+      <div class="nav-lb" data-t="discTi">À découvrir</div>
+      <div class="nav-ds" data-t="discDs">Restos & activités</div>
+    </div>
+    <!-- 7. Piscine -->
+    <div data-lh-sec="piscine" class="nav-c" onclick="lhOpenInfo('piscine')">
+      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M2 18c1.5 0 1.5 1 3 1s1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1"/><path d="M6 15V5a2 2 0 012-2M18 15V5a2 2 0 00-2-2"/></svg></div>
+      <div class="nav-lb" data-t="poolTi">Piscine</div>
+      <div class="nav-ds" data-t="poolDs">Baignade & détente</div>
+    </div>
+    <!-- 8. Spa -->
+    <div data-lh-sec="spa" class="nav-c" onclick="lhOpenInfo('spa')">
+      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 22c4-3 7-6 7-11a7 7 0 00-14 0c0 5 3 8 7 11z"/><path d="M9 12a3 3 0 006 0"/></svg></div>
+      <div class="nav-lb" data-t="spaTi">Spa</div>
+      <div class="nav-ds" data-t="spaDs">Détente & soins</div>
+    </div>
+    <!-- 9. Sauna -->
+    <div data-lh-sec="sauna" class="nav-c" onclick="lhOpenInfo('sauna')">
+      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M8 3c0 1.5-1 2-1 3.5S8 8 8 9.5M12 3c0 1.5-1 2-1 3.5s1 1 1 2.5M16 3c0 1.5-1 2-1 3.5s1 1 1 2.5"/><rect x="3" y="12" width="18" height="9" rx="1.5"/></svg></div>
+      <div class="nav-lb" data-t="saunaTi">Sauna</div>
+      <div class="nav-ds" data-t="saunaDs">Chaleur & bien-être</div>
+    </div>
+    <!-- 10. Votre avis -->
+    <div data-lh-sec="avis" class="nav-c dark" onclick="lhGo('scr-av')">
+      <div class="nav-ic"><svg viewBox="0 0 24 24" style="stroke:var(--c-accent)"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg></div>
+      <div class="nav-lb" style="color:var(--c-accent)" data-t="navAvisLbl">Votre avis</div>
+      <div class="nav-ds" style="color:rgba(var(--c-cream-rgb),0.4)" data-t="navAvisDesc">Notez votre séjour</div>
+    </div>
   </div>
 
+  <!-- ===== Bannières promo (pleine largeur : se replient proprement si coupées) ===== -->
   <!-- CAROUSEL 1: PETIT-DÉJ (entre Arrivée/WiFi et Petit-déj/Restaurant) -->
   <div data-lh-sec="petitDej" onclick="lhGo('scr-pdj')" style="position:relative;border-radius:16px;overflow:hidden;margin:0 0 10px;height:140px;cursor:pointer;background:var(--c-primary)">
     <div id="lh-home-car1" style="display:flex;width:100%;height:100%">
@@ -1219,24 +1261,6 @@ function lhMarkPdjBooked(){
       </div>
     </div>
     </div>
-
-  <!-- LIGNE 2: Petit-déj + Restaurant -->
-  <div class="nav-g" style="padding-top:0">
-    <div data-lh-sec="petitDej" style="position:relative">
-      <div class="nav-c" id="lh-pdj-tile" onclick="lhGo('scr-pdj')" style="position:relative">
-        <!-- Red badge with ! -->
-        <div id="lh-pdj-badge" style="display:none;position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#e74c3c;border:2px solid white;color:white;font-size:12px;font-weight:800;align-items:center;justify-content:center;z-index:5;line-height:1">!</div>
-        <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg></div>
-        <div class="nav-lb" data-t="pdj">Petit-déj</div>
-        <div class="nav-ds" data-t="navPdjDesc">Réserver · 12€ / pers.</div>
-      </div>
-    </div>
-    <div data-lh-sec="restaurant" class="nav-c" onclick="lhGo('scr-rs')">
-      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m-7.07-2.93l.7-.7m12.73-12.73l.7-.7M3 12h1m16 0h1m-2.93 7.07l-.7-.7M5.64 5.64l-.7-.7"/><circle cx="12" cy="12" r="4"/></svg></div>
-      <div class="nav-lb" data-t="resto">Restaurant</div>
-      <div class="nav-ds" data-t="restoD">Menu & réservation</div>
-    </div>
-  </div>
 
   <!-- CAROUSEL 2: RESTAURANT (entre Petit-déj/Restaurant et Infos/Avis) -->
   <div data-lh-sec="restaurant" onclick="lhGo('scr-rs')" style="position:relative;border-radius:16px;overflow:hidden;margin:0 0 10px;height:140px;cursor:pointer;background:var(--c-primary)">
@@ -1262,50 +1286,23 @@ function lhMarkPdjBooked(){
     </div>
   </div>
 
-  <!-- LIGNE 3: À découvrir + Piscine -->
-  <div class="nav-g" style="padding-top:0">
-    <div data-lh-sec="recos" class="nav-c" onclick="lhGo('scr-reco')">
-      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-      <div class="nav-lb" data-t="discTi">À découvrir</div>
-      <div class="nav-ds" data-t="discDs">Restos & activités</div>
+  <!-- EXTRAS banner (carrousel défilant, comme le restaurant) -->
+  <div data-lh-sec="extras" onclick="lhGo('scr-extras')" style="position:relative;border-radius:16px;overflow:hidden;margin:0 0 10px;height:140px;cursor:pointer;background:var(--c-primary)">
+    <div id="lh-home-car3" style="display:flex;height:100%;transition:transform 0.5s ease"></div>
+    <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(var(--c-primary-rgb),0.85) 0%,rgba(var(--c-primary-rgb),0.15) 60%,transparent 100%)"></div>
+    <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="font-size:15px;font-weight:700;color:var(--c-cream)" id="lh-home-xtra-title">Petites attentions</div><span id="lh-home-xtra-ex"></span></div>
+      <div style="font-size:10px;color:rgba(var(--c-cream-rgb),0.6)" data-t="xtraDs">Champagne, panier de bienvenue, fleurs…</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <div style="font-size:13px;font-weight:700;color:var(--c-accent)"><span data-t="xtraFrom">À partir de</span> 29€</div>
+        <div style="background:var(--c-accent);color:var(--c-primary);border-radius:8px;padding:6px 14px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase"><span data-t="xtraCta">Découvrir</span> →</div>
+      </div>
     </div>
-    <div data-lh-sec="piscine" class="nav-c" onclick="lhOpenInfo('piscine')">
-      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M2 18c1.5 0 1.5 1 3 1s1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1"/><path d="M6 15V5a2 2 0 012-2M18 15V5a2 2 0 00-2-2"/></svg></div>
-      <div class="nav-lb" data-t="poolTi">Piscine</div>
-      <div class="nav-ds" data-t="poolDs">Baignade & détente</div>
-    </div>
+    <div id="lh-home-car3-dots" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:5px"></div>
   </div>
 
-  <!-- LIGNE 4: Spa + Sauna -->
-  <div class="nav-g" style="padding-top:0">
-    <div data-lh-sec="spa" class="nav-c" onclick="lhOpenInfo('spa')">
-      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M12 22c4-3 7-6 7-11a7 7 0 00-14 0c0 5 3 8 7 11z"/><path d="M9 12a3 3 0 006 0"/></svg></div>
-      <div class="nav-lb" data-t="spaTi">Spa</div>
-      <div class="nav-ds" data-t="spaDs">Détente & soins</div>
-    </div>
-    <div data-lh-sec="sauna" class="nav-c" onclick="lhOpenInfo('sauna')">
-      <div class="nav-ic"><svg viewBox="0 0 24 24"><path d="M8 3c0 1.5-1 2-1 3.5S8 8 8 9.5M12 3c0 1.5-1 2-1 3.5s1 1 1 2.5M16 3c0 1.5-1 2-1 3.5s1 1 1 2.5"/><rect x="3" y="12" width="18" height="9" rx="1.5"/></svg></div>
-      <div class="nav-lb" data-t="saunaTi">Sauna</div>
-      <div class="nav-ds" data-t="saunaDs">Chaleur & bien-être</div>
-    </div>
-  </div>
-
-  <!-- LIGNE 5: Infos + Votre avis -->
-  <div class="nav-g" style="padding-top:0">
-    <div class="nav-c" onclick="lhGo('scr-pr')">
-      <div class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
-      <div class="nav-lb" data-t="infos">Infos</div>
-      <div class="nav-ds" data-t="infosD">Parking & règles</div>
-    </div>
-    <div data-lh-sec="avis" class="nav-c dark" onclick="lhGo('scr-av')">
-      <div class="nav-ic"><svg viewBox="0 0 24 24" style="stroke:var(--c-accent)"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg></div>
-      <div class="nav-lb" style="color:var(--c-accent)" data-t="navAvisLbl">Votre avis</div>
-      <div class="nav-ds" style="color:rgba(var(--c-cream-rgb),0.4)" data-t="navAvisDesc">Notez votre séjour</div>
-    </div>
-  </div>
-
-  <!-- Generic note (no token) -->
-  <div class="w-note" id="lh-note-generic">
+  <!-- Generic note (no token) — masquée : message inutile en prospection -->
+  <div class="w-note" id="lh-note-generic" style="display:none!important">
     <div class="w-dot"></div>
     <div class="w-txt" data-t="wNote">Votre code d'accès figure dans le message où vous avez reçu ce lien. Appuyez sur <strong>Arrivée</strong> pour voir comment accéder à l'hôtel.</div>
   </div>
@@ -1879,7 +1876,7 @@ function lhApplyParams(params){
     lhPdjPrepaid=pdj;
   } else if(!chambre){
     if(gcard)gcard.style.display='none';
-    document.getElementById('lh-note-generic').style.display='flex';
+    /* note générique volontairement masquée (inutile en prospection) */
   }
 }
 
@@ -2461,6 +2458,15 @@ function lhApplySections(){
     var anyVisible=[].slice.call(row.children).some(function(k){ return k.style.display!=='none'; });
     row.style.display = anyVisible ? '' : 'none';
   });
+  /* Ruissellement : la grille se recompacte toute seule (les tuiles masquées
+     sortent du flux). Seule finition : si le nombre de tuiles visibles est
+     impair, la dernière s'étale sur toute la largeur -> aucun vide en fin. */
+  var grid=document.getElementById('lh-home-tiles');
+  if(grid){
+    var vis=[].slice.call(grid.children).filter(function(k){ return k.style.display!=='none'; });
+    grid.querySelectorAll('[data-lh-span]').forEach(function(k){ k.style.gridColumn=''; k.removeAttribute('data-lh-span'); });
+    if(vis.length % 2 === 1){ var last=vis[vis.length-1]; last.style.gridColumn='1 / -1'; last.setAttribute('data-lh-span','1'); }
+  }
 }
 
 /* ============================================================
