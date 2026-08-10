@@ -2102,25 +2102,53 @@ var LH_INFOS = [
   {icone:"animaux",   titre:"Animaux acceptés",  texte:"Supplément de 8€ par séjour"},
   {icone:"nonfumeur", titre:"Non-fumeur",        texte:"Interdit de fumer dans la chambre"}
 ];
-/* Table de correspondance amenity Google -> info pratique (réutilisable n8n). */
-var LH_AMENITY_MAP = {
-  "free parking":{icone:"parking",titre:"Parking gratuit"},
-  "parking":{icone:"parking",titre:"Parking gratuit"},
-  "pet-friendly":{icone:"animaux",titre:"Animaux acceptés"},
-  "pets allowed":{icone:"animaux",titre:"Animaux acceptés"},
-  "air conditioning":{icone:"clim",titre:"Climatisation"},
-  "smoke-free property":{icone:"nonfumeur",titre:"Non-fumeur"},
-  "smoke free":{icone:"nonfumeur",titre:"Non-fumeur"},
-  "room service":{icone:"roomservice",titre:"Room service"},
-  "airport shuttle":{icone:"navette",titre:"Navette aéroport"}
-};
+/* Catalogue « info pratique » : chaque concept = 1 icône + 1 titre + 1 texte
+   de base. On détecte le concept à partir des amenities brutes (FR/EN, Google
+   ou Apify) par mots-clés. Résultat : oui/non automatique, jamais de doublon,
+   description standard écrite une seule fois ici (pas ligne par ligne en base). */
+var LH_AMENITY_RULES = [
+  {icone:"parking",    titre:"Parking",                pats:["parking","stationnement"],           texte:"Stationnement disponible pour les clients."},
+  {icone:"wifi",       titre:"Wi-Fi",                  pats:["wi-fi","wifi","wireless"],            texte:"Connexion Wi-Fi disponible dans l'établissement."},
+  {icone:"clim",       titre:"Climatisation",          pats:["air conditioning","climatisation","clim"], texte:"Chambres climatisées."},
+  {icone:"chauffage",  titre:"Chauffage",              pats:["chauffage","heating"],                texte:"Chauffage dans les chambres."},
+  {icone:"tv",         titre:"Télévision",             pats:["télévision","television","tv","cable"], texte:"Télévision dans les chambres."},
+  {icone:"nonfumeur",  titre:"Établissement non-fumeur",pats:["non-fumeur","non-fumeurs","smoke-free","smoke free","smoking"], texte:"Chambres non-fumeur."},
+  {icone:"animaux",    titre:"Animaux acceptés",       pats:["pet-friendly","pets allowed","animaux","animal"], texte:"Vos animaux de compagnie sont les bienvenus."},
+  {icone:"kids",       titre:"Adapté aux enfants",     pats:["kid-friendly","enfant","child","famille","family","lit d'enfant"], texte:"Équipements et services pensés pour les familles."},
+  {icone:"cuisine",    titre:"Coin cuisine",           pats:["coin cuisine","kitchen","cuisine","micro-onde","cuisinière","cuisiniere"], texte:"Kitchenette ou espace cuisine dans certaines chambres."},
+  {icone:"lavelinge",  titre:"Laverie",                pats:["lave-linge","laundry","blanchisserie","planche à repasser","planche a repasser","repasser"], texte:"Service de blanchisserie ou lave-linge à disposition."},
+  {icone:"accessible", titre:"Accès PMR",              pats:["accessible","fauteuil","wheelchair","mobilité","mobilite"], texte:"Accès adapté aux personnes à mobilité réduite."},
+  {icone:"ascenseur",  titre:"Ascenseur",              pats:["ascenseur","elevator","lift"],        texte:"Ascenseur desservant les étages."},
+  {icone:"roomservice",titre:"Room service",           pats:["room service","service en chambre"],  texte:"Service en chambre disponible."},
+  {icone:"bar",        titre:"Bar",                    pats:["bar","lounge"],                       texte:"Bar au sein de l'établissement."},
+  {icone:"navette",    titre:"Navette aéroport",       pats:["airport shuttle","navette","shuttle"],texte:"Service de navette vers l'aéroport."},
+  {icone:"fitness",    titre:"Salle de sport",         pats:["fitness","remise en forme","gym","musculation"], texte:"Espace fitness à disposition des clients."},
+  {icone:"business",   titre:"Espace business",        pats:["business"],                           texte:"Espace de travail et services professionnels."},
+  {icone:"jacuzzi",    titre:"Bain à remous",          pats:["hot tub","bain à remous","bain a remous","jacuzzi"], texte:"Bain à remous / jacuzzi."},
+  {icone:"golf",       titre:"Golf",                   pats:["golf"],                               texte:"Golf sur place ou à proximité."},
+  {icone:"cheminee",   titre:"Cheminée",               pats:["cheminée","cheminee","fireplace"],    texte:"Cheminée dans certaines chambres ou espaces communs."},
+  {icone:"balcon",     titre:"Balcon / terrasse",      pats:["balcon","balcony","terrasse","patio"],texte:"Balcon, terrasse ou patio."},
+  {icone:"bbq",        titre:"Barbecue",               pats:["grill","barbecue","bbq"],             texte:"Espace barbecue / grill extérieur."},
+  {icone:"plage",      titre:"Accès plage",            pats:["plage","beach"],                      texte:"Accès à la plage."}
+];
+/* Concepts déjà couverts par un onglet/section dédié -> pas de doublon en Infos. */
+var LH_AMENITY_SKIP = {restaurant:1,piscine:1,pool:1,spa:1,sauna:1,"petit-déjeuner":1,breakfast:1};
+/* Rétro-compat : ancienne table clé exacte -> concept. */
+var LH_AMENITY_MAP = (function(){ var m={}; LH_AMENITY_RULES.forEach(function(r){ r.pats.forEach(function(p){ m[p]={icone:r.icone,titre:r.titre,texte:r.texte}; }); }); return m; })();
 function lhAmenitiesToInfos(amenities){
   if(!amenities||!amenities.length) return [];
-  var out=[];
+  var seen={}, out=[];
   amenities.forEach(function(a){
-    var k=String(a||'').toLowerCase().trim();
-    var m=LH_AMENITY_MAP[k];
-    if(m) out.push({icone:m.icone,titre:m.titre,texte:''});
+    var k=String(a||'').toLowerCase().trim(); if(!k) return;
+    for(var i=0;i<LH_AMENITY_RULES.length;i++){
+      var r=LH_AMENITY_RULES[i];
+      for(var j=0;j<r.pats.length;j++){
+        if(k.indexOf(r.pats[j])!==-1){
+          if(!seen[r.icone]){ seen[r.icone]=1; out.push({icone:r.icone,titre:r.titre,texte:r.texte}); }
+          return;
+        }
+      }
+    }
   });
   return out;
 }
@@ -2133,6 +2161,22 @@ function lhInfoIcon(key){
     roomservice:'<path d="M3 18h18"/><path d="M4.5 18a7.5 7.5 0 0115 0"/><line x1="12" y1="5.5" x2="12" y2="10.5"/>',
     navette:'<rect x="3" y="5" width="18" height="11" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><circle cx="7.5" cy="18.5" r="1.4"/><circle cx="16.5" cy="18.5" r="1.4"/>',
     wifi:'<path d="M5 12.5a11 11 0 0114 0M8.5 16a6 6 0 017 0M2 9a15 15 0 0120 0"/><line x1="12" y1="19.5" x2="12.01" y2="19.5"/>',
+    chauffage:'<path d="M8 4v16M12 4v16M16 4v16"/><path d="M8 8c2 0 2 2 4 2M12 8c2 0 2 2 4 2"/>',
+    tv:'<rect x="3" y="5" width="18" height="12" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+    kids:'<circle cx="12" cy="5.5" r="2"/><path d="M12 7.5v6M8 10l4-2 4 2M9 20l3-6 3 6"/>',
+    cuisine:'<path d="M6 3v7a2 2 0 002 2h0a2 2 0 002-2V3M8 12v9"/><path d="M16 3c-1.5 0-2.5 1.5-2.5 4s1 4 2.5 4V3zM16 12v9"/>',
+    lavelinge:'<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="4.5"/><circle cx="7.5" cy="6.5" r="0.9"/>',
+    accessible:'<circle cx="12" cy="4" r="1.6"/><path d="M12 6v6h4l3 5M12 12H8a4 4 0 100 8 4 4 0 003.7-2.5"/>',
+    ascenseur:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 4v16M8 10l1.5-2 1.5 2M13 8l1.5 2 1.5-2"/>',
+    bar:'<path d="M4 4h16l-8 9v6M9 19h6"/>',
+    fitness:'<path d="M4 9v6M8 7v10M16 7v10M20 9v6M8 12h8"/>',
+    business:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/>',
+    jacuzzi:'<path d="M4 11h16v5a3 3 0 01-3 3H7a3 3 0 01-3-3zM6 11V6a2 2 0 012-2M10 8c-1-1-1-2 0-3M14 8c-1-1-1-2 0-3"/>',
+    golf:'<path d="M12 3v13"/><path d="M12 4l6 2.5-6 2.5"/><path d="M6 20c1.5-1 4-1.5 6-1.5s4.5.5 6 1.5"/>',
+    cheminee:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 21v-5a4 4 0 018 0v5M12 12c1.2-1 1-2.5 0-3.5-1.5 1-1.5 2.5 0 3.5z"/>',
+    balcon:'<path d="M3 21h18M5 21v-6h14v6M5 15l3-6h8l3 6M9 15v6M15 15v6"/>',
+    bbq:'<circle cx="12" cy="9" r="6"/><path d="M8 14l-1 6M16 14l1 6M10 20h4"/><path d="M9 8h.01M13 8h.01M11 10h.01"/>',
+    plage:'<circle cx="8" cy="8" r="3"/><path d="M3 20h18M8 11v9M8 11c3-2 7-1 9 2"/>',
     defaut:'<circle cx="12" cy="12" r="9.5"/><line x1="12" y1="11" x2="12" y2="16.5"/><line x1="12" y1="7.5" x2="12.01" y2="7.5"/>'
   };
   return '<svg viewBox="0 0 24 24">'+(p[key]||p.defaut)+'</svg>';
@@ -2526,6 +2570,27 @@ function lhMergeRows(rows, hid, keyOf){
   return order.map(function(k){ return map[k]; }).filter(function(r){ return r.actif!==false; });
 }
 
+/* Infos pratiques = détection auto depuis hotels.amenities (brut) via le
+   catalogue LH_AMENITY_RULES. Les lignes hotel_infos éventuelles servent
+   uniquement de surcharge manuelle (même icône = texte/titre personnalisé,
+   actif=false = masqué). Rien à saisir en base pour le cas standard. */
+function lhBuildInfos(amenities, rows, hid){
+  var auto=lhAmenitiesToInfos(amenities);
+  var over={}, hidden={};
+  lhMergeRows(rows||[], hid, function(i){return i.icone;}).forEach(function(r){ over[r.icone]=r; });
+  (rows||[]).forEach(function(r){ if(r.actif===false && (r.hotel_id===hid||r.hotel_id==null)) hidden[r.icone]=1; });
+  var out=[], seen={};
+  auto.forEach(function(o){
+    if(hidden[o.icone]) return;
+    var m=over[o.icone];
+    out.push({icone:o.icone, titre:(m&&m.titre)||o.titre, texte:(m&&m.texte)||o.texte});
+    seen[o.icone]=1;
+  });
+  /* Lignes manuelles sur un concept non détecté auto -> on les ajoute quand même. */
+  Object.keys(over).forEach(function(ic){ if(seen[ic]||hidden[ic]) return; var m=over[ic]; if(m.titre) out.push({icone:m.icone,titre:m.titre,texte:m.texte}); });
+  return out;
+}
+
 /* Lecture en direct depuis Supabase (fonctionne sur la version hébergée).
    En 2 temps pour rester scalable (des centaines/milliers d'hôtels) :
    1) on récupère l'hôtel par son slug ;
@@ -2568,7 +2633,7 @@ function lhFetchHotel(slug){
         extras:lhMergeRows(res[0], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,code:e.code,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
         facilities:fac,
         recos:(res[2]||[]).filter(function(r){return r.hotel_id===hid;}).map(function(r){return {nom:r.nom,cat:r.categorie,trajetMode:r.trajet_mode,trajetDuree:r.trajet_duree,desc:r.description,emoji:r.emoji,photo:r.photo_url,maps:r.maps_url,note:r.note,avis:r.avis_count,lat:r.lat,lng:r.lng,trajets:r.trajets};}),
-        infos:lhMergeRows(res[3], hid, function(i){return i.icone;}).map(function(i){return {icone:i.icone,titre:i.titre,texte:i.texte};})
+        infos:lhBuildInfos(hotel.amenities, res[3], hid)
       });
       lhShowLoading(false);                       /* contenu prêt : on retire le chargement */
       });
