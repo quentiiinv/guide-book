@@ -1747,11 +1747,18 @@ function lhMarkPdjBooked(){
   var today=d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(dy<10?'0':'')+dy;
   var di=document.getElementById('lh-pdj-add-date');
   if(di){di.min=today;di.value=today;}
-  /* Home carousels auto-slide */
-  var hc1=0,hc2=0,rc=0;
-  
-  setInterval(function(){hc2=(hc2+1)%3;lhHomeCar(2,hc2);},5500);
-  setInterval(function(){rc=(rc+1)%3;lhRsSlide(rc);},4000);
+  /* Carrousels en autoplay — DYNAMIQUE : suit le vrai nombre de photos
+     (via lhPhotoGo + data-lh-count), au lieu d'un pas fixe de 33 % qui
+     s'arrêtait entre deux images quand il n'y avait pas exactement 3 photos. */
+  function lhAutoPhoto(trackId){
+    var el=document.getElementById(trackId); if(!el) return;
+    var n=parseInt(el.getAttribute('data-lh-count')||'0',10); if(n<2) return;
+    el.__ai=((el.__ai||0)+1)%n; lhPhotoGo(trackId, el.__ai);
+  }
+  setInterval(function(){ lhAutoPhoto('lh-home-car1'); },5200);
+  setInterval(function(){ lhAutoPhoto('lh-home-car2'); },5500);
+  setInterval(function(){ lhAutoPhoto('lh-rs-slides');  },4000);
+  setInterval(function(){ lhAutoPhoto('lh-pdj-slides'); },4600);
 })();
 /* PAYMENT RETURN DETECTION */
 (function(){
@@ -2005,6 +2012,7 @@ var HOTEL = {
   nom: "L'Harmony",
   lieu: "Saint-Arnoult-en-Yvelines",
   adresse: "",
+  site_web: "",
   latitude: null, longitude: null, place_id: "", maps_url: "",
   sections: {
     petitDej:   true,
@@ -2688,6 +2696,7 @@ function lhApplyHotel(d){
   if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
   if(d.hote_prenom!==undefined){ lhHostPrenom=(d.hote_prenom||'').trim(); lhRenderWelcome(); }
+  if(d.site_web!==undefined) HOTEL.site_web=d.site_web||'';
   try{ var _sn=document.querySelector('#lh-sidebar .sb-name'); if(_sn) _sn.textContent=HOTEL.nom||''; var _sc=document.querySelector('#lh-sidebar .sb-city'); if(_sc) _sc.textContent=HOTEL.lieu||'';
     lhSetSidebarLogo((d&&d.logo_url)||HOTEL.logo); }catch(e){}
   if(d.adresse!==undefined) HOTEL.adresse=d.adresse||'';
@@ -2743,12 +2752,14 @@ function lhApplyHotel(d){
   if(d.pdj_exemple!==undefined)   LH_PDJ_EXEMPLE=d.pdj_exemple;
   if(d.extras_exemple!==undefined)LH_EXTRAS_EXEMPLE=d.extras_exemple;
   lhApplyExemples();
-  /* Boutons restaurant : juste un lien par bouton. Affiché si lien présent,
-     caché si vide (on n'invente jamais d'URL). */
-  function lhLinkBtn(id,url){ var e=document.getElementById(id); if(!e)return;
-    if(url){ e.href=url; e.style.display=''; } else { e.style.display='none'; } }
-  if(d.resto_lien_reservation!==undefined) lhLinkBtn('lh-rs-book', d.resto_lien_reservation);
-  if(d.resto_lien_menu!==undefined)        lhLinkBtn('lh-rs-menu', d.resto_lien_menu);
+  /* Boutons restaurant : TOUJOURS affichés si l'hôtel a un restaurant. Si le lien
+     précis (résa / menu) est vide, on retombe sur le SITE de l'hôtel. Caché seulement
+     si on n'a vraiment aucune URL (ni lien, ni site). */
+  function lhLinkBtn(id,url,fallback){ var e=document.getElementById(id); if(!e)return;
+    var u=(url&&(''+url).trim())?url:((fallback&&(''+fallback).trim())?fallback:'');
+    if(u){ e.href=u; e.style.display=''; } else { e.style.display='none'; } }
+  lhLinkBtn('lh-rs-book', d.resto_lien_reservation, HOTEL.site_web);
+  lhLinkBtn('lh-rs-menu', d.resto_lien_menu, HOTEL.site_web);
   lhRenderExtras(); lhRenderReco(); lhRenderInfos(); lhRenderSocial(); lhRenderLco(); lhRenderXtraBanner(); lhApplySections();
 }
 
@@ -2835,7 +2846,7 @@ function lhFetchHotel(slug){
       var fac={}; lhMergeRows(res[1], hid, function(f){return f.type;}).forEach(function(f){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
       lhApplyHotel({
-        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, adresse:hotel.adresse, hote_prenom:hotel.hote_prenom,
+        slug:hotel.slug, nom:hotel.nom, lieu:hotel.lieu, adresse:hotel.adresse, hote_prenom:hotel.hote_prenom, site_web:hotel.site_web,
         latitude:hotel.latitude, longitude:hotel.longitude, place_id:hotel.google_place_id, maps_url:hotel.google_maps_url,
         logo_url:hotel.logo_url,
         couleur_principale:hotel.couleur_principale, couleur_accent:hotel.couleur_accent,
