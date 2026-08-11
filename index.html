@@ -1151,11 +1151,17 @@ function lhMarkPdjBooked(){
 </div>
 
 <!-- ===== GUIDE INTROUVABLE ===== -->
-<div id="lh-404" style="display:none;position:fixed;inset:0;background:var(--c-primary);z-index:9998;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:32px">
-  <div style="font-size:44px">🔍</div>
-  <div style="font-size:21px;font-weight:700;color:var(--c-cream)" data-t="nfTi">Guide introuvable</div>
-  <div style="font-size:13px;color:rgba(var(--c-cream-rgb),0.55);max-width:280px;line-height:1.7" data-t="nfBody">Ce lien ne correspond à aucun guide de séjour. Vérifiez l'adresse, ou contactez directement votre hôtel.</div>
-  <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-accent);font-weight:700;margin-top:12px"><span data-t="poweredBy">Propulsé par</span> SolvIA</div>
+<div id="lh-404" style="display:none;position:fixed;inset:0;background:var(--c-primary);z-index:9998;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;overflow:auto">
+  <div style="max-width:460px;display:flex;flex-direction:column;align-items:center;gap:16px">
+    <div style="font-size:13px;letter-spacing:5px;text-transform:uppercase;color:var(--c-accent);font-weight:800">SolvIA</div>
+    <div style="font-size:29px;font-weight:800;color:var(--c-cream);line-height:1.22">Le guide de séjour digital,<br>pensé pour votre hôtel.</div>
+    <div style="font-size:14px;color:rgba(var(--c-cream-rgb),0.62);line-height:1.75;max-width:390px">Arrivée, WiFi, petit-déjeuner, recommandations… vos clients trouvent tout en un seul lien, à votre image. Sans application à installer.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px">
+      <a href="?slug=lharmony" style="background:var(--c-accent);color:var(--c-primary);text-decoration:none;font-weight:800;font-size:13px;padding:13px 22px;border-radius:12px;letter-spacing:.3px">Voir un exemple</a>
+      <a href="https://solvia.pro" style="background:rgba(var(--c-cream-rgb),0.08);color:var(--c-cream);text-decoration:none;font-weight:700;font-size:13px;padding:13px 22px;border-radius:12px;border:1px solid rgba(var(--c-cream-rgb),0.18)">En savoir plus</a>
+    </div>
+    <a href="mailto:contact@solvia.pro" style="font-size:12.5px;color:rgba(var(--c-cream-rgb),0.55);text-decoration:none;margin-top:6px">contact@solvia.pro</a>
+  </div>
 </div>
 
 <!-- ===== HOME ===== -->
@@ -2919,7 +2925,11 @@ function lhApplyPhotos(bucket, trackIds, rowImages){
   var t=document.getElementById('lh-extras-title'); if(t)t.textContent=LH_EXTRAS_TITLE;
   var hb=document.getElementById('lh-home-xtra-title'); if(hb)hb.textContent=LH_EXTRAS_TITLE;
   var _qs=new URLSearchParams(location.search);
-  var slug=_qs.get('hotel')||_qs.get('slug')||LH_DB.slug||'lharmony';  /* accepte ?hotel= ET ?slug= */
+  var real=_qs.get('hotel')||_qs.get('slug');   /* accepte ?hotel= ET ?slug= */
+  /* Aucun slug -> on n'affiche PAS L'Harmony : on montre la vitrine SolvIA
+     (transforme un lien nu / une faute de frappe en pub). Démo = ?slug=lharmony. */
+  if(!real){ lhShow404(); return; }
+  var slug=real;
   /* La démo L'Harmony s'affiche instantanément via le snapshot. Pour tout autre
      hôtel, on n'affiche PAS L'Harmony (pas de flash) : écran de chargement le
      temps que le vrai contenu arrive de Supabase. */
