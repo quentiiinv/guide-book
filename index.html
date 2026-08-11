@@ -2926,6 +2926,19 @@ function lhApplyPhotos(bucket, trackIds, rowImages){
   if(slug===LH_DB.slug){ lhApplyHotel(LH_DB); }
   else { lhShowLoading(true); }
   lhFetchHotel(slug);                          /* rafraîchit / charge en direct */
+  /* --- Suivi d'ouverture : on prévient Supabase quand un VRAI lien prospect est
+     ouvert (?slug= / ?hotel=). On ignore la démo par défaut et les robots d'aperçu
+     de lien (WhatsApp, LinkedIn, Slack…). Délai de 1,5 s = filtre anti-préchargement. */
+  (function(){
+    var real=_qs.get('hotel')||_qs.get('slug'); if(!real) return;
+    if(/bot|crawl|spider|preview|facebookexternalhit|whatsapp|slackbot|telegrambot|bingbot|googlebot|linkedinbot|embedly|pinterest|discordbot|bitlybot|skypeuripreview|vkshare|headless/i.test(navigator.userAgent||'')) return;
+    setTimeout(function(){
+      try{ fetch(LH_SUPA_URL+'/rest/v1/rpc/solvia_log_view',{method:'POST',
+        headers:{'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY,'content-type':'application/json'},
+        body:JSON.stringify({p_slug:real,p_ua:(navigator.userAgent||'').slice(0,300),p_ref:(document.referrer||'').slice(0,300)}),
+        keepalive:true}).catch(function(){}); }catch(e){}
+    },1500);
+  })();
   /* Les photos sont appliquées par lhApplyHotel (liens ligne hôtel > bucket). */
   if(LH_EXTRAS.length>1){ setInterval(function(){ lhXtraIdx=(lhXtraIdx+1)%LH_EXTRAS.length; lhXtraApply(); },4000); }
 })();
