@@ -330,6 +330,7 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
   #lh-sidebar::-webkit-scrollbar{width:0;display:none}
   #lh-sidebar .sb-brand{padding:0 12px;text-align:center}
   #lh-sidebar .sb-logo{height:74px;width:auto;max-width:190px;object-fit:contain;display:none;margin:2px auto 14px;border-radius:12px;padding:8px}
+  #lh-sidebar .sb-mono{width:76px;height:76px;border-radius:50%;margin:2px auto 14px;display:none;align-items:center;justify-content:center;background:var(--c-accent);color:var(--c-primary);font-size:31px;font-weight:800;letter-spacing:0.5px;box-shadow:0 6px 18px -6px rgba(var(--c-accent-rgb),0.5)}
   #lh-sidebar .sb-name{font-size:18px;font-weight:800;color:var(--c-cream);line-height:1.2}
   #lh-sidebar .sb-city{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--c-accent);font-weight:700;margin-top:4px}
   #lh-note-generic{display:none!important} #lh-sidebar #lh-guest-card{padding:0 6px!important}
@@ -2636,36 +2637,47 @@ function lhApplyTheme(primary, accent){
    (canvas illisible), on l'affiche sans fond (un favicon transparent reste alors
    invisible plutôt qu'un carré blanc). */
 var LH_LOGO_SKIP=/parastorage|pfavico|wixstatic\.com\/.*(favicon|blank)|s\.w\.org\/images\/core|gravatar\.com\/avatar\/[0]+|placeholder|default[-_]?favicon|no[-_]?favicon/i;
+/* Initiales de l'hôtel pour le monogramme de repli (ex. « Le Clos Zélie » -> « CZ »). */
+function lhInitials(name){
+  var stop=/^(le|la|les|l|du|de|des|d|au|aux|un|une|et|the|hotel|hôtel|hostellerie|auberge|camping|gite|gîte|gites|gîtes|chambre|chambres|maison|residence|résidence|logis|resort|motel)$/i;
+  var raw=String(name||'').replace(/[^0-9A-Za-zÀ-ÿ ]/g,' ').split(/\s+/).filter(Boolean);
+  var w=raw.filter(function(t){return !stop.test(t);}); if(!w.length) w=raw;
+  if(!w.length) return 'H';
+  var a=(w[0]||'').charAt(0)||'H';
+  var b=w[1]?w[1].charAt(0):((w[0]||'').charAt(1)||'');
+  return (a+b).toUpperCase();
+}
+/* Logo sidebar : vrai logo si dispo & propre, SINON un monogramme élégant
+   (initiales dans un cercle aux couleurs de marque). Jamais de logo noir / vide. */
 function lhSetSidebarLogo(url){
-  var el=document.querySelector('#lh-sidebar .sb-logo'); if(!el) return;
+  var el=document.querySelector('#lh-sidebar .sb-logo');
+  var mono=document.querySelector('#lh-sidebar .sb-mono');
+  if(mono){ mono.textContent=lhInitials((typeof HOTEL!=='undefined'&&HOTEL.nom)||''); }
+  function showMono(){ if(el) el.style.display='none'; if(mono) mono.style.display='flex'; }
+  if(!el){ showMono(); return; }
   el.style.display='none'; el.style.background='';
-  if(!url || LH_LOGO_SKIP.test(url)) return;
-  /* Normalisation : protocole-relatif + upgrade http->https (sinon la page https
-     bloque l'image « mixed content » et le logo disparaît). */
+  if(!url || LH_LOGO_SKIP.test(url)){ showMono(); return; }
   if(/^\/\//.test(url)) url='https:'+url;
   if(location.protocol==='https:' && /^http:\/\//i.test(url)) url=url.replace(/^http:/i,'https:');
-  /* Un logo « blanc » (fait pour fond sombre) reste sans fond blanc -> visible sur la sidebar. */
   var isWhiteLogo=/white|blanc|light|dark|inver/i.test(url);
-  /* display:'block' (et NON '') : la feuille de style met .sb-logo en display:none,
-     donc remettre '' laisserait le CSS cacher le logo. */
-  function show(bg){ el.src=url; el.style.background=(bg&&!isWhiteLogo)?'#fff':''; el.style.display='block'; }
+  function show(bg){ if(mono) mono.style.display='none'; el.src=url; el.style.background=(bg&&!isWhiteLogo)?'#fff':''; el.style.display='block'; }
   var test=new Image(); test.crossOrigin='anonymous';
   test.onload=function(){
     try{
       var w=Math.min(32,test.naturalWidth||32), h=Math.min(32,test.naturalHeight||32);
-      if(!w||!h){ el.style.display='none'; return; }
+      if(!w||!h){ showMono(); return; }
       var c=document.createElement('canvas'); c.width=w; c.height=h;
       var cx=c.getContext('2d'); cx.drawImage(test,0,0,w,h);
       var d=cx.getImageData(0,0,w,h).data, opaque=0, r0=d[0],g0=d[1],b0=d[2], uni=true;
       for(var i=0;i<d.length;i+=4){ if(d[i+3]>16) opaque++; if(d[i]!==r0||d[i+1]!==g0||d[i+2]!==b0) uni=false; }
-      if(opaque/(w*h) < 0.03 || uni){ el.style.display='none'; return; }   /* vide / transparent / uni */
+      if(opaque/(w*h) < 0.03 || uni){ showMono(); return; }   /* vide / transparent / monochrome -> monogramme */
       show(true);
     }catch(e){ show(false); }   /* canvas bloqué (CORS) -> on affiche sans fond blanc */
   };
   test.onerror=function(){
     var t2=new Image();
     t2.onload=function(){ show(false); };
-    t2.onerror=function(){ el.style.display='none'; };
+    t2.onerror=function(){ showMono(); };
     t2.src=url;
   };
   test.src=url;
@@ -3058,6 +3070,7 @@ function lhSbSync(id){
   var hl=(typeof HOTEL!=='undefined'&&HOTEL.lieu)?HOTEL.lieu:'';
   var hlogo=(typeof HOTEL!=='undefined'&&HOTEL.logo)?HOTEL.logo:'';
   brand.innerHTML='<img class="sb-logo" src="'+lhEsc(hlogo)+'" alt="" onerror="this.style.display=\'none\'"'+(hlogo?'':' style="display:none"')+'>'
+    +'<div class="sb-mono">'+lhEsc(lhInitials(hn))+'</div>'
     +'<div class="sb-name">'+lhEsc(hn||'')+'</div>'+(hl?'<div class="sb-city">'+lhEsc(hl)+'</div>':'');
   sb.appendChild(brand);
 
