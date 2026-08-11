@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>L'Harmony · Guide de séjour</title>
-<link rel="icon" href="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=32,h=32,fit=crop,f=png/ALpeBrEnn7h08RxA/chatgpt-image-5-avr.-2025-23_47_18-1-AGB234zBZ5CRO3Xg.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23232038%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-family%3D%22Georgia%2CTimes%20New%20Roman%2Cserif%22%20font-size%3D%2242%22%20font-weight%3D%22700%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3ES%3C/text%3E%3C/svg%3E">
 </head><body>
 <div id="lh-app">
 <style>
@@ -487,7 +487,54 @@ var LH_T_EXTRA={
  ciArrTitle:{fr:"Votre arrivée",en:"Your arrival",es:"Su llegada",it:"Il vostro arrivo",de:"Ihre Ankunft",pt:"A sua chegada",nl:"Uw aankomst"},
  ciDepTitle:{fr:"Votre départ",en:"Your departure",es:"Su salida",it:"La vostra partenza",de:"Ihre Abreise",pt:"A sua partida",nl:"Uw vertrek"},
  ciAddress:{fr:"Adresse",en:"Address",es:"Dirección",it:"Indirizzo",de:"Adresse",pt:"Morada",nl:"Adres"},
- ciGetThere:{fr:"Ouvrir l'itinéraire",en:"Open directions",es:"Abrir ruta",it:"Apri il percorso",de:"Route öffnen",pt:"Abrir rota",nl:"Route openen"}
+ ciGetThere:{fr:"Ouvrir l'itinéraire",en:"Open directions",es:"Abrir ruta",it:"Apri il percorso",de:"Route öffnen",pt:"Abrir rota",nl:"Route openen"},
+ /* ---- Catalogue « Infos pratiques » : contenu standard identique pour chaque hôtel ---- */
+ info_ti_parking:{fr:"Parking",en:"Parking",es:"Aparcamiento",it:"Parcheggio",de:"Parkplatz",pt:"Estacionamento",nl:"Parkeren"},
+ info_tx_parking:{fr:"Stationnement disponible pour les clients.",en:"Parking available for guests.",es:"Aparcamiento disponible para los clientes.",it:"Parcheggio a disposizione degli ospiti.",de:"Parkplätze für Gäste verfügbar.",pt:"Estacionamento disponível para os clientes.",nl:"Parkeergelegenheid beschikbaar voor gasten."},
+ info_ti_wifi:{fr:"Wi-Fi",en:"Wi-Fi",es:"Wi-Fi",it:"Wi-Fi",de:"WLAN",pt:"Wi-Fi",nl:"Wifi"},
+ info_tx_wifi:{fr:"Connexion Wi-Fi disponible dans l'établissement.",en:"Wi-Fi connection available throughout the property.",es:"Conexión Wi-Fi disponible en el establecimiento.",it:"Connessione Wi-Fi disponibile nella struttura.",de:"WLAN im gesamten Haus verfügbar.",pt:"Ligação Wi-Fi disponível no estabelecimento.",nl:"Wifi-verbinding beschikbaar in het hele pand."},
+ info_ti_clim:{fr:"Climatisation",en:"Air conditioning",es:"Aire acondicionado",it:"Aria condizionata",de:"Klimaanlage",pt:"Ar condicionado",nl:"Airconditioning"},
+ info_tx_clim:{fr:"Chambres climatisées.",en:"Air-conditioned rooms.",es:"Habitaciones con aire acondicionado.",it:"Camere climatizzate.",de:"Klimatisierte Zimmer.",pt:"Quartos com ar condicionado.",nl:"Kamers met airconditioning."},
+ info_ti_chauffage:{fr:"Chauffage",en:"Heating",es:"Calefacción",it:"Riscaldamento",de:"Heizung",pt:"Aquecimento",nl:"Verwarming"},
+ info_tx_chauffage:{fr:"Chauffage dans les chambres.",en:"Heating in the rooms.",es:"Calefacción en las habitaciones.",it:"Riscaldamento nelle camere.",de:"Heizung in den Zimmern.",pt:"Aquecimento nos quartos.",nl:"Verwarming op de kamers."},
+ info_ti_tv:{fr:"Télévision",en:"Television",es:"Televisión",it:"Televisione",de:"Fernseher",pt:"Televisão",nl:"Televisie"},
+ info_tx_tv:{fr:"Télévision dans les chambres.",en:"Television in the rooms.",es:"Televisión en las habitaciones.",it:"Televisione nelle camere.",de:"Fernseher in den Zimmern.",pt:"Televisão nos quartos.",nl:"Televisie op de kamers."},
+ info_ti_nonfumeur:{fr:"Établissement non-fumeur",en:"Non-smoking property",es:"Establecimiento sin humo",it:"Struttura non fumatori",de:"Nichtraucher-Unterkunft",pt:"Estabelecimento para não fumadores",nl:"Rookvrije accommodatie"},
+ info_tx_nonfumeur:{fr:"Chambres non-fumeur.",en:"Non-smoking rooms.",es:"Habitaciones para no fumadores.",it:"Camere non fumatori.",de:"Nichtraucherzimmer.",pt:"Quartos para não fumadores.",nl:"Rookvrije kamers."},
+ info_ti_animaux:{fr:"Animaux acceptés",en:"Pets welcome",es:"Se admiten mascotas",it:"Animali ammessi",de:"Haustiere willkommen",pt:"Animais aceites",nl:"Huisdieren welkom"},
+ info_tx_animaux:{fr:"Vos animaux de compagnie sont les bienvenus.",en:"Your pets are welcome.",es:"Tus mascotas son bienvenidas.",it:"I vostri animali domestici sono i benvenuti.",de:"Ihre Haustiere sind willkommen.",pt:"Os seus animais de estimação são bem-vindos.",nl:"Uw huisdieren zijn welkom."},
+ info_ti_kids:{fr:"Adapté aux enfants",en:"Family-friendly",es:"Ideal para familias",it:"Adatto ai bambini",de:"Familienfreundlich",pt:"Ideal para famílias",nl:"Gezinsvriendelijk"},
+ info_tx_kids:{fr:"Équipements et services pensés pour les familles.",en:"Amenities and services designed for families.",es:"Equipamiento y servicios pensados para las familias.",it:"Servizi e attrezzature pensati per le famiglie.",de:"Ausstattung und Services für Familien.",pt:"Equipamentos e serviços pensados para famílias.",nl:"Voorzieningen en diensten voor gezinnen."},
+ info_ti_cuisine:{fr:"Coin cuisine",en:"Kitchenette",es:"Zona de cocina",it:"Angolo cottura",de:"Küchenzeile",pt:"Kitchenette",nl:"Kitchenette"},
+ info_tx_cuisine:{fr:"Kitchenette ou espace cuisine dans certaines chambres.",en:"Kitchenette or kitchen area in some rooms.",es:"Cocina o zona de cocina en algunas habitaciones.",it:"Angolo cottura o cucina in alcune camere.",de:"Küchenzeile oder Küche in einigen Zimmern.",pt:"Kitchenette ou zona de cozinha em alguns quartos.",nl:"Kitchenette of keukenhoek in sommige kamers."},
+ info_ti_lavelinge:{fr:"Laverie",en:"Laundry",es:"Lavandería",it:"Lavanderia",de:"Wäscherei",pt:"Lavandaria",nl:"Wasserij"},
+ info_tx_lavelinge:{fr:"Service de blanchisserie ou lave-linge à disposition.",en:"Laundry service or washing machine available.",es:"Servicio de lavandería o lavadora a disposición.",it:"Servizio lavanderia o lavatrice a disposizione.",de:"Wäscheservice oder Waschmaschine verfügbar.",pt:"Serviço de lavandaria ou máquina de lavar disponível.",nl:"Wasservice of wasmachine beschikbaar."},
+ info_ti_accessible:{fr:"Accès PMR",en:"Accessible access",es:"Acceso para PMR",it:"Accesso disabili",de:"Barrierefreier Zugang",pt:"Acesso para pessoas com mobilidade reduzida",nl:"Rolstoeltoegankelijk"},
+ info_tx_accessible:{fr:"Accès adapté aux personnes à mobilité réduite.",en:"Access suitable for guests with reduced mobility.",es:"Acceso adaptado para personas con movilidad reducida.",it:"Accesso adatto alle persone a mobilità ridotta.",de:"Zugang für Gäste mit eingeschränkter Mobilität.",pt:"Acesso adaptado a pessoas com mobilidade reduzida.",nl:"Toegang geschikt voor gasten met beperkte mobiliteit."},
+ info_ti_ascenseur:{fr:"Ascenseur",en:"Elevator",es:"Ascensor",it:"Ascensore",de:"Aufzug",pt:"Elevador",nl:"Lift"},
+ info_tx_ascenseur:{fr:"Ascenseur desservant les étages.",en:"Elevator serving all floors.",es:"Ascensor que da servicio a las plantas.",it:"Ascensore che serve i piani.",de:"Aufzug zu allen Etagen.",pt:"Elevador que serve os pisos.",nl:"Lift naar alle verdiepingen."},
+ info_ti_roomservice:{fr:"Room service",en:"Room service",es:"Servicio de habitaciones",it:"Servizio in camera",de:"Zimmerservice",pt:"Serviço de quartos",nl:"Roomservice"},
+ info_tx_roomservice:{fr:"Service en chambre disponible.",en:"Room service available.",es:"Servicio de habitaciones disponible.",it:"Servizio in camera disponibile.",de:"Zimmerservice verfügbar.",pt:"Serviço de quartos disponível.",nl:"Roomservice beschikbaar."},
+ info_ti_bar:{fr:"Bar",en:"Bar",es:"Bar",it:"Bar",de:"Bar",pt:"Bar",nl:"Bar"},
+ info_tx_bar:{fr:"Bar au sein de l'établissement.",en:"Bar on site.",es:"Bar en el establecimiento.",it:"Bar nella struttura.",de:"Bar im Haus.",pt:"Bar no estabelecimento.",nl:"Bar in het pand."},
+ info_ti_navette:{fr:"Navette aéroport",en:"Airport shuttle",es:"Traslado al aeropuerto",it:"Navetta aeroporto",de:"Flughafen-Shuttle",pt:"Transfer do aeroporto",nl:"Luchthavenshuttle"},
+ info_tx_navette:{fr:"Service de navette vers l'aéroport.",en:"Shuttle service to the airport.",es:"Servicio de traslado al aeropuerto.",it:"Servizio navetta per l'aeroporto.",de:"Shuttleservice zum Flughafen.",pt:"Serviço de transfer para o aeroporto.",nl:"Shuttleservice naar de luchthaven."},
+ info_ti_fitness:{fr:"Salle de sport",en:"Fitness room",es:"Gimnasio",it:"Palestra",de:"Fitnessraum",pt:"Ginásio",nl:"Fitnessruimte"},
+ info_tx_fitness:{fr:"Espace fitness à disposition des clients.",en:"Fitness area available to guests.",es:"Zona de fitness a disposición de los clientes.",it:"Area fitness a disposizione degli ospiti.",de:"Fitnessbereich für Gäste.",pt:"Espaço de fitness à disposição dos clientes.",nl:"Fitnessruimte beschikbaar voor gasten."},
+ info_ti_business:{fr:"Espace business",en:"Business area",es:"Zona de trabajo",it:"Area business",de:"Business-Bereich",pt:"Espaço de negócios",nl:"Zakelijke ruimte"},
+ info_tx_business:{fr:"Espace de travail et services professionnels.",en:"Workspace and professional services.",es:"Espacio de trabajo y servicios profesionales.",it:"Spazio di lavoro e servizi professionali.",de:"Arbeitsbereich und Business-Services.",pt:"Espaço de trabalho e serviços profissionais.",nl:"Werkruimte en zakelijke diensten."},
+ info_ti_jacuzzi:{fr:"Bain à remous",en:"Hot tub",es:"Jacuzzi",it:"Vasca idromassaggio",de:"Whirlpool",pt:"Jacuzzi",nl:"Bubbelbad"},
+ info_tx_jacuzzi:{fr:"Bain à remous / jacuzzi.",en:"Hot tub / jacuzzi.",es:"Bañera de hidromasaje / jacuzzi.",it:"Vasca idromassaggio / jacuzzi.",de:"Whirlpool / Jacuzzi.",pt:"Banheira de hidromassagem / jacuzzi.",nl:"Bubbelbad / jacuzzi."},
+ info_ti_golf:{fr:"Golf",en:"Golf",es:"Golf",it:"Golf",de:"Golf",pt:"Golfe",nl:"Golf"},
+ info_tx_golf:{fr:"Golf sur place ou à proximité.",en:"Golf on site or nearby.",es:"Golf en el lugar o cerca.",it:"Golf in loco o nelle vicinanze.",de:"Golf vor Ort oder in der Nähe.",pt:"Golfe no local ou nas proximidades.",nl:"Golf ter plaatse of in de buurt."},
+ info_ti_cheminee:{fr:"Cheminée",en:"Fireplace",es:"Chimenea",it:"Camino",de:"Kamin",pt:"Lareira",nl:"Open haard"},
+ info_tx_cheminee:{fr:"Cheminée dans certaines chambres ou espaces communs.",en:"Fireplace in some rooms or common areas.",es:"Chimenea en algunas habitaciones o zonas comunes.",it:"Camino in alcune camere o spazi comuni.",de:"Kamin in einigen Zimmern oder Gemeinschaftsbereichen.",pt:"Lareira em alguns quartos ou espaços comuns.",nl:"Open haard in sommige kamers of gemeenschappelijke ruimtes."},
+ info_ti_balcon:{fr:"Balcon / terrasse",en:"Balcony / terrace",es:"Balcón / terraza",it:"Balcone / terrazza",de:"Balkon / Terrasse",pt:"Varanda / terraço",nl:"Balkon / terras"},
+ info_tx_balcon:{fr:"Balcon, terrasse ou patio.",en:"Balcony, terrace or patio.",es:"Balcón, terraza o patio.",it:"Balcone, terrazza o patio.",de:"Balkon, Terrasse oder Patio.",pt:"Varanda, terraço ou pátio.",nl:"Balkon, terras of patio."},
+ info_ti_bbq:{fr:"Barbecue",en:"Barbecue",es:"Barbacoa",it:"Barbecue",de:"Grill",pt:"Churrasqueira",nl:"Barbecue"},
+ info_tx_bbq:{fr:"Espace barbecue / grill extérieur.",en:"Outdoor barbecue / grill area.",es:"Zona de barbacoa / parrilla exterior.",it:"Area barbecue / grill esterna.",de:"Grillbereich im Freien.",pt:"Espaço de churrasco / grelhador exterior.",nl:"Buitenbarbecue / grillplek."},
+ info_ti_plage:{fr:"Accès plage",en:"Beach access",es:"Acceso a la playa",it:"Accesso alla spiaggia",de:"Strandzugang",pt:"Acesso à praia",nl:"Strandtoegang"},
+ info_tx_plage:{fr:"Accès à la plage.",en:"Access to the beach.",es:"Acceso a la playa.",it:"Accesso alla spiaggia.",de:"Zugang zum Strand.",pt:"Acesso à praia.",nl:"Toegang tot het strand."}
 };
 (function(){
   for(var k in LH_T_EXTRA){ var t=LH_T_EXTRA[k]; for(var l in t){ if(LH_T[l]) LH_T[l][k]=t[l]; } }
@@ -2236,14 +2283,26 @@ function lhRenderSocial(){
   });
   host.innerHTML=h;
 }
+/* Table icône -> texte FR standard du catalogue (pour ne traduire QUE le
+   contenu standard, jamais un texte personnalisé saisi par l'hôtel). */
+var LH_STD_INFO=(function(){var m={};LH_AMENITY_RULES.forEach(function(r){m[r.icone]={ti:r.titre,tx:r.texte};});return m;})();
+/* Traduit le titre/texte d'une info SI c'est le contenu standard du catalogue.
+   Un texte personnalisé (ex. « Supplément de 8€ ») est laissé tel quel. */
+function lhInfoStd(kind,ic,val){
+  var std=LH_STD_INFO[ic]; if(!std||val==null) return val;
+  if(String(val)!==String(std[kind])) return val;      // personnalisé -> inchangé
+  var key='info_'+kind+'_'+ic;
+  return (LH_T[LH_LANG]&&LH_T[LH_LANG][key])||(LH_T[LH_FB]&&LH_T[LH_FB][key])||val;
+}
 function lhRenderInfos(){
   var host=document.getElementById('lh-pr-infos'); if(!host) return;
   var h='';
   (LH_INFOS||[]).forEach(function(o){
     if(!o||!o.titre) return;
+    var ti=lhInfoStd('ti',o.icone,o.titre), tx=lhInfoStd('tx',o.icone,o.texte);
     h+='<div class="pr-item"><div class="pr-ic">'+lhInfoIcon(o.icone)+'</div>'
-      +'<div><div class="pr-ti">'+lhEsc(o.titre)+'</div>'
-      +(o.texte?'<div class="pr-tx">'+lhEsc(o.texte)+'</div>':'')
+      +'<div><div class="pr-ti">'+lhEsc(ti)+'</div>'
+      +(tx?'<div class="pr-tx">'+lhEsc(tx)+'</div>':'')
       +'</div></div>';
   });
   host.innerHTML=h;   /* vide = rien affiché */
