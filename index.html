@@ -310,7 +310,7 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
   #scr-home .hero{border-radius:20px 20px 0 0;padding:40px 44px 34px;margin-bottom:0}
   /* Header + adresse = UN SEUL bloc collé : jonction à bord droit (pas d'arrondi),
      aucun espace, arrondis seulement en haut (header) et en bas (adresse). */
-  #scr-home #lh-home-address{border-radius:0 0 20px 20px!important;margin:0 0 14px!important;box-shadow:0 12px 30px -14px rgba(var(--c-primary-rgb),0.14)!important;padding:16px 20px!important}
+  #scr-home #lh-home-address{border-radius:0 0 20px 20px!important;margin:0 auto 14px!important;max-width:940px;box-shadow:0 12px 30px -14px rgba(var(--c-primary-rgb),0.14)!important;padding:16px 20px!important}
   #scr-home .hero-ey{font-size:11px;letter-spacing:1.8px}
   #scr-home .hero-t{font-size:30px;line-height:1.15}
   #scr-home .hero-s{font-size:11px;letter-spacing:2px}
@@ -2635,7 +2635,9 @@ function lhSetSidebarLogo(url){
   if(location.protocol==='https:' && /^http:\/\//i.test(url)) url=url.replace(/^http:/i,'https:');
   /* Un logo « blanc » (fait pour fond sombre) reste sans fond blanc -> visible sur la sidebar. */
   var isWhiteLogo=/white|blanc|light|dark|inver/i.test(url);
-  function show(bg){ el.src=url; el.style.background=(bg&&!isWhiteLogo)?'#fff':''; el.style.display=''; }
+  /* display:'block' (et NON '') : la feuille de style met .sb-logo en display:none,
+     donc remettre '' laisserait le CSS cacher le logo. */
+  function show(bg){ el.src=url; el.style.background=(bg&&!isWhiteLogo)?'#fff':''; el.style.display='block'; }
   var test=new Image(); test.crossOrigin='anonymous';
   test.onload=function(){
     try{
