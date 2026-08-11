@@ -1773,8 +1773,9 @@ function lhMarkPdjBooked(){
      s'arrêtait entre deux images quand il n'y avait pas exactement 3 photos. */
   function lhAutoPhoto(trackId){
     var el=document.getElementById(trackId); if(!el) return;
+    if(el.__pause) return;   /* en pause si l'utilisateur vient de swiper */
     var n=parseInt(el.getAttribute('data-lh-count')||'0',10); if(n<2) return;
-    el.__ai=((el.__ai||0)+1)%n; lhPhotoGo(trackId, el.__ai);
+    lhPhotoGo(trackId, ((el.__idx||0)+1)%n);
   }
   setInterval(function(){ lhAutoPhoto('lh-home-car1'); },5200);
   setInterval(function(){ lhAutoPhoto('lh-home-car2'); },5500);
@@ -2943,9 +2944,57 @@ function lhBucketPhotos(bucket, slug){
   if(!slug) return lhBucketList(bucket,'');
   return lhBucketList(bucket, slug+'/').then(function(u){ return u.length ? u : lhBucketList(bucket,''); });
 }
+/* Swipe / glisser-déposer sur un carrousel (doigt sur mobile, souris sur
+   ordinateur, via Pointer Events). L'image suit le doigt, puis se cale sur
+   la photo la plus proche au relâchement. Un vrai « tap » (sans glissement)
+   laisse passer le clic normal (ex. ouverture de la section). */
+function lhSwipe(el){
+  if(!el || el.__swipe) return; el.__swipe=1;
+  var surf=el.parentElement; if(!surf) return;
+  surf.style.touchAction='pan-y';        /* on garde le scroll vertical de la page */
+  var W=0,x0=0,y0=0,base=0,drag=false,moved=false;
+  function count(){ return parseInt(el.getAttribute('data-lh-count')||'1',10); }
+  function down(e){
+    if(e.pointerType==='mouse' && e.button!==0) return;
+    if(count()<2) return;
+    W=surf.clientWidth; x0=e.clientX; y0=e.clientY; base=-(el.__idx||0)*W;
+    drag=true; moved=false; el.style.transition='none'; el.__pause=1;
+    try{ surf.setPointerCapture(e.pointerId); }catch(_){}
+  }
+  function move(e){
+    if(!drag) return;
+    var dx=e.clientX-x0, dy=e.clientY-y0;
+    if(!moved){
+      if(Math.abs(dy)>Math.abs(dx)){ drag=false; el.style.transition=''; return; } /* geste vertical -> scroll */
+      if(Math.abs(dx)<6) return;
+      moved=true;
+    }
+    var n=count(), i=el.__idx||0;
+    if((i===0 && dx>0) || (i===n-1 && dx<0)) dx*=0.35;   /* résistance aux extrémités */
+    el.style.transform='translateX('+(base+dx)+'px)';
+    if(e.cancelable) e.preventDefault();
+  }
+  function up(e){
+    if(!drag) return; drag=false; el.style.transition='';
+    var dx=e.clientX-x0, n=count(), i=el.__idx||0, th=Math.max(40,W*0.18);
+    if(dx<=-th && i<n-1) i++; else if(dx>=th && i>0) i--;
+    lhPhotoGo(el.id, i);
+    if(moved){   /* on glisse -> on annule le clic qui suit (pas de navigation) */
+      var kill=function(ev){ ev.stopPropagation(); ev.preventDefault(); surf.removeEventListener('click',kill,true); };
+      surf.addEventListener('click',kill,true);
+      setTimeout(function(){ surf.removeEventListener('click',kill,true); },60);
+    }
+    clearTimeout(el.__pt); el.__pt=setTimeout(function(){ el.__pause=0; },6000);  /* reprise autoplay */
+  }
+  surf.addEventListener('pointerdown',down);
+  surf.addEventListener('pointermove',move);
+  surf.addEventListener('pointerup',up);
+  surf.addEventListener('pointercancel',function(){ if(drag){ drag=false; el.style.transition=''; lhPhotoGo(el.id, el.__idx||0); } });
+}
 function lhPhotoGo(trackId, idx){
   var el=document.getElementById(trackId); if(!el)return;
   var n=parseInt(el.getAttribute('data-lh-count')||'1',10);
+  el.__idx=idx;
   el.style.transform='translateX(-'+(idx*(100/n))+'%)';
   var bar=el.parentElement.querySelector('[data-lh-dots="1"]');
   if(bar){ [].slice.call(bar.children).forEach(function(d,i){ d.className='lh-dot'+(i===idx?' on':''); }); }
@@ -2977,6 +3026,7 @@ function lhSetPhotos(trackId, urls){
     genBar.innerHTML='';
     for(var i=0;i<n;i++){ (function(idx){ var s=document.createElement('span'); s.className='lh-dot'+(idx===0?' on':'');
       s.onclick=function(e){e.stopPropagation(); lhPhotoGo(trackId, idx);}; genBar.appendChild(s); })(i); }
+    lhSwipe(el);                                     /* glisser-déposer (mobile + ordi) */
   } else if(genBar){ genBar.remove(); }             /* 1 image => pas de point */
 }
 /* Résout les photos d'une catégorie : priorité aux liens de la ligne hôtel,
