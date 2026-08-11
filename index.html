@@ -3,6 +3,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>L'Harmony · Guide de séjour</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23232038%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-family%3D%22Georgia%2CTimes%20New%20Roman%2Cserif%22%20font-size%3D%2242%22%20font-weight%3D%22700%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3ES%3C/text%3E%3C/svg%3E">
+<!-- Réchauffe la connexion (DNS+TLS) vers Supabase pour que le fetch des infos (chambre, code, WiFi) arrive au plus vite. -->
+<link rel="preconnect" href="https://nocifyylfyafbfppmykp.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://nocifyylfyafbfppmykp.supabase.co">
 </head><body>
 <div id="lh-app">
 <style>
@@ -396,6 +399,12 @@ var LH_SAVED=null;try{LH_SAVED=localStorage.getItem('lh-lang');}catch(e){}
 var LH_URL_LANG=null;try{LH_URL_LANG=new URLSearchParams(window.location.search).get('lang');if(LH_URL_LANG)LH_URL_LANG=LH_URL_LANG.toLowerCase();}catch(e){}
 var LH_LANG=LH_URL_LANG||LH_SAVED||(navigator.language||'fr').slice(0,2);
 if(!LH_T[LH_LANG])LH_LANG='fr';
+/* Mode faible connexion : respecte l'« économiseur de données » du téléphone
+   ou une connexion 2G/lente. On charge alors le strict minimum de photos ;
+   tout le texte utile (chambre, code, WiFi, adresse, plan) reste identique. */
+var LH_SAVE_DATA=false;
+try{var _conn=navigator.connection||navigator.webkitConnection||navigator.mozConnection||{};
+    LH_SAVE_DATA=!!_conn.saveData||/(^|-)(slow-2g|2g)$/.test(_conn.effectiveType||'');}catch(e){}
 
 function lhT(k){return(LH_T[LH_LANG]&&LH_T[LH_LANG][k])||LH_T[LH_FB][k]||LH_T['fr'][k]||k;}
 /* Clés des sections ajoutées récemment. fr/en + principales langues de
@@ -2321,6 +2330,7 @@ function lhMedia(url,emoji,h,cls){
      -> jamais de placeholder vert/emoji, jamais de flash « apparaît/disparaît »
      pour une URL cassée. La photo n'apparaît que si elle charge vraiment. */
   if(!url) return '';
+  if(LH_SAVE_DATA) return '';   /* faible connexion : on saute les photos décoratives (le dégradé/emoji de repli suffit) */
   /* Image VISIBLE par défaut ; retirée seulement si elle casse (onerror).
      Plus fiable que « cachée puis révélée au onload » (le onload ne se déclenche
      pas toujours, ex. image en cache) -> les vraies photos s'affichent enfin. */
@@ -3036,7 +3046,11 @@ function lhSetPhotos(trackId, urls){
    sinon fallback sur le bucket Storage partagé. Vide partout => rien. */
 var LH_PDJ_IMAGES=[], LH_RESTO_IMAGES=[], LH_SLUG='lharmony';
 function lhApplyPhotos(bucket, trackIds, rowImages){
-  function put(list){ trackIds.forEach(function(t){ lhSetPhotos(t, list); }); }
+  function put(list){
+    /* Faible connexion : une seule photo par carrousel (au lieu de 3–6). */
+    if(LH_SAVE_DATA && list && list.length>1) list=list.slice(0,1);
+    trackIds.forEach(function(t){ lhSetPhotos(t, list); });
+  }
   var clean=(rowImages||[]).filter(function(u){return u && String(u).trim();});
   if(clean.length){ put(clean); }
   else { lhBucketPhotos(bucket, LH_SLUG).then(function(u){ put(u); }); }
