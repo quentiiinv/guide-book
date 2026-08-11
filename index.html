@@ -401,6 +401,17 @@ function lhT(k){return(LH_T[LH_LANG]&&LH_T[LH_LANG][k])||LH_T[LH_FB][k]||LH_T['f
 /* Clés des sections ajoutées récemment. fr/en + principales langues de
    voyageurs ; toute langue non remplie retombe sur l'anglais (LH_FB). */
 var LH_T_EXTRA={
+ payRedirect:{fr:"Redirection vers le paiement sécurisé…",en:"Redirecting to secure payment…",es:"Redirigiendo al pago seguro…",it:"Reindirizzamento al pagamento sicuro…",de:"Weiterleitung zur sicheren Zahlung…",pt:"A redirecionar para o pagamento seguro…",nl:"Doorsturen naar beveiligde betaling…"},
+ payConfirmed:{fr:"Paiement confirmé",en:"Payment confirmed",es:"Pago confirmado",it:"Pagamento confermato",de:"Zahlung bestätigt",pt:"Pagamento confirmado",nl:"Betaling bevestigd"},
+ payEmailSent:{fr:"un email de confirmation vous a été envoyé.",en:"a confirmation email has been sent to you.",es:"se te ha enviado un correo de confirmación.",it:"ti è stata inviata un'email di conferma.",de:"eine Bestätigungs-E-Mail wurde an Sie gesendet.",pt:"foi-lhe enviado um e-mail de confirmação.",nl:"er is een bevestigingsmail naar u verzonden."},
+ payThanks:{fr:"Parfait, merci !",en:"Perfect, thank you!",es:"¡Perfecto, gracias!",it:"Perfetto, grazie!",de:"Perfekt, danke!",pt:"Perfeito, obrigado!",nl:"Perfect, bedankt!"},
+ vidExTi:{fr:"Vidéo (exemple)",en:"Video (example)",es:"Vídeo (ejemplo)",it:"Video (esempio)",de:"Video (Beispiel)",pt:"Vídeo (exemplo)",nl:"Video (voorbeeld)"},
+ vidExTx:{fr:"Ici, votre établissement pourra ajouter une courte vidéo montrant comment accéder à l'hôtel et récupérer les clés.",en:"Here, your property can add a short video showing how to reach the hotel and pick up the keys.",es:"Aquí, tu establecimiento podrá añadir un breve vídeo que muestre cómo llegar al hotel y recoger las llaves.",it:"Qui la tua struttura potrà aggiungere un breve video che mostra come raggiungere l'hotel e ritirare le chiavi.",de:"Hier kann Ihre Unterkunft ein kurzes Video hinzufügen, das zeigt, wie man das Hotel erreicht und die Schlüssel abholt.",pt:"Aqui, o seu estabelecimento poderá adicionar um breve vídeo a mostrar como chegar ao hotel e levantar as chaves.",nl:"Hier kan uw accommodatie een korte video toevoegen die laat zien hoe u het hotel bereikt en de sleutels ophaalt."},
+ rsHoursDefault:{fr:"Service midi & soir",en:"Lunch & dinner service",es:"Servicio de mediodía y noche",it:"Servizio pranzo e cena",de:"Mittag- & Abendservice",pt:"Serviço de almoço e jantar",nl:"Lunch- & dinerservice"},
+ lcoTi:{fr:"Prolonger votre matinée ?",en:"Extend your morning?",es:"¿Alargar la mañana?",it:"Prolungare la mattinata?",de:"Ihren Morgen verlängern?",pt:"Prolongar a sua manhã?",nl:"Uw ochtend verlengen?"},
+ lcoBefore:{fr:"Départ standard à ",en:"Standard check-out at ",es:"Salida estándar a las ",it:"Check-out standard alle ",de:"Standard-Check-out um ",pt:"Saída padrão às ",nl:"Standaard check-out om "},
+ lcoAfter:{fr:". Envie de rester un peu plus ? Réservez un départ tardif :",en:". Want to stay a bit longer? Book a late check-out:",es:". ¿Quieres quedarte un poco más? Reserva una salida tardía:",it:". Vuoi restare un po' di più? Prenota un check-out posticipato:",de:". Möchten Sie etwas länger bleiben? Buchen Sie einen späten Check-out:",pt:". Quer ficar um pouco mais? Reserve uma saída tardia:",nl:". Wilt u wat langer blijven? Boek een late check-out:"},
+ lcoDepartAt:{fr:"Départ à ",en:"Check-out at ",es:"Salida a las ",it:"Check-out alle ",de:"Check-out um ",pt:"Saída às ",nl:"Check-out om "},
  discTi:{fr:"À découvrir",en:"Discover",es:"Descubrir",it:"Da scoprire",de:"Entdecken",pt:"Descobrir",nl:"Ontdekken"},
  discDs:{fr:"Restos & activités",en:"Food & activities",es:"Restaurantes y actividades",it:"Ristoranti e attività",de:"Essen & Aktivitäten",pt:"Restaurantes e atividades",nl:"Eten & activiteiten"},
  poolTi:{fr:"Piscine",en:"Pool",es:"Piscina",it:"Piscina",de:"Pool",pt:"Piscina",nl:"Zwembad"},
@@ -1036,63 +1047,26 @@ function lhConfirmPdj(){
   var effectivePay=(lhPdjPrepaid>0&&lhPdjSupplement()===0)?'confirmation':lhPdjPayMethod;
   var webhookData={client:{nom:nom,prenom:prenom,email:email,room:room,token:lhGuestToken},jours:lhPdjDays,total:grandTotal,paiement:effectivePay};
 
-  /* Send to Web3Forms (email notif) */
-  var emailData={
-    access_key:'8cfaf27f-a235-498d-b956-4ba709770ad3',
-    subject:'🥐 Petit-déjeuner — '+prenom+' '+nom+' — '+lhPdjDays.length+' jour(s) — '+grandTotal+'€ — '+(lhPdjPayMethod==='stripe'?'PAIEMENT CB':'PAIEMENT SUR PLACE'),
-    from_name:prenom+' '+nom,
-    email:email||'non renseigné',
-    message:'RÉSERVATION PETIT-DÉJEUNER\n\nClient : '+prenom+' '+nom+'\nChambre : '+(room||'?')+'\nEmail : '+(email||'?')+'\nPaiement : '+(lhPdjPayMethod==='stripe'?'Carte bancaire':'Sur place')+'\n\nDÉTAIL :\n'+detail+'\n\nTOTAL : '+grandTotal+'€'
-  };
-  /* Email Web3Forms désactivé */
-  // fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(emailData)}).catch(function(){});
-
-  /* Send to n8n webhook — wait for response */
-  fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(webhookData)})
-  .then(function(r){return r.json();})
-  .then(function(res){
-    if(res.success||res.data||res){
-      if(effectivePay==='stripe' && res.url){
-        document.getElementById('lh-pdj-confirm-msg').innerHTML='<div class="lh-spinner"></div>'+lhT('redirectingToPayment')+'<br><br><strong style="color:var(--c-primary)">'+lhT('totalLbl')+' : '+grandTotal+'€</strong>';
-        document.getElementById('lh-pdj-back-home').style.display='none';
-        lhPdjStep(4);
-        setTimeout(function(){try{window.top.location.href=res.url;}catch(e){window.open(res.url,'_blank');}},1500);
-      } else {
-        document.getElementById('lh-pdj-confirm-msg').innerHTML='<div style="font-size:32px;margin-bottom:12px">✓</div><strong style="color:var(--c-primary);font-size:15px">'+lhT('reservationConfirmedTitle')+'</strong><br><br>'
-        +(effectivePay==='confirmation'
-          ? lhPdjDays.length+' '+lhT('pdjTi')+(lhPdjDays.length>1?'s':'')+' '+lhT('wellScheduledText')+'<br><br><span style=\"font-size:11px;color:#aaa\">'+lhT('confirmationEmailSoon')+'</span>'
-          : lhPdjDays.length+' '+lhT('pdjTi')+(lhPdjDays.length>1?'s':'')+' · <strong>'+grandTotal+'€</strong><br><br><span style="font-size:11px;color:#aaa">'+lhT('payOnSiteDesc')+'.<br>'+lhT('confirmationEmailSoon')+'</span>'
-        );
-        document.getElementById('lh-pdj-back-home').style.display='block';
-        lhPdjStep(4);
-        if(effectivePay==='confirmation')lhMarkPdjBooked();
-      }
-    } else {btn.disabled=false;btn.textContent=lhT('confirmReservationBtn');}
-  })
-  .catch(function(){
-    /* Fallback si webhook fail */
+  /* ── DÉMO prospection : plus de webhook ni de redirection vers le Stripe de
+     L'Harmony. On simule la confirmation localement (le vrai paiement se branche
+     par établissement en production). ── */
+  void webhookUrl; void webhookData;   /* conservés pour la prod, non utilisés en démo */
+  setTimeout(function(){
+    var head='<div style="font-size:32px;margin-bottom:12px">✓</div><strong style="color:var(--c-primary);font-size:15px">'+lhT('reservationConfirmedTitle')+'</strong><br><br>';
+    var body;
     if(effectivePay==='confirmation'){
-      document.getElementById('lh-pdj-confirm-msg').innerHTML='<div style="font-size:32px;margin-bottom:12px">✓</div><strong style="color:var(--c-primary);font-size:15px">'+lhT('allGoodTitle')+'</strong><br><br>'+lhPdjDays.length+' '+lhT('prepaidScheduledText')+(lhPdjDays.length>1?'s':'')+'.<br><span style="font-size:11px;color:#aaa;margin-top:6px;display:inline-block">'+lhT('nothingToPayText')+'</span>';
-      document.getElementById('lh-pdj-back-home').style.display='block';
-      lhPdjStep(4);
+      body=lhPdjDays.length+' '+lhT('pdjTi')+(lhPdjDays.length>1?'s':'')+' '+lhT('wellScheduledText')+'<br><br><span style="font-size:11px;color:#aaa">'+lhT('confirmationEmailSoon')+'</span>';
       lhMarkPdjBooked();
-    } else if(lhPdjPayMethod==='place'){
-      document.getElementById('lh-pdj-confirm-msg').innerHTML='<div style="font-size:32px;margin-bottom:12px">✓</div><strong style="color:var(--c-primary);font-size:15px">'+lhT('reservationConfirmedTitle')+'</strong><br><br><strong>'+grandTotal+'€</strong> '+lhT('toPayOnSite')+'<br><br><span style="font-size:11px;color:#aaa">'+lhT('confirmationEmailSoon')+'</span>';
-      document.getElementById('lh-pdj-back-home').style.display='block';
-      lhPdjStep(4);
+    } else if(effectivePay==='stripe'){
+      body=lhPdjDays.length+' '+lhT('pdjTi')+(lhPdjDays.length>1?'s':'')+' · <strong>'+grandTotal+'€</strong><br><br><span style="font-size:11px;color:#aaa">'+lhT('confirmationEmailSoon')+'</span>';
+      lhMarkPdjBooked();
     } else {
-      btn.disabled=false;btn.textContent=lhT('errorRetryBtn');
-      var errMsg=document.getElementById('lh-pdj-stripe-err');
-      if(!errMsg){
-        errMsg=document.createElement('div');
-        errMsg.id='lh-pdj-stripe-err';
-        errMsg.style.cssText='margin-top:12px;padding:12px 16px;background:#fff0f0;border-radius:12px;font-size:11px;color:#c0392b;text-align:center;line-height:1.6';
-        errMsg.innerHTML=lhT('errorOccurredText')+'<br><a href="tel:+33XXXXXXXXX" style="color:#c0392b;font-weight:700">'+lhT('callHarmonyShort')+'</a>';
-        btn.parentNode.appendChild(errMsg);
-      }
-      setTimeout(function(){btn.textContent=lhT('payNowArrowBtn');},3000);
+      body=lhPdjDays.length+' '+lhT('pdjTi')+(lhPdjDays.length>1?'s':'')+' · <strong>'+grandTotal+'€</strong><br><br><span style="font-size:11px;color:#aaa">'+lhT('payOnSiteDesc')+'.<br>'+lhT('confirmationEmailSoon')+'</span>';
     }
-  });
+    document.getElementById('lh-pdj-confirm-msg').innerHTML=head+body;
+    document.getElementById('lh-pdj-back-home').style.display='block';
+    lhPdjStep(4);
+  },1200);
 }
 /* end forms */
 /* PLAY VIDEO — replace button with inline player */
@@ -1103,8 +1077,8 @@ function lhPlayVideo(){
     box.style.padding='0';box.style.cursor='default';box.onclick=null;
     box.innerHTML='<div style="width:100%;border-radius:16px;background:var(--c-primary);color:var(--c-cream);padding:26px 18px;text-align:center;font-family:Montserrat,sans-serif">'
       +'<div style="font-size:32px;margin-bottom:8px">🎬</div>'
-      +'<div style="font-weight:700;margin-bottom:5px">Vidéo (exemple)</div>'
-      +'<div style="font-size:12px;line-height:1.6;color:rgba(var(--c-cream-rgb),0.75)">Ici, votre établissement pourra ajouter une courte vidéo montrant comment accéder à l\'hôtel et récupérer les clés.</div>'
+      +'<div style="font-weight:700;margin-bottom:5px">'+lhT('vidExTi')+'</div>'
+      +'<div style="font-size:12px;line-height:1.6;color:rgba(var(--c-cream-rgb),0.75)">'+lhT('vidExTx')+'</div>'
       +'</div>';
     return;
   }
@@ -1382,8 +1356,8 @@ function lhMarkPdjBooked(){
 
     <!-- LATE CHECK-OUT payant -->
     <div class="cd">
-      <div class="cd-ti" style="margin-bottom:4px">Prolonger votre matinée ?<span id="lh-lco-ex"></span></div>
-      <div class="cd-txt" style="margin-bottom:14px">Départ standard à <strong id="lh-lco-std">11:00</strong>. Envie de rester un peu plus&nbsp;? Réservez un départ tardif&nbsp;:</div>
+      <div class="cd-ti" style="margin-bottom:4px"><span data-t="lcoTi">Prolonger votre matinée ?</span><span id="lh-lco-ex"></span></div>
+      <div class="cd-txt" style="margin-bottom:14px"><span data-t="lcoBefore">Départ standard à </span><strong id="lh-lco-std">11:00</strong><span data-t="lcoAfter">. Envie de rester un peu plus&nbsp;? Réservez un départ tardif&nbsp;:</span></div>
       <div id="lh-lco-opts"></div>
       <button class="lh-submit-dk" id="lh-lco-pay" onclick="lhPayLco()" disabled>Réserver mon départ tardif</button>
     </div>
@@ -2310,14 +2284,14 @@ function lhDemoPay(label, montant, onDone){
   modal.style.cssText='position:fixed;inset:0;background:rgba(var(--c-primary-rgb),0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:lhFade 0.25s ease';
   var card=document.createElement('div');
   card.style.cssText='background:var(--c-cream);border-radius:20px;padding:34px 26px;width:100%;max-width:360px;text-align:center;font-family:Montserrat,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.3)';
-  card.innerHTML='<div class="lh-spinner"></div><div style="font-size:13px;color:#888;line-height:1.7">Redirection vers le paiement sécurisé…<br><strong style="color:var(--c-primary)">'+montant+'€</strong></div>';
+  card.innerHTML='<div class="lh-spinner"></div><div style="font-size:13px;color:#888;line-height:1.7">'+lhT('payRedirect')+'<br><strong style="color:var(--c-primary)">'+montant+'€</strong></div>';
   modal.appendChild(card);
   (document.getElementById('lh-app')||document.body).appendChild(modal);
   setTimeout(function(){
     card.innerHTML='<div style="font-size:40px;margin-bottom:10px">✓</div>'
-      +'<div style="font-size:16px;font-weight:700;color:var(--c-primary);margin-bottom:8px">Paiement confirmé</div>'
-      +'<div style="font-size:12px;color:#888;line-height:1.7;margin-bottom:20px">'+lhEsc(label)+'<br><strong style="color:var(--c-primary)">'+montant+'€</strong> · un email de confirmation vous a été envoyé.</div>'
-      +'<button class="lh-submit-dk" style="max-width:200px;margin:0 auto">Parfait, merci&nbsp;!</button>';
+      +'<div style="font-size:16px;font-weight:700;color:var(--c-primary);margin-bottom:8px">'+lhT('payConfirmed')+'</div>'
+      +'<div style="font-size:12px;color:#888;line-height:1.7;margin-bottom:20px">'+lhEsc(label)+'<br><strong style="color:var(--c-primary)">'+montant+'€</strong> · '+lhT('payEmailSent')+'</div>'
+      +'<button class="lh-submit-dk" style="max-width:200px;margin:0 auto">'+lhT('payThanks')+'</button>';
     card.querySelector('button').onclick=function(){modal.remove();if(onDone)onDone();};
   },1800);
 }
@@ -2353,7 +2327,7 @@ function lhRenderLco(){
   LH_LATE_CO=[{id:'lco', heure:lhLateHeure(), prix:LH_LATE_PRICE}];
   var o=LH_LATE_CO[0];
   host.innerHTML='<div class="lco-opt'+(lhLcoSel===o.id?' on':'')+'" onclick="lhSelLco(\''+o.id+'\')">'
-    +'<div class="lco-dot"></div><div class="lco-h">Départ à '+lhEsc(o.heure)+'</div>'
+    +'<div class="lco-dot"></div><div class="lco-h">'+lhT('lcoDepartAt')+lhEsc(o.heure)+'</div>'
     +'<div class="lco-p">+'+o.prix+'€</div></div>';
   var ex=document.getElementById('lh-lco-ex');
   if(ex) ex.innerHTML=LH_LATE_EXEMPLE?'<span class="lh-ex-tag dk">'+lhT('exempleW')+'</span>':'';
@@ -2751,7 +2725,7 @@ function lhApplyHotel(d){
   if(d.checkout_std!==undefined){ lhSet('lh-ci-out', d.checkout_std); lhSet('lh-lco-std', d.checkout_std); LH_CHECKOUT_STD=d.checkout_std||LH_CHECKOUT_STD; }
   /* Restaurant : phrase d'horaires personnalisable par hôtel + tag « Exemple »
      tant que l'hôtel n'a pas renseigné ses vrais horaires. */
-  if(d.resto_horaires!==undefined){ var rh=document.getElementById('lh-home-rs-hours'); if(rh) rh.textContent=(d.resto_horaires && (''+d.resto_horaires).trim()) ? d.resto_horaires : 'Service midi & soir'; }
+  if(d.resto_horaires!==undefined){ var rh=document.getElementById('lh-home-rs-hours'); if(rh) rh.textContent=(d.resto_horaires && (''+d.resto_horaires).trim()) ? d.resto_horaires : lhT('rsHoursDefault'); }
   if(d.resto_exemple!==undefined) LH_RESTO_EXEMPLE=d.resto_exemple;
   if(d.pdj_exemple!==undefined)   LH_PDJ_EXEMPLE=d.pdj_exemple;
   if(d.extras_exemple!==undefined)LH_EXTRAS_EXEMPLE=d.extras_exemple;
