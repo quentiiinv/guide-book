@@ -2506,6 +2506,8 @@ function lhXtraGo(i){ lhXtraIdx=i; lhXtraApply(); }
 /* ---------- Toggles de sections (cases oui/non de la fiche hôtel) ---------- */
 function lhApplySections(){
   var S=(typeof HOTEL!=='undefined'&&HOTEL.sections)||{};
+  /* Petites attentions (extras) : TOUJOURS présentes (argument de vente) — comme les Infos. */
+  S.extras=true;
   /* Afficher/masquer chaque élément taggé data-lh-sec */
   document.querySelectorAll('#lh-app [data-lh-sec]').forEach(function(el){
     el.style.display = (S[el.getAttribute('data-lh-sec')]===false) ? 'none' : '';
