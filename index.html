@@ -2735,7 +2735,11 @@ function lhApplyHotel(d){
   function lhSet(id,v){ var e=document.getElementById(id); if(e && v!==undefined) e.textContent=(v==null?'':v); }
   /* WiFi : si l'hôtel n'a pas renseigné ses identifiants, on met un exemple
      lisible (réseau = nom de l'hôtel, mot de passe placeholder) plutôt que du vide. */
-  var _wnet=(d.wifi_reseau&&(''+d.wifi_reseau).trim())?d.wifi_reseau:((HOTEL.nom||'WiFi')+' - WiFi');
+  /* Nom de réseau par défaut = nom de l'hôtel RACCOURCI (un SSID est court) :
+     on coupe à ~22 caractères sur un mot entier, puis « - WiFi ». */
+  var _nm=(HOTEL.nom||'WiFi');
+  if(_nm.length>22){ _nm=_nm.slice(0,22).replace(/\s+\S*$/,'').replace(/[\s\-–—·,;:.]+$/,'').trim(); if(!_nm) _nm=(HOTEL.nom||'WiFi').slice(0,22); }
+  var _wnet=(d.wifi_reseau&&(''+d.wifi_reseau).trim())?d.wifi_reseau:(_nm+' - WiFi');
   /* Mot de passe par défaut crédible (stable par hôtel) : « Bienvenue » + 4 chiffres
      dérivés du nom, plutôt qu'un « 1234 » qui fait faux. */
   var _wpwd;
