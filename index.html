@@ -1907,7 +1907,7 @@ function lhApplyParams(params){
   }
 
   /* Stocker le token toujours */
-  lhGuestToken=params.get?params.get('token')||token||'':'';
+  lhGuestToken=params.get?(params.get('token')||''):(params.token||'');
 
   /* Identifier le client dès qu'on a prenom+chambre */
   if(prenom&&chambre){
