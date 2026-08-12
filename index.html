@@ -1920,6 +1920,17 @@ function lhApplyParams(params){
     /* Cacher le bouton "Réserver mon petit-déjeuner" — le menu s'ouvre directement */
     var startBtnId=document.getElementById('lh-pdj-start-btn');
     if(startBtnId)startBtnId.style.display='none';
+  } else {
+    /* Mode démo / prospection (lien nu, sans identité client) : on pré-remplit
+       le formulaire avec un client fictif crédible, pour que le prospect qui
+       teste voie un VRAI formulaire déjà rempli (et n'abandonne pas devant des
+       champs vides). En usage réel, le lien personnalisé (prénom+chambre)
+       remplit avec les vraies infos du client. */
+    lhPdjClientData={identified:false,nom:'Martin',prenom:'Julie',email:'julie.martin@gmail.com',chambre:chambre};
+    var dP=document.getElementById('lh-pdj-prenom');if(dP)dP.value='Julie';
+    var dN=document.getElementById('lh-pdj-nom');if(dN)dN.value='Martin';
+    var dE=document.getElementById('lh-pdj-email');if(dE)dE.value='julie.martin@gmail.com';
+    var dR=document.getElementById('lh-pdj-room');if(dR)dR.value=chambre;   /* même chambre que la carte invité (N°6 par défaut) */
   }
 
   if(pdj>0){
