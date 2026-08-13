@@ -480,6 +480,7 @@ var LH_T_EXTRA={
  dtScan:{fr:"Scannez pour continuer sur mobile",en:"Scan to continue on mobile",es:"Escanea para continuar en el móvil",it:"Inquadra per continuare su mobile",de:"Scannen und mobil fortfahren",pt:"Digitalize para continuar no telemóvel",nl:"Scan om verder te gaan op mobiel"},
  dtOr:{fr:"ou continuez ici même",en:"or continue right here",es:"o continúa aquí mismo",it:"o continua qui",de:"oder hier weitermachen",pt:"ou continue aqui",nl:"of ga hier verder"},
  dtInside:{fr:"Ce qui vous attend",en:"What's inside",es:"Lo que te espera",it:"Cosa ti aspetta",de:"Das erwartet Sie",pt:"O que o espera",nl:"Wat u vindt"},
+ dtFollow:{fr:"Suivez-nous",en:"Follow us",es:"Síguenos",it:"Seguici",de:"Folgen Sie uns",pt:"Siga-nos",nl:"Volg ons"},
  dtFeatArr:{fr:"Arrivée & code d'accès",en:"Check-in & access code",es:"Llegada y código de acceso",it:"Arrivo e codice d'accesso",de:"Ankunft & Zugangscode",pt:"Chegada e código de acesso",nl:"Aankomst & toegangscode"},
  dtFeatWifi:{fr:"WiFi en un tap",en:"WiFi in one tap",es:"WiFi con un toque",it:"WiFi con un tocco",de:"WLAN mit einem Tipp",pt:"WiFi num toque",nl:"WiFi met één tik"},
  dtFeatPdj:{fr:"Petit-déjeuner & restaurant",en:"Breakfast & restaurant",es:"Desayuno y restaurante",it:"Colazione e ristorante",de:"Frühstück & Restaurant",pt:"Pequeno-almoço e restaurante",nl:"Ontbijt & restaurant"},
@@ -2288,24 +2289,28 @@ function lhSocialIcon(net){
   return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(p[net]||'')+'</svg>';
 }
 function lhRenderSocial(){
-  var host=document.getElementById('lh-social'); if(!host) return;
   var order=['instagram','facebook','linkedin','youtube','tiktok','twitter'];
   var always={instagram:1,facebook:1};
-  var h='';
+  var base='width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:background 0.2s;';
+  var hMob='', hDt='', real=0;
   order.forEach(function(net){
     var url=(LH_SOCIAL&&LH_SOCIAL[net])||'';
-    var base='width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:background 0.2s;';
     if(url){
-      h+='<a href="'+lhEsc(url)+'" target="_blank" rel="noopener" style="'+base+'background:rgba(var(--c-primary-rgb),0.07);color:var(--c-primary)" '
+      real++;
+      var link='<a href="'+lhEsc(url)+'" target="_blank" rel="noopener" style="'+base+'background:rgba(var(--c-primary-rgb),0.07);color:var(--c-primary)" '
         +'onmouseover="this.style.background=\'rgba(var(--c-primary-rgb),0.15)\'" onmouseout="this.style.background=\'rgba(var(--c-primary-rgb),0.07)\'">'
         +lhSocialIcon(net)+'</a>';
+      hMob+=link; hDt+=link;   /* desktop : uniquement les vrais réseaux */
     } else if(always[net]){
-      /* Placeholder : montre la possibilité, non cliquable, grisé. */
-      h+='<span title="À connecter" style="'+base+'background:rgba(var(--c-primary-rgb),0.04);color:var(--c-primary);opacity:0.32;cursor:default">'
+      /* Placeholder (mobile only) : montre la possibilité, non cliquable, grisé. */
+      hMob+='<span title="À connecter" style="'+base+'background:rgba(var(--c-primary-rgb),0.04);color:var(--c-primary);opacity:0.32;cursor:default">'
         +lhSocialIcon(net)+'</span>';
     }
   });
-  host.innerHTML=h;
+  var m=document.getElementById('lh-social'); if(m) m.innerHTML=hMob;
+  var d=document.getElementById('lh-social-dt'); if(d) d.innerHTML=hDt;
+  /* bloc desktop masqué s'il n'y a aucun réseau réel (évite un « Suivez-nous » vide) */
+  var dw=document.getElementById('lh-social-dt-wrap'); if(dw) dw.style.display=real?'block':'none';
 }
 /* Table icône -> texte FR standard du catalogue (pour ne traduire QUE le
    contenu standard, jamais un texte personnalisé saisi par l'hôtel). */
@@ -3122,6 +3127,11 @@ function lhApplyPhotos(bucket, trackIds, rowImages){
     <div class="dt-feat"><span class="dt-fi"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg></span><span data-t="dtFeatPdj">Petit-déjeuner &amp; restaurant</span></div>
     <div class="dt-feat"><span class="dt-fi"><svg viewBox="0 0 24 24"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span data-t="dtFeatReco">Bonnes adresses autour</span></div>
     <div class="dt-feat"><span class="dt-fi"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.2L20 8l-4 4 1 6-5-2.8L7 18l1-6-4-4 5.6-.8z"/></svg></span><span data-t="dtFeatXtra">Petites attentions à réserver</span></div>
+  </div>
+
+  <div id="lh-social-dt-wrap" style="display:none;margin-bottom:28px">
+    <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#A9812F;font-weight:700;margin-bottom:12px" data-t="dtFollow">Suivez-nous</div>
+    <div id="lh-social-dt" style="display:flex;gap:14px"></div>
   </div>
 
   <div style="display:flex;align-items:center;gap:2px">
