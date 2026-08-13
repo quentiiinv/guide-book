@@ -2301,15 +2301,13 @@ function lhRenderSocial(){
         +lhSocialIcon(net)+'</a>';
     } else if(always[net]){
       /* Minimum garanti : Instagram + Facebook toujours affichés (même sans lien),
-         non cliquables et légèrement grisés. */
-      h+='<span title="À connecter" style="'+base+'background:rgba(var(--c-primary-rgb),0.04);color:var(--c-primary);opacity:0.32;cursor:default">'
+         non cliquables mais BIEN VISIBLES (pas un gris fantôme). */
+      h+='<span title="À connecter" style="'+base+'background:rgba(var(--c-primary-rgb),0.10);color:var(--c-primary);opacity:0.7;cursor:default">'
         +lhSocialIcon(net)+'</span>';
     }
   });
-  /* même rendu partout : mobile (pied de page) + desktop (au-dessus du QR) */
+  /* rendu sur mobile (pied de page) ET desktop (sidebar) : même conteneur #lh-social */
   var m=document.getElementById('lh-social'); if(m) m.innerHTML=h;
-  var d=document.getElementById('lh-social-dt'); if(d) d.innerHTML=h;
-  var dw=document.getElementById('lh-social-dt-wrap'); if(dw) dw.style.display=h?'block':'none';
 }
 /* Table icône -> texte FR standard du catalogue (pour ne traduire QUE le
    contenu standard, jamais un texte personnalisé saisi par l'hôtel). */
@@ -3126,11 +3124,6 @@ function lhApplyPhotos(bucket, trackIds, rowImages){
     <div class="dt-feat"><span class="dt-fi"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg></span><span data-t="dtFeatPdj">Petit-déjeuner &amp; restaurant</span></div>
     <div class="dt-feat"><span class="dt-fi"><svg viewBox="0 0 24 24"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span data-t="dtFeatReco">Bonnes adresses autour</span></div>
     <div class="dt-feat"><span class="dt-fi"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 5.2L20 8l-4 4 1 6-5-2.8L7 18l1-6-4-4 5.6-.8z"/></svg></span><span data-t="dtFeatXtra">Petites attentions à réserver</span></div>
-  </div>
-
-  <div id="lh-social-dt-wrap" style="display:none;margin-bottom:28px">
-    <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#A9812F;font-weight:700;margin-bottom:12px" data-t="dtFollow">Suivez-nous</div>
-    <div id="lh-social-dt" style="display:flex;gap:14px"></div>
   </div>
 
   <div style="display:flex;align-items:center;gap:2px">
