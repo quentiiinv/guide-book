@@ -2292,25 +2292,24 @@ function lhRenderSocial(){
   var order=['instagram','facebook','linkedin','youtube','tiktok','twitter'];
   var always={instagram:1,facebook:1};
   var base='width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:background 0.2s;';
-  var hMob='', hDt='', real=0;
+  var h='';
   order.forEach(function(net){
     var url=(LH_SOCIAL&&LH_SOCIAL[net])||'';
     if(url){
-      real++;
-      var link='<a href="'+lhEsc(url)+'" target="_blank" rel="noopener" style="'+base+'background:rgba(var(--c-primary-rgb),0.07);color:var(--c-primary)" '
+      h+='<a href="'+lhEsc(url)+'" target="_blank" rel="noopener" style="'+base+'background:rgba(var(--c-primary-rgb),0.07);color:var(--c-primary)" '
         +'onmouseover="this.style.background=\'rgba(var(--c-primary-rgb),0.15)\'" onmouseout="this.style.background=\'rgba(var(--c-primary-rgb),0.07)\'">'
         +lhSocialIcon(net)+'</a>';
-      hMob+=link; hDt+=link;   /* desktop : uniquement les vrais réseaux */
     } else if(always[net]){
-      /* Placeholder (mobile only) : montre la possibilité, non cliquable, grisé. */
-      hMob+='<span title="À connecter" style="'+base+'background:rgba(var(--c-primary-rgb),0.04);color:var(--c-primary);opacity:0.32;cursor:default">'
+      /* Minimum garanti : Instagram + Facebook toujours affichés (même sans lien),
+         non cliquables et légèrement grisés. */
+      h+='<span title="À connecter" style="'+base+'background:rgba(var(--c-primary-rgb),0.04);color:var(--c-primary);opacity:0.32;cursor:default">'
         +lhSocialIcon(net)+'</span>';
     }
   });
-  var m=document.getElementById('lh-social'); if(m) m.innerHTML=hMob;
-  var d=document.getElementById('lh-social-dt'); if(d) d.innerHTML=hDt;
-  /* bloc desktop masqué s'il n'y a aucun réseau réel (évite un « Suivez-nous » vide) */
-  var dw=document.getElementById('lh-social-dt-wrap'); if(dw) dw.style.display=real?'block':'none';
+  /* même rendu partout : mobile (pied de page) + desktop (au-dessus du QR) */
+  var m=document.getElementById('lh-social'); if(m) m.innerHTML=h;
+  var d=document.getElementById('lh-social-dt'); if(d) d.innerHTML=h;
+  var dw=document.getElementById('lh-social-dt-wrap'); if(dw) dw.style.display=h?'block':'none';
 }
 /* Table icône -> texte FR standard du catalogue (pour ne traduire QUE le
    contenu standard, jamais un texte personnalisé saisi par l'hôtel). */
