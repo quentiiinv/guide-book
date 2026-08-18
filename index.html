@@ -352,6 +352,11 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
   #lh-sidebar .sb-foot .lang-sel{width:100%;padding:7px 14px 7px 12px}
   #lh-sidebar .sb-foot .lang-dd{top:auto;bottom:calc(100% + 6px);left:0;transform:none;width:100%;max-height:240px}
   #lh-sidebar .sb-foot #lh-social{justify-content:flex-start;padding:0;gap:14px}
+  /* Sidebar sombre : les pastilles réseaux (rendues en couleur primaire pour le
+     mobile clair) seraient invisibles ici. On force une teinte crème lisible. */
+  #lh-sidebar .sb-foot #lh-social a,#lh-sidebar .sb-foot #lh-social span{
+    background:rgba(var(--c-cream-rgb),0.10)!important;color:var(--c-cream)!important;opacity:1!important}
+  #lh-sidebar .sb-foot #lh-social a:hover{background:rgba(var(--c-cream-rgb),0.20)!important}
   /* Carte « Accès mobile » (QR) — plus visuelle */
   #lh-sidebar .sb-qr{display:flex;align-items:center;gap:13px;background:rgba(var(--c-cream-rgb),0.06);
     border:1px solid rgba(var(--c-cream-rgb),0.1);border-radius:14px;padding:11px 13px}
@@ -2756,7 +2761,7 @@ function lhApplyHotel(d){
   if(d.nom){ HOTEL.nom=d.nom; try{document.title=d.nom+(d.lieu?' · ':'')+(d.lieu||'')+' — Guide de séjour';}catch(e){} }
   if(d.lieu) HOTEL.lieu=d.lieu;
   if(d.hote_prenom!==undefined){ lhHostPrenom=(d.hote_prenom||'').trim(); lhRenderWelcome(); }
-  if(d.site_web!==undefined) HOTEL.site_web=d.site_web||'';
+  if(d.site_web!==undefined){ HOTEL.site_web=d.site_web||''; lhSetFaviconFromSite(HOTEL.site_web); }
   try{ var _sn=document.querySelector('#lh-sidebar .sb-name'); if(_sn) _sn.textContent=HOTEL.nom||''; var _sc=document.querySelector('#lh-sidebar .sb-city'); if(_sc) _sc.textContent=HOTEL.lieu||'';
     lhSetSidebarLogo((d&&d.logo_url)||HOTEL.logo); }catch(e){}
   if(d.adresse!==undefined) HOTEL.adresse=d.adresse||'';
@@ -2765,7 +2770,7 @@ function lhApplyHotel(d){
   if(d.place_id!==undefined) HOTEL.place_id=d.place_id||'';
   if(d.maps_url!==undefined) HOTEL.maps_url=d.maps_url||'';
   if(d.adresse!==undefined||d.latitude!==undefined||d.place_id!==undefined||d.maps_url!==undefined) lhApplyAddress();
-  if(d.logo_url){ HOTEL.logo=d.logo_url; lhSetFavicon(d.logo_url); }
+  if(d.logo_url){ HOTEL.logo=d.logo_url; }
   if(d.couleur_principale!==undefined||d.couleur_accent!==undefined) lhApplyTheme(d.couleur_principale, d.couleur_accent);
   if(d.sections){ for(var k in d.sections){ if(d.sections.hasOwnProperty(k)) HOTEL.sections[k]=d.sections[k]; } }
   if(d.extras && d.extras.length){
@@ -2942,12 +2947,23 @@ function lhFetchHotel(slug){
 /* ---------- États chargement / introuvable ---------- */
 function lhShowLoading(v){ var e=document.getElementById('lh-loading'); if(e) e.style.display=v?'flex':'none'; }
 function lhShow404(){ lhShowLoading(false); var e=document.getElementById('lh-404'); if(e) e.style.display='flex'; }
-/* Favicon par hôtel : si l'hôtel a un logo, il devient l'icône de l'onglet. */
+/* Favicon (icône de l'onglet). On veut le VRAI favicon de l'hôtel, pas son logo :
+   le logo reste réservé à l'affichage dans le guidebook. */
 function lhSetFavicon(url){
   if(!url) return;
   var l=document.querySelector('link[rel="icon"]');
   if(!l){ l=document.createElement('link'); l.rel='icon'; document.head.appendChild(l); }
   l.href=url;
+}
+/* Favicon dérivé du site web de l'hôtel : on récupère le vrai favicon du domaine
+   via le service d'icônes de Google. Sans site web, on garde le favicon SolvIA
+   par défaut posé dans le <head>. */
+function lhSetFaviconFromSite(site){
+  if(!site) return;
+  var host='';
+  try{ host=new URL(/^https?:\/\//i.test(site)?site:('https://'+site)).hostname; }catch(e){ return; }
+  if(!host) return;
+  lhSetFavicon('https://www.google.com/s2/favicons?domain='+encodeURIComponent(host)+'&sz=64');
 }
 
 /* ---------- Photos depuis Supabase Storage ----------
