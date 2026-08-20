@@ -51,9 +51,11 @@
   .nav{display:flex;flex-direction:column;gap:1px}
   .navitem{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;color:var(--ink-2);font-weight:450;border:0;background:transparent;text-align:left;width:100%}
   .navitem:hover{background:var(--hover);color:var(--ink)}
-  .navitem.on{background:#ececed;color:var(--ink);font-weight:600}
-  .navitem .dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--ink-3)}
-  .navitem .label{flex:1} .navitem .cnt{color:var(--ink-3);font-weight:500;font-size:12.5px}
+  .navitem.on{background:#eceef2;color:var(--ink);font-weight:600}
+  .navitem .dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--ink-3)}
+  .navitem .label{flex:1} .navitem .cnt{color:var(--ink-3);font-weight:600;font-size:11.5px;font-variant-numeric:tabular-nums;background:var(--panel-2);padding:1px 7px;border-radius:20px;min-width:22px;text-align:center}
+  .navitem.on .cnt{background:#e2e5ea;color:var(--ink-2)}
+  .navsec{margin-top:4px}
   .dot-open{background:var(--open)}.dot-rappel{background:var(--rappel)}.dot-rdv{background:var(--rdv)}.dot-non{background:var(--non)}.dot-inj{background:var(--inj)}
   .side-foot{margin-top:auto;padding:12px 9px 2px;border-top:1px solid var(--line);color:var(--ink-3);font-size:12px;line-height:1.6}
   .side-foot a{color:var(--ink-3);text-decoration:underline}
@@ -70,15 +72,20 @@
   .wrap{max-width:1080px;margin:0 auto}
 
   /* Table */
-  .thead,.trow{display:grid;grid-template-columns:1fr 120px 140px;align-items:center;gap:14px;padding:0 16px}
+  .thead,.trow{display:grid;grid-template-columns:1fr 92px 132px 128px;align-items:center;gap:14px;padding:0 16px}
   .thead{height:38px;color:var(--ink-3);font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--line)}
-  .trow{min-height:56px;border-bottom:1px solid var(--line);border-radius:0;transition:background .08s}
+  .trow{min-height:58px;border-bottom:1px solid var(--line);transition:background .08s}
   .trow:hover{background:var(--hover)}
-  .cell-name{min-width:0}
-  .nm{font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
-  .nm .odot{width:6px;height:6px;border-radius:50%;background:var(--open);flex:none}
+  .cell-name{min-width:0;display:flex;align-items:center;gap:11px}
+  .mono{width:34px;height:34px;border-radius:9px;background:#eef0f3;color:#4a4d57;font-weight:600;font-size:12.5px;display:flex;align-items:center;justify-content:center;flex:none;letter-spacing:.02em}
+  .mono.op{background:var(--open-bg);color:var(--open)}
+  .nmwrap{min-width:0}
+  .nm{font-weight:600;color:var(--ink);display:flex;align-items:center;gap:7px}
   .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sub2{color:var(--ink-3);font-size:12.5px;margin-top:2px}
+  .sub2{color:var(--ink-3);font-size:12.5px;margin-top:1px;display:flex;align-items:center;gap:6px}
+  .dtag{display:inline-flex;align-items:center;padding:1px 6px;border-radius:5px;background:var(--panel-2);color:var(--ink-2);font-size:11px;font-weight:600}
+  .cell-open .lastopen{color:var(--open);font-weight:600;font-size:13px;font-variant-numeric:tabular-nums}
+  .cell-open .dash{color:var(--ink-3)}
   .rate{color:var(--ink-2);font-size:13px;white-space:nowrap} .rate b{color:var(--ink);font-weight:600}
   .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:7px;font-size:12.5px;font-weight:500;background:var(--panel-2);color:var(--ink-2);white-space:nowrap}
   .chip .cd{width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
@@ -155,8 +162,9 @@
     .side{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;border-right:0;border-bottom:1px solid var(--line);padding:10px;overflow:visible}
     .brand{padding:0 8px 0 4px} .navlabel{display:none} .side-foot{display:none}
     .nav{flex-direction:row;flex-wrap:wrap;gap:6px} .navitem{width:auto;padding:7px 10px;border:1px solid var(--line-2)}
-    .thead{display:none} .trow{grid-template-columns:1fr;grid-auto-rows:auto;padding:12px 12px;gap:4px}
-    .cell-rate,.cell-status{padding-left:14px} .scroll{padding:12px}
+    .thead{display:none} .trow{grid-template-columns:1fr;grid-auto-rows:auto;padding:12px 12px;gap:5px}
+    .cell-rate,.cell-open,.cell-status{padding-left:45px} .scroll{padding:12px}
+    .cell-open .dash{display:none}
     .rec-body{padding:20px}
   }
 </style>
@@ -177,8 +185,7 @@
 <div class="app" id="app" style="display:none">
   <aside class="side">
     <div class="brand"><span class="logo">S</span><span>SolvIA<br><span class="sub">Prospection</span></span></div>
-    <div class="navlabel">Vues</div>
-    <div class="nav" id="nav"></div>
+    <div id="nav"></div>
     <div class="side-foot" id="foot"><a id="logout">Se déconnecter</a></div>
   </aside>
   <div class="main">
@@ -191,7 +198,7 @@
     </div>
     <div class="scroll">
       <div class="wrap">
-        <div class="thead"><div>Établissement</div><div>Note</div><div>Statut</div></div>
+        <div class="thead"><div>Établissement</div><div>Note</div><div>Dernière ouverture</div><div>Statut</div></div>
         <div id="rows"><div class="state">Chargement…</div></div>
         <div class="pager" id="pager"></div>
       </div>
@@ -233,7 +240,11 @@ function stars(hc){if(!hc)return"";var m=String(hc).match(/(\d)/);return m?m[1]:
 
 var STLABEL={nouveau:"Nouveau",rappel:"À rappeler",rdv:"RDV pris",non:"Pas intéressé",injoignable:"Injoignable"};
 var STATUSES=[["rappel","À rappeler"],["rdv","RDV pris"],["non","Pas intéressé"],["injoignable","Injoignable"]];
-var TABS=[["tous","Tous",""],["ouvert","Ont ouvert","dot-open"],["nouveau","Nouveaux",""],["rappel","À rappeler","dot-rappel"],["rdv","RDV pris","dot-rdv"],["non","Pas intéressé","dot-non"],["injoignable","Injoignable","dot-inj"]];
+var NAVGROUPS=[
+  {label:"Pipeline", tabs:[["tous","Tous",""],["nouveau","Nouveaux",""],["rappel","À rappeler","dot-rappel"],["rdv","RDV pris","dot-rdv"],["non","Pas intéressé","dot-non"],["injoignable","Injoignable","dot-inj"]]},
+  {label:"Engagement", tabs:[["ouvert","Ont ouvert le guidebook","dot-open"]]}
+];
+function initials(n){var w=String(n||"").trim().split(/\s+/).filter(Boolean);if(!w.length)return"?";if(w.length===1)return w[0].slice(0,2).toUpperCase();return (w[0][0]+w[1][0]).toUpperCase();}
 var IC={
   phone:'<svg viewBox="0 0 24 24"><path d="M5 3h3l2 5-2.5 1.5a11 11 0 005 5L14 12l5 2v3a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-3z"/></svg>',
   mail:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 7l8 6 8-6"/></svg>',
@@ -263,10 +274,13 @@ function load(){
 }
 
 function renderNav(){
-  document.getElementById("nav").innerHTML=TABS.map(function(t){
-    var dot=t[2]?('<span class="dot '+t[2]+'"></span>'):'<span class="dot" style="background:transparent"></span>';
-    var n=counts[t[0]]!=null?counts[t[0]]:"";
-    return '<button class="navitem'+(filter===t[0]?' on':'')+'" data-tab="'+t[0]+'">'+dot+'<span class="label">'+esc(t[1])+'</span><span class="cnt tnum">'+n+'</span></button>';
+  document.getElementById("nav").innerHTML=NAVGROUPS.map(function(g){
+    var items=g.tabs.map(function(t){
+      var dot=t[2]?('<span class="dot '+t[2]+'"></span>'):'<span class="dot" style="background:transparent"></span>';
+      var n=counts[t[0]]!=null?counts[t[0]]:"";
+      return '<button class="navitem'+(filter===t[0]?' on':'')+'" data-tab="'+t[0]+'">'+dot+'<span class="label">'+esc(t[1])+'</span><span class="cnt">'+n+'</span></button>';
+    }).join("");
+    return '<div class="navsec"><div class="navlabel">'+esc(g.label)+'</div><div class="nav">'+items+'</div></div>';
   }).join("");
   var opened=counts.ouvert||0;
   document.getElementById("foot").innerHTML=(counts.tous!=null?counts.tous+" hôtels ciblés<br>"+opened+" ont ouvert<br><br>":"")+'<a id="logout">Se déconnecter</a>';
@@ -282,10 +296,17 @@ function renderTable(){
   else host.innerHTML=rows.map(function(r,i){
     var op=r.opens>0, stv=r.crm_status||"nouveau";
     var chip='<span class="chip" data-v="'+stv+'"><span class="cd"></span>'+esc(STLABEL[stv]||"Nouveau")+'</span>';
-    var s=stars(r.hotel_class); var sub=esc((r.type||"hôtel")+(s?(" "+s+"★"):""))+" · "+esc(r.city||"")+" ("+esc(r.departement_code||"")+")";
+    var s=stars(r.hotel_class);
+    var sub='<span>'+esc((r.type||"hôtel")+(s?(" "+s+"★"):""))+"</span>"+
+      (r.city?('<span>·</span><span>'+esc(r.city)+'</span>'):"")+
+      (r.departement_code?('<span class="dtag">'+esc(r.departement_code)+'</span>'):"");
+    var openCell=op ? '<span class="lastopen">'+esc(r.last_open||"—")+'</span>' : '<span class="dash">—</span>';
     return '<div class="trow" data-idx="'+i+'">'+
-      '<div class="cell-name"><div class="nm">'+(op?'<span class="odot" title="A ouvert le guidebook"></span>':'')+'<span>'+esc(r.hotel_name)+'</span></div><div class="sub2">'+sub+'</div></div>'+
-      '<div class="cell-rate">'+rateCell(r)+'</div><div class="cell-status">'+chip+'</div></div>';
+      '<div class="cell-name"><div class="mono'+(op?' op':'')+'">'+esc(initials(r.hotel_name))+'</div>'+
+        '<div class="nmwrap"><div class="nm"><span>'+esc(r.hotel_name)+'</span></div><div class="sub2">'+sub+'</div></div></div>'+
+      '<div class="cell-rate">'+rateCell(r)+'</div>'+
+      '<div class="cell-open">'+openCell+'</div>'+
+      '<div class="cell-status">'+chip+'</div></div>';
   }).join("");
   document.getElementById("pager").innerHTML= total>PER ?
     ('<span>Page '+page+' / '+pages+'</span><span class="pg"><button id="prev"'+(page<=1?' disabled':'')+'>Précédent</button><button id="next"'+(page>=pages?' disabled':'')+'>Suivant</button></span>') : '';
