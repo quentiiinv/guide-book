@@ -217,6 +217,19 @@ input,textarea{font:inherit}
 .c-name .t1{font-weight:600;font-size:14px;letter-spacing:-.011em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .c-name .t2{display:flex;align-items:center;gap:7px;margin-top:2px;color:var(--ink-3);font-size:12.5px;overflow:hidden;white-space:nowrap}
 .c-name .t2 .sep{opacity:.5}
+.cbchip{
+  flex:none;display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:5px;
+  font-size:11px;font-weight:600;background:var(--rappel-bg);color:var(--rappel);
+}
+.cbchip.retard{background:var(--non-bg);color:var(--non)}
+.cbchip.futur{background:var(--surface-2);color:var(--ink-2)}
+.inp{
+  width:100%;padding:8px 11px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);font-size:13.5px;outline:none;transition:border-color .12s;
+}
+.inp:focus{border-color:var(--focus)}
+.hintline{margin-top:6px;font-size:12px;color:var(--ink-3)}
+.corrige{display:inline-flex;align-items:center;padding:1px 6px;border-radius:5px;background:var(--rdv-bg);color:var(--rdv);font-size:10.5px;font-weight:600;margin-left:6px}
 .dep{
   flex:none;padding:1px 6px;border-radius:5px;background:var(--surface-2);
   color:var(--ink-2);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;
@@ -469,6 +482,7 @@ var KEY=localStorage.getItem(LSK)||"";
 var SORTS=[
   ["priorite","Priorité"],
   ["ouverture","Ouverts récemment"],
+  ["rappel","Date de rappel"],
   ["recent","Activité récente"],
   ["note","Meilleure note"],
   ["avis","Plus d'avis"],
@@ -481,6 +495,7 @@ var SORTS=[
    ============================================================ */
 var VIEWS={
   tous:{nav:"Tous",title:"Tous les prospects",dot:""},
+  aujourdhui:{nav:"À rappeler aujourd'hui",title:"À rappeler aujourd'hui",dot:"d-rappel"},
   nouveau:{nav:"Nouveaux",title:"Nouveaux prospects",dot:""},
   rappel:{nav:"À rappeler",title:"À rappeler",dot:"d-rappel"},
   rdv:{nav:"RDV pris",title:"RDV pris",dot:"d-rdv"},
@@ -489,7 +504,7 @@ var VIEWS={
   ouvert:{nav:"Ont ouvert",title:"Ont ouvert le guidebook",dot:"d-eng"}
 };
 var GROUPS=[
-  {label:"Pipeline",keys:["tous","nouveau","rappel","rdv","non","injoignable"]},
+  {label:"Pipeline",keys:["tous","aujourdhui","nouveau","rappel","rdv","non","injoignable"]},
   {label:"Engagement",keys:["ouvert"]}
 ];
 var STATUS_LABEL={nouveau:"Nouveau",rappel:"À rappeler",rdv:"RDV pris",non:"Pas intéressé",injoignable:"Injoignable"};
@@ -524,6 +539,7 @@ function initials(n){
   if(w.length===1) return w[0].slice(0,2).toUpperCase();
   return (w[0][0]+w[1][0]).toUpperCase();
 }
+function mailOf(r){return (r.crm_email&&r.crm_email.trim())||r.email_primary||"";}
 function stars(hc){var m=String(hc||"").match(/(\d)/);return m?m[1]:"";}
 /* Pastille : favicon du site de l'hôtel, initiales en repli. */
 function avatar(r,cls){
@@ -625,7 +641,9 @@ function renderTable(){
     var eng=r.opens>0, st=r.crm_status||"nouveau", s=stars(r.hotel_class);
     var sub='<span>'+esc(r.type||"hôtel")+(s?(" "+s+"★"):"")+'</span>'+
       (r.city?('<span class="sep">·</span><span>'+esc(r.city)+'</span>'):"")+
-      (r.departement_code?('<span class="dep">'+esc(r.departement_code)+'</span>'):"");
+      (r.departement_code?('<span class="dep">'+esc(r.departement_code)+'</span>'):"")+
+      (r.callback_label?('<span class="cbchip '+esc(r.callback_state||"")+'">'+
+         (r.callback_state==="retard"?"En retard":"Rappel")+' '+esc(r.callback_label)+'</span>'):"");
     var rating=r.overall_rating
       ? '<span class="rating"><span class="v">'+Number(r.overall_rating).toFixed(1)+'</span><span class="n">'+(r.reviews_count||0)+' avis</span></span>'
       : '<span class="muted">—</span>';
@@ -695,16 +713,21 @@ function renderRecord(){
 
   var actions='<div class="actions">'+
     (r.phone_primary?('<a class="btn primary" href="'+telHref(r.phone_primary)+'">'+I.phone+'Appeler</a>'):"")+
-    (r.email_primary?('<a class="btn" href="mailto:'+esc(r.email_primary)+'">'+I.mail+'Écrire</a>'):"")+
+    (mailOf(r)?('<a class="btn" href="mailto:'+esc(mailOf(r))+'">'+I.mail+'Écrire</a>'):"")+
     (r.guidebook_slug?('<a class="btn" href="'+guideHref(r.guidebook_slug)+'" target="_blank" rel="noopener">'+I.eye+'Aperçu guidebook</a>'):"")+
     (r.website_link?('<a class="btn" href="'+esc(r.website_link)+'" target="_blank" rel="noopener">'+I.ext+'Site web</a>'):"")+
     '<a class="btn" href="'+mapsHref(r)+'" target="_blank" rel="noopener">'+I.pin+'Maps</a>'+
     '<button class="btn" data-relance="'+esc(r.id)+'">'+I.copy+'Copier la relance</button>'+
   '</div>';
 
+  var mailBadge=(r.crm_email&&r.crm_email.trim())?'<span class="corrige">corrigé</span>':'';
+  var emailField='<div class="field"><div class="k">Email'+mailBadge+'</div>'+
+    '<input class="inp" data-email="'+esc(r.id)+'" value="'+esc(mailOf(r))+'" placeholder="adresse@hotel.fr" spellcheck="false">'+
+    (r.crm_email&&r.crm_email.trim()&&r.email_primary?('<div class="hintline">Trouvé au scraping : '+esc(r.email_primary)+'</div>'):'')+
+    '</div>';
   var coords='<div class="section"><div class="sec-head"><h3>Coordonnées</h3></div><div class="fields">'+
     field("Téléphone",r.phone_primary,true)+
-    field("Email",r.email_primary,true)+
+    emailField+
     field("Site web",r.website_link,false,true)+
     field("Ville",(r.city||"")+(r.departement_code?(" ("+r.departement_code+")"):""),false)+
   '</div></div>';
@@ -719,6 +742,9 @@ function renderRecord(){
   '</div>';
 
   var suivi='<div class="section"><div class="sec-head"><h3>Suivi</h3><span class="saved" data-saved="'+esc(r.id)+'">Enregistré</span></div>'+
+    '<div class="field" style="margin-bottom:18px"><div class="k">Rappel programmé</div>'+
+      '<input class="inp" type="datetime-local" data-cb="'+esc(r.id)+'" value="'+esc(r.callback_input||"")+'">'+
+      '<div class="hintline">'+(r.callback_label?('Prévu le '+esc(r.callback_label)+'. Il apparaît dans « À rappeler aujourd\'hui » le jour venu.'):'Renseignez une date pour le retrouver dans « À rappeler aujourd\'hui ».')+'</div></div>'+
     '<div class="seg">'+STATUS_SET.map(function(x){
       return '<button class="segbtn" data-status="'+esc(r.id)+'" data-s="'+x[0]+'" aria-pressed="'+(st===x[0])+'">'+esc(x[1])+'</button>';
     }).join("")+'</div>'+
@@ -769,6 +795,30 @@ function saveNotes(id,val){
         if(el){el.style.opacity="1";clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity="0";},1200);}
       },function(e){if(e&&e.auth)showLogin("Session expirée.");else toast("Erreur de sauvegarde");});
   },600);
+}
+
+function setCallback(id,localValue){
+  var r=null;for(var i=0;i<rows.length;i++){if(rows[i].id===id){r=rows[i];break;}}
+  var iso=null;
+  if(localValue){ var d=new Date(localValue); if(!isNaN(d)) iso=d.toISOString(); }
+  api({action:"set_callback",id:id,ts:iso}).then(function(){
+    toast(iso?"Rappel programmé":"Rappel supprimé");
+    load().then(function(){ if(cursor>=0) renderRecord(); });
+  },function(e){if(e&&e.auth)showLogin("Session expirée.");else toast("Erreur");});
+}
+
+var mailTimer={};
+function setEmail(id,val){
+  var r=null;for(var i=0;i<rows.length;i++){if(rows[i].id===id){r=rows[i];break;}}
+  clearTimeout(mailTimer[id]);
+  mailTimer[id]=setTimeout(function(){
+    var v=(val||"").trim();
+    // on n'enregistre une correction que si elle diffère de l'adresse d'origine
+    var payload=(r&&v===(r.email_primary||""))?null:v;
+    api({action:"set_email",id:id,email:payload}).then(function(){
+      if(r)r.crm_email=payload; toast("Email enregistré");
+    },function(e){if(e&&e.auth)showLogin("Session expirée.");else toast("Erreur");});
+  },700);
 }
 
 function resetOpen(id){
@@ -843,6 +893,8 @@ document.addEventListener("change",function(e){
     localStorage.setItem("solvia_crm_sort",sort);load();return;
   }
   if(e.target.id==="selDep"){ dep=e.target.value;page=1;load();return; }
+  var cb=e.target.closest("[data-cb]");
+  if(cb){ setCallback(cb.getAttribute("data-cb"),cb.value); return; }
 });
 
 var qTimer;
@@ -852,7 +904,9 @@ document.addEventListener("input",function(e){
     clearTimeout(qTimer);qTimer=setTimeout(load,280);return;
   }
   var ta=e.target.closest("[data-notes]");
-  if(ta)saveNotes(ta.getAttribute("data-notes"),ta.value);
+  if(ta){saveNotes(ta.getAttribute("data-notes"),ta.value);return;}
+  var em=e.target.closest("[data-email]");
+  if(em)setEmail(em.getAttribute("data-email"),em.value);
 });
 
 /* ============================================================
