@@ -155,6 +155,30 @@ input,textarea{font:inherit}
 .scroll{flex:1;overflow-y:auto}
 .content{padding:8px 24px 64px}
 
+/* --- Barre de filtres --- */
+.filters{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 12px 12px}
+.ctrl{position:relative;display:inline-flex;align-items:center}
+.ctrl select{
+  appearance:none;-webkit-appearance:none;
+  padding:6px 28px 6px 11px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:500;
+  cursor:pointer;outline:none;transition:background .1s,border-color .1s;
+}
+.ctrl select:hover{background:var(--hover)}
+.ctrl select:focus{border-color:var(--focus)}
+.ctrl.active select{background:var(--selected);border-color:var(--line-strong);font-weight:600}
+.ctrl .chev{
+  position:absolute;right:9px;pointer-events:none;color:var(--ink-3);
+  width:12px;height:12px;
+}
+.ctrl .chev svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ctrl .k{font-size:11.5px;color:var(--ink-3);margin-right:6px;white-space:nowrap}
+.clearf{
+  padding:6px 10px;border-radius:var(--r);border:1px solid transparent;
+  color:var(--ink-3);font-size:12.5px;font-weight:500;
+}
+.clearf:hover{background:var(--hover);color:var(--ink-2)}
+
 /* ============================================================
    TABLE
    ============================================================ */
@@ -398,6 +422,7 @@ textarea.notes::placeholder{color:var(--ink-3)}
     </div>
     <div class="scroll">
       <div class="content">
+        <div class="filters" id="filters"></div>
         <div class="thead">
           <div>Établissement</div><div>Note</div><div>Ouverture</div><div>Statut</div>
         </div>
@@ -437,8 +462,19 @@ var LSK="solvia_crm_key";
 var PER=25;
 
 /* état */
-var rows=[],counts={},total=0,page=1,view="tous",query="",cursor=-1;
+var rows=[],counts={},deps=[],total=0,page=1,view="tous",query="",cursor=-1;
+var sort=localStorage.getItem("solvia_crm_sort")||"priorite", dep="";
 var KEY=localStorage.getItem(LSK)||"";
+
+var SORTS=[
+  ["priorite","Priorité"],
+  ["ouverture","Ouverts récemment"],
+  ["recent","Activité récente"],
+  ["note","Meilleure note"],
+  ["avis","Plus d'avis"],
+  ["prix","Tarif le plus élevé"],
+  ["nom","Nom (A→Z)"]
+];
 
 /* ============================================================
    RÉFÉRENTIELS
@@ -520,9 +556,9 @@ function api(payload){
    ============================================================ */
 function load(){
   document.getElementById("rows").innerHTML='<div class="empty">Chargement…</div>';
-  return api({action:"list",page:page,per:PER,filter:view,q:query}).then(function(d){
-    rows=d.rows||[];counts=d.counts||{};total=d.total||0;
-    renderNav();renderTable();
+  return api({action:"list",page:page,per:PER,filter:view,q:query,sort:sort,dep:dep}).then(function(d){
+    rows=d.rows||[];counts=d.counts||{};deps=d.deps||[];total=d.total||0;
+    renderNav();renderFilters();renderTable();
   }).catch(function(e){
     if(e&&e.auth){showLogin("Mot de passe incorrect.");return;}
     document.getElementById("rows").innerHTML='<div class="empty">Impossible de charger les données.<br><span style="font-size:12.5px">'+esc(String(e))+'</span></div>';
@@ -546,6 +582,28 @@ function renderNav(){
   document.getElementById("foot").innerHTML=
     (counts.tous!=null?('<div>'+counts.tous+' hôtels ciblés</div><div>'+(counts.ouvert||0)+' ont ouvert le guidebook</div>'):'')+
     '<div style="margin-top:10px"><button id="logout">Se déconnecter</button></div>';
+}
+
+/* ============================================================
+   RENDU — BARRE DE FILTRES
+   ============================================================ */
+var CHEV='<span class="chev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>';
+function renderFilters(){
+  var sortOpts=SORTS.map(function(s){
+    return '<option value="'+s[0]+'"'+(sort===s[0]?' selected':'')+'>'+esc(s[1])+'</option>';
+  }).join("");
+
+  var depOpts='<option value="">Tous les départements</option>'+deps.map(function(d){
+    return '<option value="'+esc(d.code)+'"'+(dep===d.code?' selected':'')+'>'+esc(d.code)+' ('+d.n+')</option>';
+  }).join("");
+
+  var actif=(sort!=="priorite"||dep!=="");
+  document.getElementById("filters").innerHTML=
+    '<span class="ctrl'+(sort!=="priorite"?" active":"")+'"><span class="k">Trier par</span>'+
+      '<select id="selSort" aria-label="Trier par">'+sortOpts+'</select>'+CHEV+'</span>'+
+    '<span class="ctrl'+(dep?" active":"")+'">'+
+      '<select id="selDep" aria-label="Département">'+depOpts+'</select>'+CHEV+'</span>'+
+    (actif?'<button class="clearf" id="clearFilters">Réinitialiser</button>':'');
 }
 
 /* ============================================================
@@ -731,7 +789,12 @@ document.addEventListener("click",function(e){
   if(t.closest("#logout")){localStorage.removeItem(LSK);KEY="";showLogin("");return;}
 
   var nav=t.closest("[data-view]");
-  if(nav){view=nav.getAttribute("data-view");page=1;closeRecord();load();return;}
+  if(nav){view=nav.getAttribute("data-view");page=1;dep="";closeRecord();load();return;}
+
+  if(t.closest("#clearFilters")){
+    sort="priorite";dep="";page=1;
+    localStorage.setItem("solvia_crm_sort",sort);load();return;
+  }
 
   var stBtn=t.closest("[data-status]");
   if(stBtn){setStatus(stBtn.getAttribute("data-status"),stBtn.getAttribute("data-s"));return;}
@@ -772,6 +835,14 @@ document.addEventListener("keydown",function(e){
   if(!typing&&(e.key==="/"||e.key==="k"&&(e.metaKey||e.ctrlKey))){e.preventDefault();document.getElementById("q").focus();}
   var r=e.target.closest&&e.target.closest("[data-idx]");
   if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openRecord(parseInt(r.getAttribute("data-idx"),10));}
+});
+
+document.addEventListener("change",function(e){
+  if(e.target.id==="selSort"){
+    sort=e.target.value;page=1;
+    localStorage.setItem("solvia_crm_sort",sort);load();return;
+  }
+  if(e.target.id==="selDep"){ dep=e.target.value;page=1;load();return; }
 });
 
 var qTimer;
