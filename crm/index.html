@@ -375,6 +375,51 @@ textarea.notes::placeholder{color:var(--ink-3)}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+
+/* ============================================================
+   CALENDRIER
+   ============================================================ */
+.cal-bar{display:flex;align-items:center;gap:10px;padding:12px 12px 16px}
+.cal-title{font-size:15px;font-weight:600;letter-spacing:-.015em;min-width:170px;text-transform:capitalize}
+.cal-nav{display:flex;gap:6px}
+.cal-today{margin-left:4px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:var(--r);font-size:12.5px;font-weight:500;background:var(--surface)}
+.cal-today:hover{background:var(--hover)}
+.cal-legend{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--ink-3)}
+.cal-legend i{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+.cal{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.cal-dows{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--surface-2);border-bottom:1px solid var(--line)}
+.cal-dows div{padding:8px 10px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-cell{min-height:118px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px;display:flex;flex-direction:column;gap:5px}
+.cal-cell:nth-child(7n){border-right:0}
+.cal-cell.out{background:var(--bg-sub)}
+.cal-cell.today{background:#fbfaf5}
+.cal-num{font-size:12px;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:space-between}
+.cal-cell.out .cal-num{color:var(--ink-3);font-weight:450}
+.cal-cell.today .cal-num span:first-child{
+  background:var(--btn);color:var(--btn-ink);width:21px;height:21px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;
+}
+.cal-n{font-size:10.5px;color:var(--ink-3);font-weight:600}
+.cal-ev{
+  display:flex;align-items:center;gap:6px;width:100%;text-align:left;
+  padding:4px 7px;border-radius:6px;background:var(--rappel-bg);color:var(--rappel);
+  font-size:11.5px;font-weight:600;overflow:hidden;
+}
+.cal-ev:hover{filter:brightness(.96)}
+.cal-ev.retard{background:var(--non-bg);color:var(--non)}
+.cal-ev.futur{background:var(--surface-2);color:var(--ink-2)}
+.cal-ev .h{font-variant-numeric:tabular-nums;flex:none;opacity:.85}
+.cal-ev .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.cal-more{font-size:11px;color:var(--ink-3);padding:1px 7px;text-align:left}
+.cal-empty{padding:60px 0;text-align:center;color:var(--ink-3)}
+@media(max-width:860px){
+  .cal-cell{min-height:84px;padding:5px}
+  .cal-ev .h{display:none}
+  .cal-dows div{padding:6px}
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
@@ -434,7 +479,23 @@ textarea.notes::placeholder{color:var(--ink-3)}
       </label>
     </div>
     <div class="scroll">
-      <div class="content">
+      <div class="content" id="viewCal" style="display:none">
+        <div class="cal-bar">
+          <div class="cal-nav">
+            <button class="iconbtn" id="calPrev" title="Mois précédent"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+            <button class="iconbtn" id="calNext" title="Mois suivant"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          </div>
+          <div class="cal-title" id="calTitle"></div>
+          <button class="cal-today" id="calToday">Aujourd'hui</button>
+          <div class="cal-legend">
+            <span><i style="background:var(--non)"></i>En retard</span>
+            <span><i style="background:var(--rappel)"></i>Aujourd'hui</span>
+            <span><i style="background:var(--line-strong)"></i>À venir</span>
+          </div>
+        </div>
+        <div id="calBody"></div>
+      </div>
+      <div class="content" id="viewList">
         <div class="filters" id="filters"></div>
         <div class="thead">
           <div>Établissement</div><div>Note</div><div>Ouverture</div><div>Statut</div>
@@ -477,6 +538,7 @@ var PER=25;
 /* état */
 var rows=[],counts={},deps=[],total=0,page=1,view="tous",query="",cursor=-1;
 var sort=localStorage.getItem("solvia_crm_sort")||"priorite", dep="";
+var mode="liste", calCursor=new Date(), calRows=[];
 var KEY=localStorage.getItem(LSK)||"";
 
 var SORTS=[
@@ -505,7 +567,8 @@ var VIEWS={
 };
 var GROUPS=[
   {label:"Pipeline",keys:["tous","aujourdhui","nouveau","rappel","rdv","non","injoignable"]},
-  {label:"Engagement",keys:["ouvert"]}
+  {label:"Engagement",keys:["ouvert"]},
+  {label:"Planning",keys:["__cal"]}
 ];
 var STATUS_LABEL={nouveau:"Nouveau",rappel:"À rappeler",rdv:"RDV pris",non:"Pas intéressé",injoignable:"Injoignable"};
 var STATUS_SET=[["rappel","À rappeler"],["rdv","RDV pris"],["non","Pas intéressé"],["injoignable","Injoignable"]];
@@ -587,8 +650,13 @@ function load(){
 function renderNav(){
   document.getElementById("nav").innerHTML=GROUPS.map(function(g){
     var items=g.keys.map(function(k){
+      if(k==="__cal"){
+        return '<button class="navitem" data-mode="calendrier" aria-current="'+(mode==="calendrier")+'">'+
+          '<span class="dot d-rappel"></span><span class="nm">Calendrier</span>'+
+          '<span class="ct">'+(counts.rappel!=null?counts.rappel:"")+'</span></button>';
+      }
       var v=VIEWS[k],n=counts[k];
-      return '<button class="navitem" data-view="'+k+'" aria-current="'+(view===k)+'">'+
+      return '<button class="navitem" data-view="'+k+'" aria-current="'+(mode==="liste"&&view===k)+'">'+
         '<span class="dot '+(v.dot?(v.dot+' solid'):'plain')+'"></span>'+
         '<span class="nm">'+esc(v.nav)+'</span>'+
         '<span class="ct">'+(n==null?"":n)+'</span></button>';
@@ -668,6 +736,68 @@ function renderTable(){
       '<span class="grp"><button id="prev"'+(page<=1?" disabled":"")+'>Précédent</button>'+
       '<button id="next"'+(page>=pages?" disabled":"")+'>Suivant</button></span>'
     : '';
+}
+
+
+/* ============================================================
+   RENDU — CALENDRIER
+   ============================================================ */
+var MOIS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+var DOWS=["lun","mar","mer","jeu","ven","sam","dim"];
+function ymd(d){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function gridStart(d){          /* lundi de la semaine contenant le 1er du mois */
+  var f=new Date(d.getFullYear(),d.getMonth(),1);
+  var off=(f.getDay()+6)%7;     /* 0 = lundi */
+  return new Date(f.getFullYear(),f.getMonth(),1-off);
+}
+function loadCalendar(){
+  var start=gridStart(calCursor);
+  var end=new Date(start); end.setDate(end.getDate()+41);
+  document.getElementById("calBody").innerHTML='<div class="cal-empty">Chargement…</div>';
+  return api({action:"calendar",from:ymd(start),to:ymd(end)}).then(function(d){
+    calRows=Array.isArray(d)?d:[];
+    renderCalendar();
+  }).catch(function(e){
+    if(e&&e.auth){showLogin("Mot de passe incorrect.");return;}
+    document.getElementById("calBody").innerHTML='<div class="cal-empty">Erreur : '+esc(String(e))+'</div>';
+  });
+}
+function renderCalendar(){
+  document.getElementById("calTitle").textContent=MOIS[calCursor.getMonth()]+" "+calCursor.getFullYear();
+
+  var byDay={};
+  calRows.forEach(function(r,i){ (byDay[r.jour]=byDay[r.jour]||[]).push(i); });
+
+  var start=gridStart(calCursor), today=ymd(new Date()), cells="";
+  for(var i=0;i<42;i++){
+    var d=new Date(start); d.setDate(start.getDate()+i);
+    var key=ymd(d), out=(d.getMonth()!==calCursor.getMonth()), isToday=(key===today);
+    var idx=byDay[key]||[];
+    var evs=idx.slice(0,3).map(function(k){
+      var r=calRows[k];
+      return '<button class="cal-ev '+esc(r.callback_state||"")+'" data-cal="'+k+'">'+
+        '<span class="h">'+esc(r.heure||"")+'</span><span class="n">'+esc(r.hotel_name)+'</span></button>';
+    }).join("");
+    if(idx.length>3) evs+='<div class="cal-more">+'+(idx.length-3)+' autre'+(idx.length-3>1?'s':'')+'</div>';
+    cells+='<div class="cal-cell'+(out?" out":"")+(isToday?" today":"")+'">'+
+      '<div class="cal-num"><span>'+d.getDate()+'</span>'+(idx.length?('<span class="cal-n">'+idx.length+'</span>'):'')+'</div>'+
+      evs+'</div>';
+  }
+  document.getElementById("calBody").innerHTML=
+    '<div class="cal"><div class="cal-dows">'+DOWS.map(function(x){return '<div>'+x+'</div>';}).join("")+'</div>'+
+    '<div class="cal-grid">'+cells+'</div></div>'+
+    (calRows.length?'':'<div class="cal-empty">Aucun rappel programmé sur cette période.</div>');
+}
+function setMode(m){
+  mode=m;
+  document.getElementById("viewCal").style.display=(m==="calendrier")?"":"none";
+  document.getElementById("viewList").style.display=(m==="calendrier")?"none":"";
+  document.getElementById("viewTitle").childNodes[0].nodeValue=(m==="calendrier")?"Calendrier des rappels":VIEWS[view].title;
+  document.getElementById("viewCount").textContent="";
+  renderNav();
+  if(m==="calendrier") loadCalendar(); else load();
 }
 
 /* ============================================================
@@ -803,7 +933,7 @@ function setCallback(id,localValue){
   if(localValue){ var d=new Date(localValue); if(!isNaN(d)) iso=d.toISOString(); }
   api({action:"set_callback",id:id,ts:iso}).then(function(){
     toast(iso?"Rappel programmé":"Rappel supprimé");
-    load().then(function(){ if(cursor>=0) renderRecord(); });
+    (mode==="calendrier"?loadCalendar():load()).then(function(){ if(cursor>=0) renderRecord(); });
   },function(e){if(e&&e.auth)showLogin("Session expirée.");else toast("Erreur");});
 }
 
@@ -838,8 +968,22 @@ document.addEventListener("click",function(e){
   var t=e.target;
   if(t.closest("#logout")){localStorage.removeItem(LSK);KEY="";showLogin("");return;}
 
+  var md=t.closest("[data-mode]");
+  if(md){closeRecord();setMode(md.getAttribute("data-mode"));return;}
+
   var nav=t.closest("[data-view]");
-  if(nav){view=nav.getAttribute("data-view");page=1;dep="";closeRecord();load();return;}
+  if(nav){view=nav.getAttribute("data-view");page=1;dep="";closeRecord();
+    if(mode!=="liste"){setMode("liste");}else{load();} return;}
+
+  if(t.closest("#calPrev")){calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth()-1,1);loadCalendar();return;}
+  if(t.closest("#calNext")){calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth()+1,1);loadCalendar();return;}
+  if(t.closest("#calToday")){calCursor=new Date();loadCalendar();return;}
+
+  var ce=t.closest("[data-cal]");
+  if(ce){                       /* ouvre la fiche ; les flèches parcourent alors les rappels */
+    rows=calRows; total=calRows.length; page=1;
+    openRecord(parseInt(ce.getAttribute("data-cal"),10)); return;
+  }
 
   if(t.closest("#clearFilters")){
     sort="priorite";dep="";page=1;
