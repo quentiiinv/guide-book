@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%230f0f10%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2244%22%20font-family%3D%22Inter%2Csans-serif%22%20font-size%3D%2238%22%20font-weight%3D%22700%22%20fill%3D%22%23fff%22%20text-anchor%3D%22middle%22%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;650;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;650;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
 /* ============================================================
    TOKENS
@@ -46,12 +46,15 @@
 
   --link:#2b5bd7;
 
-  /* rayons */
-  --r-sm:6px; --r:8px; --r-md:10px; --r-lg:14px;
+  /* rayons — parti pris carré */
+  --r-sm:3px; --r:4px; --r-md:5px; --r-lg:6px;
 
-  /* ombres */
-  --sh-1:0 1px 2px rgba(15,15,16,.05);
-  --sh-2:0 16px 48px -16px rgba(15,15,16,.30);
+  /* typo */
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* ombres — nettes, quasi absentes */
+  --sh-1:none;
+  --sh-2:0 24px 60px -24px rgba(15,15,16,.34);
 }
 
 /* ============================================================
@@ -74,8 +77,12 @@ input,textarea{font:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
 
 .label{
-  font-size:11px;font-weight:600;letter-spacing:.055em;text-transform:uppercase;
-  color:var(--ink-3);
+  font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+/* Chiffres, dates et codes en mono */
+.tnum,.rating .v,.rating .n,.dep,.opened .dt,.navitem .ct,.rec-pos,.pager,.cal-num,.cal-ev .h,.cal-n{
+  font-family:var(--mono);font-variant-numeric:tabular-nums;
 }
 
 /* ============================================================
@@ -187,8 +194,8 @@ input,textarea{font:inherit}
   grid-template-columns:minmax(0,1fr) 104px 148px 152px;
   align-items:center;gap:20px;padding:0 12px;
 }
-.thead{height:36px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}
-.thead > div{font-size:11px;font-weight:600;letter-spacing:.055em;text-transform:uppercase;color:var(--ink-3)}
+.thead{height:34px;border-bottom:1px solid var(--line-strong);position:sticky;top:0;background:var(--bg);z-index:2}
+.thead > div{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 
 .trow{
   min-height:62px;border-bottom:1px solid var(--line);
@@ -199,7 +206,7 @@ input,textarea{font:inherit}
 .c-name{display:flex;align-items:center;gap:12px;min-width:0}
 .mono{
   position:relative;overflow:hidden;
-  width:34px;height:34px;flex:none;border-radius:var(--r);
+  width:32px;height:32px;flex:none;border-radius:var(--r-sm);
   background:var(--surface-2);color:var(--ink-2);
   display:flex;align-items:center;justify-content:center;
   font-size:12px;font-weight:650;letter-spacing:.01em;
@@ -231,8 +238,8 @@ input,textarea{font:inherit}
 .hintline{margin-top:6px;font-size:12px;color:var(--ink-3)}
 .corrige{display:inline-flex;align-items:center;padding:1px 6px;border-radius:5px;background:var(--rdv-bg);color:var(--rdv);font-size:10.5px;font-weight:600;margin-left:6px}
 .dep{
-  flex:none;padding:1px 6px;border-radius:5px;background:var(--surface-2);
-  color:var(--ink-2);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;
+  flex:none;padding:1px 5px;border-radius:var(--r-sm);background:var(--surface-2);
+  color:var(--ink-2);font-size:10.5px;font-weight:500;border:1px solid var(--line);
 }
 
 .rating{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
@@ -246,7 +253,7 @@ input,textarea{font:inherit}
 
 .pill{
   display:inline-flex;align-items:center;gap:6px;
-  padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;
+  padding:3px 8px;border-radius:var(--r-sm);font-size:11.5px;font-weight:600;white-space:nowrap;
   background:var(--neutral-bg);color:var(--neutral);
 }
 .pill .pd{width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
@@ -296,7 +303,7 @@ input,textarea{font:inherit}
 
 /* identité */
 .hero{display:flex;align-items:flex-start;gap:16px}
-.hero .mono{width:52px;height:52px;border-radius:12px;font-size:17px}
+.hero .mono{width:52px;height:52px;border-radius:var(--r-md);font-size:17px}
 .hero .h-txt{min-width:0;flex:1}
 .hero h1{margin:0;font-size:24px;font-weight:650;letter-spacing:-.025em;line-height:1.2}
 .hero .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;color:var(--ink-2);font-size:13px}
@@ -304,8 +311,8 @@ input,textarea{font:inherit}
 .hero .pill{margin-top:0}
 .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .badge{
-  display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
-  font-size:12.5px;font-weight:600;background:var(--eng-bg);color:var(--eng);
+  display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border-radius:var(--r-sm);
+  font-size:12px;font-weight:600;background:var(--eng-bg);color:var(--eng);
 }
 .badge .pt{width:6px;height:6px;border-radius:50%;background:currentColor}
 
@@ -326,13 +333,13 @@ input,textarea{font:inherit}
 /* sections */
 .section{margin-top:36px}
 .sec-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;margin-bottom:16px;border-bottom:1px solid var(--line)}
-.sec-head h3{margin:0;font-size:11px;font-weight:600;letter-spacing:.055em;text-transform:uppercase;color:var(--ink-3)}
+.sec-head h3{margin:0;font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .saved{font-size:11.5px;color:var(--rdv);font-weight:500;opacity:0;transition:opacity .2s}
 
 .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 28px}
 @media(max-width:620px){.fields{grid-template-columns:1fr}}
 .field{min-width:0}
-.field .k{font-size:11.5px;color:var(--ink-3);font-weight:500;margin-bottom:3px}
+.field .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-bottom:4px}
 .field .v{display:flex;align-items:center;gap:8px;min-width:0;font-size:14px}
 .field .v .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .copy{
@@ -387,9 +394,9 @@ textarea.notes::placeholder{color:var(--ink-3)}
 .cal-legend{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--ink-3)}
 .cal-legend i{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px;vertical-align:middle}
 
-.cal{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.cal{border:1px solid var(--line-strong);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
 .cal-dows{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--surface-2);border-bottom:1px solid var(--line)}
-.cal-dows div{padding:8px 10px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.cal-dows div{padding:8px 10px;font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .cal-cell{min-height:118px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px;display:flex;flex-direction:column;gap:5px}
 .cal-cell:nth-child(7n){border-right:0}
