@@ -265,7 +265,7 @@ input,textarea{font:inherit}
    ============================================================ */
 .thead,.trow{
   display:grid;
-  grid-template-columns:minmax(0,1fr) 104px 148px 152px;
+  grid-template-columns:minmax(0,1fr) 96px 146px 146px 140px;
   align-items:center;gap:20px;padding:0 12px;
 }
 .thead{height:34px;border-bottom:1px solid var(--line-strong);position:sticky;top:0;background:var(--bg);z-index:2}
@@ -324,6 +324,24 @@ input,textarea{font:inherit}
 .opened{display:flex;align-items:center;gap:7px;white-space:nowrap}
 .opened .pt{width:6px;height:6px;border-radius:50%;background:var(--eng);flex:none}
 .opened .dt{color:var(--eng);font-weight:600;font-size:12.5px;font-variant-numeric:tabular-nums}
+
+/* Dernier mail envoyé : la fraîcheur se lit à la couleur, comme l'ouverture. */
+.sent{display:flex;align-items:center;gap:7px;white-space:nowrap;min-width:0}
+.sent .pt{width:6px;height:6px;border-radius:50%;flex:none;background:var(--line-strong)}
+.sent .dt{font-weight:600;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.sent .nb{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+/* aujourd'hui / hier : frais, on le voit tout de suite */
+.sent.fresh .pt{background:var(--rdv)}
+.sent.fresh .dt{color:var(--rdv)}
+/* cette semaine */
+.sent.warm .pt{background:var(--rappel)}
+.sent.warm .dt{color:var(--rappel)}
+/* rebond : l'adresse ne reçoit pas */
+.sent.bad .pt{background:var(--non)}
+.sent.bad .dt{color:var(--non)}
+/* a répondu */
+.sent.rep .pt{background:var(--eng)}
+.sent.rep .dt{color:var(--eng)}
 
 .pill{
   display:inline-flex;align-items:center;gap:6px;
@@ -478,16 +496,21 @@ textarea.notes::placeholder{color:var(--ink-3)}
 .mailsum .sub{font-size:12.5px;color:var(--ink-2)}
 .mailsum.eng{background:var(--eng-bg);border-color:transparent}
 .mailsum.eng .big{color:var(--eng)}
+.mailsum.bad{background:var(--non-bg);border-color:transparent}
+.mailsum.bad .big{color:var(--non)}
 
 .mailitem{border-left:2px solid var(--line-strong);padding:0 0 18px 14px;margin-left:3px}
 .mailitem:last-child{padding-bottom:0}
 .mailitem.reply{border-left-color:var(--rdv)}
+.mailitem.bounce{border-left-color:var(--non)}
+.mailitem.auto{border-left-color:var(--line-strong)}
 .mailitem .mh{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:5px}
 .mailitem .tag{
   font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
   padding:2px 6px;border-radius:var(--r-sm);background:var(--neutral-bg);color:var(--neutral);
 }
 .mailitem.reply .tag{background:var(--rdv-bg);color:var(--rdv)}
+.mailitem.bounce .tag{background:var(--non-bg);color:var(--non)}
 .mailitem .when{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
 .mailitem .subj{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:6px;line-height:1.45}
 .mailitem .bodytxt{
@@ -588,8 +611,8 @@ textarea.notes::placeholder{color:var(--ink-3)}
   .content{padding:4px 12px 56px}
   .thead{display:none}
   .trow{grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 10px;min-height:0}
-  .trow .c-rating,.trow .c-opened,.trow .c-status{padding-left:46px}
-  .c-rating:empty,.c-opened:empty{display:none}
+  .trow .c-rating,.trow .c-sent,.trow .c-opened,.trow .c-status{padding-left:46px}
+  .c-rating:empty,.c-sent:empty,.c-opened:empty{display:none}
   .rec-inner{padding:24px 18px 64px}
   .overlay{padding:0;gap:0}
   .sidearrow{display:none}
@@ -652,7 +675,7 @@ textarea.notes::placeholder{color:var(--ink-3)}
       <div class="content" id="viewList">
         <div class="filters" id="filters"></div>
         <div class="thead">
-          <div>Établissement</div><div>Note</div><div>Ouverture</div><div>Statut</div>
+          <div>Établissement</div><div>Note</div><div>Dernier mail</div><div>Ouverture</div><div>Statut</div>
         </div>
         <div id="rows"><div class="empty">Chargement…</div></div>
         <div class="pager" id="pager"></div>
@@ -701,8 +724,10 @@ var KEY=localStorage.getItem(LSK)||"";
    suivantes départagent les ex aequo. Persisté par vue.
    ------------------------------------------------------------ */
 var SORT_FIELDS=[
-  ["ouverture","Dernière ouverture du livret","date"],
+  ["envoi",    "Dernier mail envoyé",          "date"],
+  ["ouverture","Dernière ouverture du livret",  "date"],
   ["opens",    "Nombre d'ouvertures",          "num"],
+  ["emails",   "Nombre d'emails envoyés",      "num"],
   ["echeance", "Prochaine échéance",           "date"],
   ["rappel",   "Date de rappel",               "date"],
   ["rdv",      "Date du rendez-vous",          "date"],
@@ -838,6 +863,9 @@ function initials(n){
   return (w[0][0]+w[1][0]).toUpperCase();
 }
 function mailOf(r){return (r.crm_email&&r.crm_email.trim())||r.email_primary||"";}
+/* Adresse d'invitation du RDV : celle donnée au téléphone si elle existe,
+   sinon l'adresse de campagne. */
+function inviteOf(r){return (r.meeting_email&&r.meeting_email.trim())||mailOf(r);}
 function gcalUrl(r){
   var titre="RDV SolvIA · "+(r.hotel_name||"");
   var detail=[
@@ -849,11 +877,14 @@ function gcalUrl(r){
     r.crm_notes?("\nNotes : "+r.crm_notes):""
   ].filter(Boolean).join("\n");
   var lieu=[r.hotel_name,r.city,r.departement_code?("("+r.departement_code+")"):""].filter(Boolean).join(" ");
+  var invite=inviteOf(r);
   return "https://calendar.google.com/calendar/render?action=TEMPLATE"+
     "&text="+encodeURIComponent(titre)+
     "&dates="+encodeURIComponent((r.meeting_utc||"")+"/"+(r.meeting_utc_end||""))+
     "&details="+encodeURIComponent(detail)+
-    "&location="+encodeURIComponent(lieu);
+    "&location="+encodeURIComponent(lieu)+
+    /* invité pré-rempli : Google envoie l'invitation à l'enregistrement */
+    (invite?("&add="+encodeURIComponent(invite)):"");
 }
 function stars(hc){var m=String(hc||"").match(/(\d)/);return m?m[1]:"";}
 /* Pastille : favicon du site de l'hôtel, initiales en repli. */
@@ -1010,6 +1041,30 @@ function applySorts(list){
 /* ============================================================
    RENDU — TABLEAU
    ============================================================ */
+/* Dernier mail envoyé, lisible d'un coup d'oeil : aujourd'hui / hier /
+   il y a N j / la date. La couleur dit la fraîcheur, le rouge un rebond. */
+function sentChip(r){
+  if(!r.last_sent_label) return '<span class="muted">—</span>';
+  var d=parseInt(r.last_sent_days,10), txt, cls="";
+  if(isNaN(d))     txt=r.last_sent_label;
+  else if(d===0)   txt="Aujourd'hui";
+  else if(d===1)   txt="Hier";
+  else if(d<7)     txt="Il y a "+d+" j";
+  else             txt=String(r.last_sent_label).split(" à ")[0];
+
+  if(r.has_bounce)      cls=" bad";
+  else if(r.has_reply)  cls=" rep";
+  else if(!isNaN(d)&&d<=1) cls=" fresh";
+  else if(!isNaN(d)&&d<7)  cls=" warm";
+
+  var nb = r.has_bounce ? '<span class="nb">rebond</span>'
+         : r.has_reply  ? '<span class="nb">a répondu</span>'
+         : (r.emails_sent>1 ? '<span class="nb">'+r.emails_sent+' mails</span>' : "");
+
+  return '<span class="sent'+cls+'" title="'+esc(r.last_sent_label||"")+'">'+
+    '<span class="pt"></span><span class="dt">'+esc(txt)+'</span>'+nb+'</span>';
+}
+
 function renderTable(){
   document.getElementById("viewTitle").childNodes[0].nodeValue=VIEWS[view].title;
   document.getElementById("viewCount").textContent=total?(" · "+total):"";
@@ -1041,6 +1096,7 @@ function renderTable(){
         '<div class="txt"><div class="t1">'+esc(r.hotel_name)+'</div><div class="t2">'+sub+'</div></div>'+
       '</div>'+
       '<div class="c-rating">'+rating+'</div>'+
+      '<div class="c-sent">'+sentChip(r)+'</div>'+
       '<div class="c-opened">'+opened+'</div>'+
       '<div class="c-status"><span class="pill" data-s="'+st+'"><span class="pd"></span>'+esc(STATUS_LABEL[st]||"Nouveau")+'</span></div>'+
     '</div>';
@@ -1198,10 +1254,15 @@ function renderRecord(){
           : '<span class="hintline">Vous serez alerté sur Discord à l\'heure dite.</span>')+'</div></div>'+
       '<div><div class="k">Rendez-vous</div>'+
         '<input class="dtin" type="datetime-local" data-mt="'+esc(r.id)+'" value="'+esc(r.meeting_input||"")+'">'+
+        '<input class="inp" style="margin-top:8px" data-mtmail="'+esc(r.id)+'" value="'+esc(r.meeting_email||"")+'" '+
+          'placeholder="Adresse d\'invitation (si différente)" spellcheck="false" autocomplete="off">'+
         '<div class="row">'+(r.meeting_label
           ? '<a class="btn" style="padding:6px 11px;font-size:12.5px" target="_blank" rel="noopener" href="'+gcalUrl(r)+'">'+I.cal+'Google Agenda</a>'+
             '<button class="linkbtn" data-mtclear="'+esc(r.id)+'">Supprimer</button>'
-          : '<span class="hintline">Alerte Discord 1 h avant.</span>')+'</div></div>'+
+          : '<span class="hintline">Alerte Discord 1 h avant.</span>')+'</div>'+
+        '<div class="hintline" style="margin-top:6px">Invitation envoyée à <b>'+esc(inviteOf(r)||"aucune adresse")+'</b>'+
+          (r.meeting_email&&r.meeting_email.trim()?"":" (adresse de campagne)")+'</div>'+
+      '</div>'+
     '</div>'+
     '<div class="seg">'+STATUS_SET.map(function(x){
       return '<button class="segbtn" data-status="'+esc(r.id)+'" data-s="'+x[0]+'" aria-pressed="'+(st===x[0])+'">'+esc(x[1])+'</button>';
@@ -1253,9 +1314,16 @@ function ago(d){
   if(d<31) return "il y a "+Math.round(d/7)+" semaines";
   return "il y a "+Math.round(d/30)+" mois";
 }
+function kindOf(m){
+  if(m.kind) return m.kind;
+  return m.direction==="reply"?"reply":"sent";
+}
 function seqLabel(m){
+  var k=kindOf(m);
+  if(k==="bounce") return "Rebond";
+  if(k==="auto")   return "Réponse auto";
+  if(k==="reply")  return "Réponse";
   var n=parseInt(m.seq,10);
-  if(m.direction==="reply") return "Réponse";
   if(isNaN(n)||n<=1) return "Premier mail";
   return "Relance "+(n-1);
 }
@@ -1273,14 +1341,21 @@ function renderMails(d){
     return;
   }
 
-  var sent=[],last=null,reply=null;
+  var sent=[],last=null,reply=null,bounce=null;
   for(var i=0;i<msgs.length;i++){
-    if(msgs[i].direction==="reply"){reply=msgs[i];} else {sent.push(msgs[i]);last=msgs[i];}
+    var k=kindOf(msgs[i]);
+    if(k==="sent"){sent.push(msgs[i]);last=msgs[i];}
+    else if(k==="bounce"){bounce=msgs[i];}
+    else if(k==="reply"){reply=msgs[i];}
   }
 
-  /* La ligne que tu lis avant de décrocher. */
+  /* La ligne que tu lis avant de décrocher. Un rebond ou une réponse
+     automatique ne comptent pas comme une réponse du prospect. */
   var sum='';
-  if(reply){
+  if(bounce){
+    sum='<div class="mailsum bad"><span class="big">L\'adresse ne reçoit pas</span>'+
+        '<span class="sub">Le mail est revenu en erreur le '+esc(bounce.sent_label||"")+'. Corrigez l\'adresse plus haut.</span></div>';
+  } else if(reply){
     sum='<div class="mailsum eng"><span class="big">Ce prospect a répondu</span>'+
         '<span class="sub">'+esc(reply.sent_label||"")+'</span></div>';
   } else if(last){
@@ -1291,7 +1366,8 @@ function renderMails(d){
   host.innerHTML=sum+msgs.map(function(m,i){
     var txt=htmlToText(m.body);
     var long=(txt.length>230||txt.indexOf("\n\n")>-1);
-    return '<div class="mailitem'+(m.direction==="reply"?" reply":"")+'" data-mi="'+i+'">'+
+    var k=kindOf(m);
+    return '<div class="mailitem'+(k!=="sent"?(" "+k):"")+'" data-mi="'+i+'">'+
       '<div class="mh"><span class="tag">'+esc(seqLabel(m))+'</span>'+
         '<span class="when">'+esc(m.sent_label||"")+(m.days_ago!=null?(" · "+esc(ago(m.days_ago))):"")+'</span></div>'+
       (m.subject?'<div class="subj">'+esc(m.subject)+'</div>':'')+
@@ -1374,6 +1450,26 @@ function setMeeting(id,localValue,dur){
 }
 
 var mailTimer={};
+/* Adresse à laquelle part l'invitation du RDV. Souvent le mail perso du
+   gérant, donné au téléphone, différent de l'adresse de campagne. */
+function setMeetingEmail(id,val){
+  var r=null;for(var i=0;i<rows.length;i++){if(rows[i].id===id){r=rows[i];break;}}
+  clearTimeout(mailTimer["mt_"+id]);
+  mailTimer["mt_"+id]=setTimeout(function(){
+    var v=(val||"").trim();
+    api({action:"set_meeting_email",id:id,email:v}).then(function(){
+      if(r){
+        r.meeting_email=v;
+        /* on rafraîchit juste la ligne d'info, pas toute la fiche :
+           sinon le champ perdrait le focus pendant la frappe */
+        var host=document.querySelector('[data-mtmail="'+id+'"]');
+        var line=host&&host.parentNode?host.parentNode.querySelector(".hintline:last-child"):null;
+        if(line) line.innerHTML="Invitation envoyée à <b>"+esc(inviteOf(r)||"aucune adresse")+"</b>"+(v?"":" (adresse de campagne)");
+      }
+      toast("Adresse d'invitation enregistrée");
+    },function(e){if(e&&e.auth)showLogin("Session expirée.");else toast("Erreur");});
+  },700);
+}
 function setEmail(id,val){
   var r=null;for(var i=0;i<rows.length;i++){if(rows[i].id===id){r=rows[i];break;}}
   clearTimeout(mailTimer[id]);
@@ -1545,7 +1641,9 @@ document.addEventListener("input",function(e){
   var ta=e.target.closest("[data-notes]");
   if(ta){saveNotes(ta.getAttribute("data-notes"),ta.value);return;}
   var em=e.target.closest("[data-email]");
-  if(em)setEmail(em.getAttribute("data-email"),em.value);
+  if(em){setEmail(em.getAttribute("data-email"),em.value);return;}
+  var mm=e.target.closest("[data-mtmail]");
+  if(mm)setMeetingEmail(mm.getAttribute("data-mtmail"),mm.value);
 });
 
 /* ============================================================
