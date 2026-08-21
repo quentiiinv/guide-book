@@ -439,6 +439,19 @@ textarea.notes::placeholder{color:var(--ink-3)}
 .cal-ev:hover{filter:brightness(.96)}
 .cal-ev.retard{background:var(--non-bg);color:var(--non)}
 .cal-ev.futur{background:var(--surface-2);color:var(--ink-2)}
+.cal-ev.rdv{background:var(--rdv-bg);color:var(--rdv)}
+.cal-ev.rdv.passe{background:var(--surface-2);color:var(--ink-3)}
+.plan{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px}
+@media(max-width:620px){.plan{grid-template-columns:1fr}}
+.plan .k{font-size:11.5px;color:var(--ink-3);font-weight:500;margin-bottom:5px}
+.dtin{
+  width:100%;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;outline:none;
+}
+.dtin:focus{border-color:var(--focus)}
+.plan .row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.linkbtn{font-size:12.5px;color:var(--ink-3);text-decoration:underline}
+.linkbtn:hover{color:var(--ink-2)}
 .cal-ev .h{font-variant-numeric:tabular-nums;flex:none;opacity:.85}
 .cal-ev .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
 .cal-more{font-size:11px;color:var(--ink-3);padding:1px 7px;text-align:left}
@@ -630,6 +643,7 @@ var I={
   eye:'<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
   ext:'<svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h4"/></svg>',
   pin:'<svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>',
   undo:'<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 015 5v1"/></svg>'
 };
 
@@ -653,6 +667,23 @@ function initials(n){
   return (w[0][0]+w[1][0]).toUpperCase();
 }
 function mailOf(r){return (r.crm_email&&r.crm_email.trim())||r.email_primary||"";}
+function gcalUrl(r){
+  var titre="RDV SolvIA · "+(r.hotel_name||"");
+  var detail=[
+    "Rendez-vous de présentation du livret d'accueil digital.",
+    r.phone_primary?("Téléphone : "+r.phone_primary):"",
+    (r.crm_email||r.email_primary)?("Email : "+(r.crm_email||r.email_primary)):"",
+    r.guidebook_slug?("Guidebook : https://guide.solvia.pro/?slug="+r.guidebook_slug):"",
+    "Fiche CRM : https://guide.solvia.pro/crm/",
+    r.crm_notes?("\nNotes : "+r.crm_notes):""
+  ].filter(Boolean).join("\n");
+  var lieu=[r.hotel_name,r.city,r.departement_code?("("+r.departement_code+")"):""].filter(Boolean).join(" ");
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE"+
+    "&text="+encodeURIComponent(titre)+
+    "&dates="+encodeURIComponent((r.meeting_utc||"")+"/"+(r.meeting_utc_end||""))+
+    "&details="+encodeURIComponent(detail)+
+    "&location="+encodeURIComponent(lieu);
+}
 function stars(hc){var m=String(hc||"").match(/(\d)/);return m?m[1]:"";}
 /* Pastille : favicon du site de l'hôtel, initiales en repli. */
 function avatar(r,cls){
@@ -829,7 +860,8 @@ function renderCalendar(){
     var idx=byDay[key]||[];
     var evs=idx.slice(0,3).map(function(k){
       var r=calRows[k];
-      return '<button class="cal-ev '+esc(r.callback_state||"")+'" data-cal="'+k+'">'+
+      var cls=(r.kind==="rdv"?("rdv "+(r.etat||"")):(r.etat||r.callback_state||""));
+      return '<button class="cal-ev '+esc(cls)+'" data-cal="'+k+'">'+
         '<span class="h">'+esc(r.heure||"")+'</span><span class="n">'+esc(r.hotel_name)+'</span></button>';
     }).join("");
     if(idx.length>3) evs+='<div class="cal-more">+'+(idx.length-3)+' autre'+(idx.length-3>1?'s':'')+'</div>';
@@ -924,9 +956,19 @@ function renderRecord(){
   '</div>';
 
   var suivi='<div class="section"><div class="sec-head"><h3>Suivi</h3><span class="saved" data-saved="'+esc(r.id)+'">Enregistré</span></div>'+
-    '<div class="field" style="margin-bottom:18px"><div class="k">Rappel programmé</div>'+
-      '<input class="inp" type="datetime-local" data-cb="'+esc(r.id)+'" value="'+esc(r.callback_input||"")+'">'+
-      '<div class="hintline">'+(r.callback_label?('Prévu le '+esc(r.callback_label)+'. Il apparaît dans « À rappeler aujourd\'hui » le jour venu.'):'Renseignez une date pour le retrouver dans « À rappeler aujourd\'hui ».')+'</div></div>'+
+    '<div class="plan" style="margin-bottom:20px">'+
+      '<div><div class="k">Rappel téléphonique</div>'+
+        '<input class="dtin" type="datetime-local" data-cb="'+esc(r.id)+'" value="'+esc(r.callback_input||"")+'">'+
+        '<div class="row">'+(r.callback_label
+          ? '<span class="hintline">Alerte Discord à '+esc(r.callback_label)+'</span><button class="linkbtn" data-cbclear="'+esc(r.id)+'">Supprimer</button>'
+          : '<span class="hintline">Vous serez alerté sur Discord à l\'heure dite.</span>')+'</div></div>'+
+      '<div><div class="k">Rendez-vous</div>'+
+        '<input class="dtin" type="datetime-local" data-mt="'+esc(r.id)+'" value="'+esc(r.meeting_input||"")+'">'+
+        '<div class="row">'+(r.meeting_label
+          ? '<a class="btn" style="padding:6px 11px;font-size:12.5px" target="_blank" rel="noopener" href="'+gcalUrl(r)+'">'+I.cal+'Google Agenda</a>'+
+            '<button class="linkbtn" data-mtclear="'+esc(r.id)+'">Supprimer</button>'
+          : '<span class="hintline">Alerte Discord 1 h avant.</span>')+'</div></div>'+
+    '</div>'+
     '<div class="seg">'+STATUS_SET.map(function(x){
       return '<button class="segbtn" data-status="'+esc(r.id)+'" data-s="'+x[0]+'" aria-pressed="'+(st===x[0])+'">'+esc(x[1])+'</button>';
     }).join("")+'</div>'+
@@ -989,6 +1031,15 @@ function setCallback(id,localValue){
   },function(e){if(e&&e.auth)showLogin("Session expirée.");else toast("Erreur");});
 }
 
+function setMeeting(id,localValue,dur){
+  var iso=null;
+  if(localValue){ var d=new Date(localValue); if(!isNaN(d)) iso=d.toISOString(); }
+  api({action:"set_meeting",id:id,ts:iso,dur:dur||45}).then(function(){
+    toast(iso?"Rendez-vous enregistré":"Rendez-vous supprimé");
+    (mode==="calendrier"?loadCalendar():load()).then(function(){ if(cursor>=0) renderRecord(); });
+  },function(e){if(e&&e.auth)showLogin("Session expirée.");else toast("Erreur");});
+}
+
 var mailTimer={};
 function setEmail(id,val){
   var r=null;for(var i=0;i<rows.length;i++){if(rows[i].id===id){r=rows[i];break;}}
@@ -1045,6 +1096,12 @@ document.addEventListener("click",function(e){
   var stBtn=t.closest("[data-status]");
   if(stBtn){setStatus(stBtn.getAttribute("data-status"),stBtn.getAttribute("data-s"));return;}
 
+  var cbc=t.closest("[data-cbclear]");
+  if(cbc){ setCallback(cbc.getAttribute("data-cbclear"),""); return; }
+
+  var mtc=t.closest("[data-mtclear]");
+  if(mtc){ setMeeting(mtc.getAttribute("data-mtclear"),""); return; }
+
   var rs=t.closest("[data-reset]");
   if(rs){resetOpen(rs.getAttribute("data-reset"));return;}
 
@@ -1092,6 +1149,9 @@ document.addEventListener("change",function(e){
   if(e.target.id==="selDep"){ dep=e.target.value;page=1;load();return; }
   var cb=e.target.closest("[data-cb]");
   if(cb){ setCallback(cb.getAttribute("data-cb"),cb.value); return; }
+
+  var mt=e.target.closest("[data-mt]");
+  if(mt){ setMeeting(mt.getAttribute("data-mt"),mt.value,45); return; }
 });
 
 var qTimer;
