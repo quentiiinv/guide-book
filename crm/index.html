@@ -190,6 +190,76 @@ input,textarea{font:inherit}
 }
 .clearf:hover{background:var(--hover);color:var(--ink-2)}
 
+/* --- Tri multi-niveaux (panneau) --- */
+.filters{position:relative}
+.trigbtn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 11px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:500;
+  transition:background .1s,border-color .1s;
+}
+.trigbtn:hover{background:var(--hover)}
+.trigbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.trigbtn.active{background:var(--selected);font-weight:600}
+.trigbtn .n{
+  font-family:var(--mono);font-size:10.5px;font-weight:600;
+  min-width:15px;height:15px;padding:0 3px;border-radius:var(--r-sm);
+  background:var(--ink);color:#fff;display:inline-flex;align-items:center;justify-content:center;
+}
+
+.pop{
+  position:absolute;top:calc(100% - 4px);left:12px;z-index:60;
+  width:534px;max-width:calc(100vw - 32px);
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-lg);
+  box-shadow:0 18px 44px -18px rgba(15,15,16,.30);
+  padding:12px;
+}
+.pop .poph{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2px 10px;margin-bottom:10px;border-bottom:1px solid var(--line);
+}
+.pop .poph .t{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.pop .poph button{color:var(--ink-3);font-size:12px;padding:2px 6px;border-radius:var(--r-sm)}
+.pop .poph button:hover{background:var(--hover);color:var(--ink-2)}
+
+.sortrow{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.sortrow .rk{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);width:16px;flex:none;text-align:center}
+.sortrow select{
+  appearance:none;-webkit-appearance:none;
+  height:30px;padding:0 24px 0 9px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:500;cursor:pointer;outline:none;
+}
+.sortrow select:hover{background:var(--hover)}
+.sortrow select:focus{border-color:var(--focus)}
+.sortrow .f{flex:1;min-width:0}
+.sortrow .d{flex:none;width:176px}
+.sortrow .wrap{position:relative;display:flex;align-items:center}
+.sortrow .wrap select{width:100%}
+.sortrow .wrap .chev{position:absolute;right:8px;pointer-events:none;color:var(--ink-3);width:11px;height:11px}
+.sortrow .wrap .chev svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{
+  width:28px;height:28px;flex:none;border-radius:var(--r);color:var(--ink-3);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.iconbtn:hover{background:var(--hover);color:var(--ink)}
+.iconbtn:disabled{opacity:.22;pointer-events:none}
+.iconbtn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.pop .addsort{
+  display:inline-flex;align-items:center;gap:7px;margin-top:4px;
+  padding:6px 9px;border-radius:var(--r);color:var(--ink-2);font-size:12.5px;font-weight:500;
+}
+.pop .addsort:hover{background:var(--hover);color:var(--ink)}
+.pop .addsort svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.pop .hint{padding:8px 2px 2px;margin-top:6px;border-top:1px solid var(--line);color:var(--ink-3);font-size:11.5px;line-height:1.5}
+.pop .empty-sort{padding:2px 2px 8px;color:var(--ink-3);font-size:12.5px}
+
+@media (max-width:640px){
+  .pop{width:auto;left:12px;right:12px}
+  .sortrow{flex-wrap:wrap}
+  .sortrow .d{width:100%}
+}
+
 /* ============================================================
    TABLE
    ============================================================ */
@@ -583,20 +653,81 @@ var PER=25;
 
 /* état */
 var rows=[],counts={},deps=[],total=0,page=1,view="tous",query="",cursor=-1;
-var sort=localStorage.getItem("solvia_crm_sort")||"priorite", dep="";
+var dep="";
 var mode="liste", calCursor=new Date(), calRows=[];
 var KEY=localStorage.getItem(LSK)||"";
 
-var SORTS=[
-  ["priorite","Priorité"],
-  ["ouverture","Ouverts récemment"],
-  ["rappel","Date de rappel"],
-  ["recent","Activité récente"],
-  ["note","Meilleure note"],
-  ["avis","Plus d'avis"],
-  ["prix","Tarif le plus élevé"],
-  ["nom","Nom (A→Z)"]
+/* ------------------------------------------------------------
+   TRI MULTI-NIVEAUX (modèle Airtable)
+   Une vue = sa propre pile de règles. La règle 1 trie, les
+   suivantes départagent les ex aequo. Persisté par vue.
+   ------------------------------------------------------------ */
+var SORT_FIELDS=[
+  ["ouverture","Dernière ouverture du livret","date"],
+  ["opens",    "Nombre d'ouvertures",          "num"],
+  ["echeance", "Prochaine échéance",           "date"],
+  ["rappel",   "Date de rappel",               "date"],
+  ["rdv",      "Date du rendez-vous",          "date"],
+  ["recent",   "Dernière activité CRM",        "date"],
+  ["ajout",    "Date d'ajout",                 "date"],
+  ["statut",   "Statut",                       "statut"],
+  ["nom",      "Nom de l'établissement",       "text"],
+  ["ville",    "Ville",                        "text"],
+  ["dep",      "Département",                  "text"],
+  ["classe",   "Catégorie (étoiles)",          "text"],
+  ["note",     "Note Google",                  "num"],
+  ["avis",     "Nombre d'avis",                "num"],
+  ["prix",     "Tarif par nuit",               "num"],
+  ["priorite", "Score de priorité",            "num"]
 ];
+var SORT_TYPE={},SORT_NAME={};
+(function(){for(var i=0;i<SORT_FIELDS.length;i++){SORT_TYPE[SORT_FIELDS[i][0]]=SORT_FIELDS[i][2];SORT_NAME[SORT_FIELDS[i][0]]=SORT_FIELDS[i][1];}})();
+
+/* libellés de sens, dépendants du type de champ (comme Airtable) */
+var DIR_LABEL={
+  text:  ["A → Z","Z → A"],
+  num:   ["1 → 9","9 → 1"],
+  date:  ["Plus ancien d'abord","Plus récent d'abord"],
+  statut:["Nouveau → Perdu","Perdu → Nouveau"]
+};
+var MAX_SORTS=4;
+
+/* tri par défaut de chaque vue : ce que tu veux voir en arrivant dessus */
+var SORT_DEFAULT={
+  aujourdhui:[{f:"echeance",d:"asc"}],
+  chaud:     [{f:"ouverture",d:"desc"}],
+  ouvert:    [{f:"ouverture",d:"desc"}],
+  rappel:    [{f:"rappel",d:"asc"}],
+  rdv:       [{f:"rdv",d:"asc"}]
+};
+var SORTKEY="solvia_crm_sorts_v2";
+var sortStore=(function(){
+  try{ var o=JSON.parse(localStorage.getItem(SORTKEY)||"{}"); return (o&&typeof o==="object")?o:{}; }
+  catch(e){ return {}; }
+})();
+function sortsFor(v){
+  if(sortStore[v]) return sortStore[v];
+  var d=SORT_DEFAULT[v];
+  return d?d.slice():[];
+}
+function saveSorts(v,list){
+  sortStore[v]=list;
+  try{ localStorage.setItem(SORTKEY,JSON.stringify(sortStore)); }catch(e){}
+}
+function resetSorts(v){
+  delete sortStore[v];
+  try{ localStorage.setItem(SORTKEY,JSON.stringify(sortStore)); }catch(e){}
+}
+/* premier champ encore disponible, pour « Ajouter un tri » */
+function freeField(list){
+  for(var i=0;i<SORT_FIELDS.length;i++){
+    var k=SORT_FIELDS[i][0],used=false;
+    for(var j=0;j<list.length;j++) if(list[j].f===k){used=true;break;}
+    if(!used) return k;
+  }
+  return null;
+}
+var sortOpen=false;
 
 /* ============================================================
    RÉFÉRENTIELS
@@ -609,7 +740,8 @@ var VIEWS={
   rdv:{nav:"RDV pris",title:"RDV pris",dot:"d-rdv"},
   non:{nav:"Pas intéressé",title:"Pas intéressé",dot:"d-non"},
   injoignable:{nav:"Injoignable",title:"Injoignable",dot:"d-inj"},
-  ouvert:{nav:"Ont ouvert",title:"Ont ouvert le guidebook",dot:"d-eng"}
+  ouvert:{nav:"Ont ouvert",title:"Ont ouvert le guidebook",dot:"d-eng"},
+  chaud:{nav:"Ouverts, sans statut",title:"Ont ouvert le livret, aucun statut",dot:"d-eng"}
 };
 var NAV=[
   {label:"Vues",items:[
@@ -617,8 +749,9 @@ var NAV=[
     {k:"__cal", nm:"Calendrier",ic:"cal"}
   ]},
   {label:"À traiter",items:[
-    {k:"aujourdhui",nm:"Rappels du jour",dot:"d-rappel"},
-    {k:"ouvert",    nm:"Ont ouvert",     dot:"d-eng"}
+    {k:"aujourdhui",nm:"Rappels du jour",     dot:"d-rappel"},
+    {k:"chaud",     nm:"Ouverts à traiter",  dot:"d-eng"},
+    {k:"ouvert",    nm:"Ont ouvert",          dot:"d-eng"}
   ]},
   {label:"Pipeline",items:[
     {k:"tous",       nm:"Tous"},
@@ -716,7 +849,7 @@ function api(payload){
    ============================================================ */
 function load(){
   document.getElementById("rows").innerHTML='<div class="empty">Chargement…</div>';
-  return api({action:"list",page:page,per:PER,filter:view,q:query,sort:sort,dep:dep}).then(function(d){
+  return api({action:"list",page:page,per:PER,filter:view,q:query,sorts:sortsFor(view),dep:dep}).then(function(d){
     rows=d.rows||[];counts=d.counts||{};deps=d.deps||[];total=d.total||0;
     renderNav();renderFilters();renderTable();
   }).catch(function(e){
@@ -755,22 +888,85 @@ function renderNav(){
    RENDU — BARRE DE FILTRES
    ============================================================ */
 var CHEV='<span class="chev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>';
-function renderFilters(){
-  var sortOpts=SORTS.map(function(s){
-    return '<option value="'+s[0]+'"'+(sort===s[0]?' selected':'')+'>'+esc(s[1])+'</option>';
+var ICSORT='<svg viewBox="0 0 24 24"><path d="M4 7h11"/><path d="M4 12h7"/><path d="M4 17h4"/><path d="M17 5v14"/><path d="M14 16l3 3 3-3"/></svg>';
+var ICUP  ='<svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></svg>';
+var ICDOWN='<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg>';
+var ICX   ='<svg viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>';
+var ICPLUS='<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
+
+/* Résumé lisible du tri courant, affiché sur le bouton. */
+function sortSummary(list){
+  if(!list.length) return "Trier";
+  if(list.length===1) return SORT_NAME[list[0].f]||"Trier";
+  return "Trié par "+list.length+" champs";
+}
+
+/* Une ligne de règle : rang, champ, sens, monter/descendre, supprimer. */
+function sortRowHtml(r,i,list){
+  var type=SORT_TYPE[r.f]||"text", lab=DIR_LABEL[type]||DIR_LABEL.text;
+
+  var fieldOpts=SORT_FIELDS.map(function(f){
+    var taken=false;
+    for(var j=0;j<list.length;j++) if(j!==i&&list[j].f===f[0]){taken=true;break;}
+    return '<option value="'+f[0]+'"'+(r.f===f[0]?' selected':'')+(taken?' disabled':'')+'>'+esc(f[1])+'</option>';
   }).join("");
+
+  var dirOpts='<option value="asc"'+(r.d==="asc"?' selected':'')+'>'+esc(lab[0])+'</option>'+
+              '<option value="desc"'+(r.d!=="asc"?' selected':'')+'>'+esc(lab[1])+'</option>';
+
+  return '<div class="sortrow" data-rule="'+i+'">'+
+    '<span class="rk">'+(i+1)+'</span>'+
+    '<span class="wrap f"><select data-sfield="'+i+'" aria-label="Champ de tri '+(i+1)+'">'+fieldOpts+'</select>'+CHEV+'</span>'+
+    '<span class="wrap d"><select data-sdir="'+i+'" aria-label="Sens du tri '+(i+1)+'">'+dirOpts+'</select>'+CHEV+'</span>'+
+    '<button class="iconbtn" data-sup="'+i+'" title="Monter"'+(i===0?' disabled':'')+' aria-label="Monter">'+ICUP+'</button>'+
+    '<button class="iconbtn" data-sdown="'+i+'" title="Descendre"'+(i===list.length-1?' disabled':'')+' aria-label="Descendre">'+ICDOWN+'</button>'+
+    '<button class="iconbtn" data-sdel="'+i+'" title="Retirer" aria-label="Retirer ce tri">'+ICX+'</button>'+
+  '</div>';
+}
+
+function sortPanelHtml(){
+  var list=sortsFor(view);
+  var rows=list.length
+    ? list.map(function(r,i){return sortRowHtml(r,i,list);}).join("")
+    : '<div class="empty-sort">Aucun tri. Les fiches remontent par priorité (ouvertures du livret, puis score).</div>';
+
+  var canAdd=(list.length<MAX_SORTS && freeField(list));
+  return '<div class="pop" id="sortPop">'+
+    '<div class="poph"><span class="t">Trier</span>'+
+      (list.length?'<button id="sortReset">Réinitialiser</button>':'')+
+    '</div>'+
+    rows+
+    (canAdd?'<button class="addsort" id="sortAdd">'+ICPLUS+'Ajouter un tri</button>':'')+
+    (list.length>1?'<div class="hint">Le tri 1 s\'applique en premier. Les suivants départagent les ex aequo.</div>':'')+
+  '</div>';
+}
+
+function renderFilters(){
+  var list=sortsFor(view);
 
   var depOpts='<option value="">Tous les départements</option>'+deps.map(function(d){
     return '<option value="'+esc(d.code)+'"'+(dep===d.code?' selected':'')+'>'+esc(d.code)+' ('+d.n+')</option>';
   }).join("");
 
-  var actif=(sort!=="priorite"||dep!=="");
+  var actif=(list.length>0||dep!=="");
   document.getElementById("filters").innerHTML=
-    '<span class="ctrl'+(sort!=="priorite"?" active":"")+'"><span class="k">Trier par</span>'+
-      '<select id="selSort" aria-label="Trier par">'+sortOpts+'</select>'+CHEV+'</span>'+
+    '<button class="trigbtn'+(list.length?" active":"")+'" id="sortBtn" aria-expanded="'+(sortOpen?"true":"false")+'">'+
+      ICSORT+'<span>'+esc(sortSummary(list))+'</span>'+
+      (list.length>1?'<span class="n">'+list.length+'</span>':'')+
+    '</button>'+
     '<span class="ctrl'+(dep?" active":"")+'">'+
       '<select id="selDep" aria-label="Département">'+depOpts+'</select>'+CHEV+'</span>'+
-    (actif?'<button class="clearf" id="clearFilters">Réinitialiser</button>':'');
+    (actif?'<button class="clearf" id="clearFilters">Réinitialiser</button>':'')+
+    (sortOpen?sortPanelHtml():'');
+}
+
+/* Redessine uniquement la barre puis recharge : garde le panneau ouvert
+   pendant qu'on empile les règles, comme dans Airtable. */
+function applySorts(list){
+  saveSorts(view,list);
+  page=1;
+  renderFilters();
+  load();
 }
 
 /* ============================================================
@@ -1069,6 +1265,36 @@ function resetOpen(id){
    ============================================================ */
 document.addEventListener("click",function(e){
   var t=e.target;
+
+  /* ---- panneau de tri ---- */
+  if(t.closest("#sortBtn")){ sortOpen=!sortOpen; renderFilters(); return; }
+  if(sortOpen && !t.closest("#sortPop")){ sortOpen=false; renderFilters(); }
+
+  if(t.closest("#sortReset")){ resetSorts(view); page=1; renderFilters(); load(); return; }
+
+  if(t.closest("#sortAdd")){
+    var la=sortsFor(view).slice(), nf=freeField(la);
+    if(nf){ la.push({f:nf,d:(SORT_TYPE[nf]==="text"||SORT_TYPE[nf]==="statut")?"asc":"desc"}); applySorts(la); }
+    return;
+  }
+  var sup=t.closest("[data-sup]");
+  if(sup){
+    var iu=parseInt(sup.getAttribute("data-sup"),10), lu=sortsFor(view).slice();
+    if(iu>0){ var tmp=lu[iu-1]; lu[iu-1]=lu[iu]; lu[iu]=tmp; applySorts(lu); }
+    return;
+  }
+  var sdn=t.closest("[data-sdown]");
+  if(sdn){
+    var id2=parseInt(sdn.getAttribute("data-sdown"),10), ld=sortsFor(view).slice();
+    if(id2<ld.length-1){ var tm2=ld[id2+1]; ld[id2+1]=ld[id2]; ld[id2]=tm2; applySorts(ld); }
+    return;
+  }
+  var sdl=t.closest("[data-sdel]");
+  if(sdl){
+    var ix=parseInt(sdl.getAttribute("data-sdel"),10), lx=sortsFor(view).slice();
+    lx.splice(ix,1); applySorts(lx); return;
+  }
+
   if(t.closest("#logout")){localStorage.removeItem(LSK);KEY="";showLogin("");return;}
 
   var md=t.closest("[data-mode]");
@@ -1089,8 +1315,7 @@ document.addEventListener("click",function(e){
   }
 
   if(t.closest("#clearFilters")){
-    sort="priorite";dep="";page=1;
-    localStorage.setItem("solvia_crm_sort",sort);load();return;
+    resetSorts(view);dep="";page=1;renderFilters();load();return;
   }
 
   var stBtn=t.closest("[data-status]");
@@ -1142,9 +1367,19 @@ document.addEventListener("keydown",function(e){
 });
 
 document.addEventListener("change",function(e){
-  if(e.target.id==="selSort"){
-    sort=e.target.value;page=1;
-    localStorage.setItem("solvia_crm_sort",sort);load();return;
+  var sf=e.target.closest("[data-sfield]");
+  if(sf){
+    var i1=parseInt(sf.getAttribute("data-sfield"),10), l1=sortsFor(view).slice();
+    var nf1=e.target.value;
+    /* le champ change : on repart sur le sens naturel de son type */
+    l1[i1]={f:nf1,d:(SORT_TYPE[nf1]==="text"||SORT_TYPE[nf1]==="statut")?"asc":"desc"};
+    applySorts(l1);return;
+  }
+  var sd=e.target.closest("[data-sdir]");
+  if(sd){
+    var i2=parseInt(sd.getAttribute("data-sdir"),10), l2=sortsFor(view).slice();
+    if(l2[i2]){ l2[i2]={f:l2[i2].f,d:(e.target.value==="asc"?"asc":"desc")}; applySorts(l2); }
+    return;
   }
   if(e.target.id==="selDep"){ dep=e.target.value;page=1;load();return; }
   var cb=e.target.closest("[data-cb]");
