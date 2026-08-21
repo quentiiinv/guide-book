@@ -466,6 +466,44 @@ textarea.notes::placeholder{color:var(--ink-3)}
 
 .note-hint{margin-top:8px;font-size:12px;color:var(--ink-3)}
 
+/* --- Fil des emails --- */
+.linkbtn.sync{color:var(--ink-3);font-size:12px}
+.linkbtn.sync:hover{color:var(--ink)}
+.mailsum{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:11px 13px;margin-bottom:18px;border-radius:var(--r-md);
+  background:var(--surface-2);border:1px solid var(--line);
+}
+.mailsum .big{font-size:13.5px;font-weight:600;color:var(--ink)}
+.mailsum .sub{font-size:12.5px;color:var(--ink-2)}
+.mailsum.eng{background:var(--eng-bg);border-color:transparent}
+.mailsum.eng .big{color:var(--eng)}
+
+.mailitem{border-left:2px solid var(--line-strong);padding:0 0 18px 14px;margin-left:3px}
+.mailitem:last-child{padding-bottom:0}
+.mailitem.reply{border-left-color:var(--rdv)}
+.mailitem .mh{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:5px}
+.mailitem .tag{
+  font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:var(--r-sm);background:var(--neutral-bg);color:var(--neutral);
+}
+.mailitem.reply .tag{background:var(--rdv-bg);color:var(--rdv)}
+.mailitem .when{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.mailitem .subj{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:6px;line-height:1.45}
+.mailitem .bodytxt{
+  color:var(--ink-2);font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-word;
+  position:relative;
+}
+.mailitem .bodytxt.long{max-height:76px;overflow:hidden}
+.mailitem .bodytxt.long::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:30px;
+  background:linear-gradient(to bottom,rgba(255,255,255,0),var(--bg));
+}
+.mailitem.open .bodytxt.long{max-height:none;overflow:visible}
+.mailitem.open .bodytxt.long::after{display:none}
+.mailitem .more{margin-top:7px;color:var(--link);font-size:12.5px;font-weight:500;padding:0}
+.mailitem .more:hover{text-decoration:underline}
+
 /* toast */
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
@@ -1179,7 +1217,106 @@ function renderRecord(){
       : '<p class="desc" style="margin:0">Pas encore ouvert par le prospect.</p>')+
   '</div>';
 
-  document.getElementById("recInner").innerHTML=hero+actions+coords+etab+suivi+guide;
+  var mails='<div class="section" id="mailSec"><div class="sec-head"><h3>Emails envoyés</h3>'+
+    '<button class="linkbtn sync" data-mailsync="'+esc(r.id)+'">Rafraîchir</button></div>'+
+    '<div id="mailThread"><p class="desc" style="margin:0">Chargement de l\'historique…</p></div>'+
+  '</div>';
+
+  document.getElementById("recInner").innerHTML=hero+actions+coords+etab+suivi+mails+guide;
+  loadMails(r.id,false);
+}
+
+/* ============================================================
+   FIL DES EMAILS (Smartlead)
+   ============================================================ */
+var mailCache={};
+
+/* Le corps arrive en HTML depuis Smartlead : on le ramène en texte
+   avant de l'afficher, jamais d'injection dans la page. */
+function htmlToText(h){
+  var s=String(h==null?"":h);
+  s=s.replace(/<br\s*\/?>/gi,"\n")
+     .replace(/<\/(div|p|tr|li|h[1-6])>/gi,"\n")
+     .replace(/<li[^>]*>/gi,"• ")
+     .replace(/<[^>]*>/g," ");
+  s=s.replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").replace(/&lt;/gi,"<")
+     .replace(/&gt;/gi,">").replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'");
+  return s.replace(/[ \t]+/g," ").replace(/[ \t]*\n[ \t]*/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+}
+function ago(d){
+  d=parseInt(d,10);
+  if(isNaN(d)) return "";
+  if(d===0) return "aujourd'hui";
+  if(d===1) return "hier";
+  if(d<7)  return "il y a "+d+" jours";
+  if(d<14) return "il y a 1 semaine";
+  if(d<31) return "il y a "+Math.round(d/7)+" semaines";
+  return "il y a "+Math.round(d/30)+" mois";
+}
+function seqLabel(m){
+  var n=parseInt(m.seq,10);
+  if(m.direction==="reply") return "Réponse";
+  if(isNaN(n)||n<=1) return "Premier mail";
+  return "Relance "+(n-1);
+}
+
+function renderMails(d){
+  var host=document.getElementById("mailThread");
+  if(!host) return;
+  var msgs=(d&&d.messages)||[], lead=(d&&d.lead)||null;
+
+  if(!msgs.length){
+    host.innerHTML='<p class="desc" style="margin:0">'+
+      (lead&&lead.found===false
+        ? 'Cette adresse n\'est dans aucune campagne Smartlead. Aucun email ne lui a été envoyé.'
+        : 'Aucun email envoyé à ce prospect pour le moment.')+'</p>';
+    return;
+  }
+
+  var sent=[],last=null,reply=null;
+  for(var i=0;i<msgs.length;i++){
+    if(msgs[i].direction==="reply"){reply=msgs[i];} else {sent.push(msgs[i]);last=msgs[i];}
+  }
+
+  /* La ligne que tu lis avant de décrocher. */
+  var sum='';
+  if(reply){
+    sum='<div class="mailsum eng"><span class="big">Ce prospect a répondu</span>'+
+        '<span class="sub">'+esc(reply.sent_label||"")+'</span></div>';
+  } else if(last){
+    sum='<div class="mailsum"><span class="big">'+esc(seqLabel(last))+' envoyé '+esc(ago(last.days_ago))+'</span>'+
+        '<span class="sub">'+esc(last.sent_label||"")+' · '+sent.length+' email'+(sent.length>1?"s":"")+' au total</span></div>';
+  }
+
+  host.innerHTML=sum+msgs.map(function(m,i){
+    var txt=htmlToText(m.body);
+    var long=(txt.length>230||txt.indexOf("\n\n")>-1);
+    return '<div class="mailitem'+(m.direction==="reply"?" reply":"")+'" data-mi="'+i+'">'+
+      '<div class="mh"><span class="tag">'+esc(seqLabel(m))+'</span>'+
+        '<span class="when">'+esc(m.sent_label||"")+(m.days_ago!=null?(" · "+esc(ago(m.days_ago))):"")+'</span></div>'+
+      (m.subject?'<div class="subj">'+esc(m.subject)+'</div>':'')+
+      '<div class="bodytxt'+(long?" long":"")+'">'+esc(txt)+'</div>'+
+      (long?'<button class="more" data-mimore="'+i+'">Voir le message entier</button>':'')+
+    '</div>';
+  }).join("");
+}
+
+function loadMails(id,force){
+  if(!force&&mailCache[id]){renderMails(mailCache[id]);return;}
+  var host=document.getElementById("mailThread");
+  if(host) host.innerHTML='<p class="desc" style="margin:0">'+(force?"Synchronisation avec Smartlead…":"Chargement de l'historique…")+'</p>';
+  /* sync=true seulement au premier chargement ou sur demande : on évite
+     de taper l'API Smartlead à chaque aller-retour entre les fiches. */
+  api({action:"emails",id:id,sync:(force||!mailCache[id])}).then(function(d){
+    mailCache[id]=d;
+    var r=rows[cursor];
+    if(r&&r.id===id) renderMails(d);
+    if(force) toast("Historique à jour");
+  }).catch(function(e){
+    if(e&&e.auth){showLogin("Mot de passe incorrect.");return;}
+    var h=document.getElementById("mailThread");
+    if(h) h.innerHTML='<p class="desc" style="margin:0">Historique indisponible.</p>';
+  });
 }
 
 /* ============================================================
@@ -1326,6 +1463,16 @@ document.addEventListener("click",function(e){
 
   var mtc=t.closest("[data-mtclear]");
   if(mtc){ setMeeting(mtc.getAttribute("data-mtclear"),""); return; }
+
+  var msy=t.closest("[data-mailsync]");
+  if(msy){loadMails(msy.getAttribute("data-mailsync"),true);return;}
+
+  var mmo=t.closest("[data-mimore]");
+  if(mmo){
+    var it=mmo.closest(".mailitem");
+    if(it){ it.classList.add("open"); mmo.remove(); }
+    return;
+  }
 
   var rs=t.closest("[data-reset]");
   if(rs){resetOpen(rs.getAttribute("data-reset"));return;}
