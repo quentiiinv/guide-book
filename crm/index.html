@@ -461,10 +461,14 @@ input,textarea{font:inherit}
 .rec-scroll{flex:1;overflow-y:auto}
 .rec-inner{max-width:1080px;margin:0 auto;padding:28px 28px 72px}
 /* deux colonnes : à gauche ce qui sert pendant l'appel, à droite l'historique */
-.reccols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0 34px;align-items:start}
+.reccols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0 34px;align-items:start;margin-top:30px}
 .reccols > div{min-width:0}
 .reccols .section:first-child{margin-top:0}
-@media(max-width:1000px){.reccols{grid-template-columns:minmax(0,1fr);gap:0}}
+@media(max-width:1000px){
+  .reccols{grid-template-columns:minmax(0,1fr);gap:0}
+  /* en colonne unique, la 2e colonne repart sous la 1re : on lui rend son écart */
+  .reccols > div + div .section:first-child{margin-top:26px}
+}
 
 /* identité */
 .hero{display:flex;align-items:flex-start;gap:16px}
@@ -498,7 +502,8 @@ input,textarea{font:inherit}
 
 /* sections */
 .section{margin-top:26px}
-.sec-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;margin-bottom:13px;border-bottom:1px solid var(--line)}
+/* min-height : les titres des deux colonnes restent alignés, avec ou sans lien à droite */
+.sec-head{display:flex;align-items:center;justify-content:space-between;min-height:19px;padding-bottom:8px;margin-bottom:13px;border-bottom:1px solid var(--line)}
 .sec-head h3{margin:0;font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .saved{font-size:11.5px;color:var(--rdv);font-weight:500;opacity:0;transition:opacity .2s}
 
