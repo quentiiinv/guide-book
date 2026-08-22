@@ -840,7 +840,8 @@ var I={
   ext:'<svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-8.5 8.5"/><path d="M18 14v4a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h4"/></svg>',
   pin:'<svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
   cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>',
-  undo:'<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 015 5v1"/></svg>'
+  undo:'<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 015 5v1"/></svg>',
+  send:'<svg viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-8-8-4z"/></svg>'
 };
 
 /* ============================================================
@@ -1228,6 +1229,10 @@ function renderRecord(){
   var emailField='<div class="field"><div class="k">Email'+mailBadge+'</div>'+
     '<input class="inp" data-email="'+esc(r.id)+'" value="'+esc(mailOf(r))+'" placeholder="adresse@hotel.fr" spellcheck="false">'+
     (r.crm_email&&r.crm_email.trim()&&r.email_primary?('<div class="hintline">Trouvé au scraping : '+esc(r.email_primary)+'</div>'):'')+
+    '<div class="row" style="margin-top:8px">'+
+      '<button class="btn" style="padding:6px 11px;font-size:12.5px" data-resend="'+esc(r.id)+'">'+I.send+'Corriger et relancer</button>'+
+    '</div>'+
+    '<div class="hintline">Envoie le premier mail à cette adresse depuis la campagne active.</div>'+
     '</div>';
   var coords='<div class="section"><div class="sec-head"><h3>Coordonnées</h3></div><div class="fields">'+
     field("Téléphone",r.phone_primary,true)+
@@ -1450,6 +1455,37 @@ function setMeeting(id,localValue,dur){
 }
 
 var mailTimer={};
+/* Corrige l'adresse puis réinjecte le prospect dans la campagne active.
+   Action à effet réel : un mail part vraiment, donc on confirme d'abord. */
+function resendTo(id){
+  var input=document.querySelector('[data-email="'+id+'"]');
+  var v=input?input.value.trim():"";
+  if(!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v)){toast("Adresse email invalide");if(input)input.focus();return;}
+
+  var r=null;for(var i=0;i<rows.length;i++){if(rows[i].id===id){r=rows[i];break;}}
+  var nom=r?r.hotel_name:"ce prospect";
+  if(!window.confirm("Envoyer le mail de prospection à "+v+" pour "+nom+" ?\n\nLa séquence repartira du premier message sur cette adresse."))return;
+
+  /* la relance enregistre déjà l'adresse : on annule la sauvegarde
+     différée de la saisie, sinon son toast masque le vrai résultat */
+  clearTimeout(mailTimer[id]);
+
+  var btn=document.querySelector('[data-resend="'+id+'"]');
+  if(btn){btn.disabled=true;btn.textContent="Envoi en cours…";}
+
+  api({action:"resend",id:id,email:v}).then(function(d){
+    toast((d&&d.message)||((d&&d.ok)?"Relance programmée":"Échec de la relance"));
+    if(d&&d.ok){
+      delete mailCache[id];
+      load().then(function(){ if(cursor>=0) renderRecord(); });
+    } else if(btn){ btn.disabled=false; btn.innerHTML=I.send+"Corriger et relancer"; }
+  },function(e){
+    if(e&&e.auth){showLogin("Session expirée.");return;}
+    toast("Erreur");
+    if(btn){btn.disabled=false;btn.innerHTML=I.send+"Corriger et relancer";}
+  });
+}
+
 /* Adresse à laquelle part l'invitation du RDV. Souvent le mail perso du
    gérant, donné au téléphone, différent de l'adresse de campagne. */
 function setMeetingEmail(id,val){
@@ -1569,6 +1605,9 @@ document.addEventListener("click",function(e){
     if(it){ it.classList.add("open"); mmo.remove(); }
     return;
   }
+
+  var rsd=t.closest("[data-resend]");
+  if(rsd){resendTo(rsd.getAttribute("data-resend"));return;}
 
   var rs=t.closest("[data-reset]");
   if(rs){resetOpen(rs.getAttribute("data-reset"));return;}
