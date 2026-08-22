@@ -335,12 +335,12 @@ input,textarea{font:inherit}
   padding:2px 5px;border-radius:var(--r-sm);background:var(--neutral-bg);color:var(--neutral);
 }
 .due .dt{font-size:12.5px;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.due.d-rappel .ty{background:var(--rappel-bg);color:var(--rappel)}
-.due.d-rappel .dt{color:var(--rappel)}
-.due.d-rdv .ty{background:var(--rdv-bg);color:var(--rdv)}
-.due.d-rdv .dt{color:var(--rdv)}
-.due.d-attente .ty{background:var(--att-bg);color:var(--att)}
-.due.d-attente .dt{color:var(--att)}
+.due.k-rappel .ty{background:var(--rappel-bg);color:var(--rappel)}
+.due.k-rappel .dt{color:var(--rappel)}
+.due.k-rdv .ty{background:var(--rdv-bg);color:var(--rdv)}
+.due.k-rdv .dt{color:var(--rdv)}
+.due.k-attente .ty{background:var(--att-bg);color:var(--att)}
+.due.k-attente .dt{color:var(--att)}
 .due.late .ty{background:var(--non);color:#fff}
 .due.late .dt{color:var(--non)}
 
@@ -365,14 +365,10 @@ input,textarea{font:inherit}
    Il doit se voir avant même de lire le nom de l'établissement. */
 .refus{
   display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
-  padding:4px 9px;border-radius:var(--r);
-  background:var(--non);color:#fff;
+  color:var(--non);
 }
 .refus svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2;flex:none}
-.refus .dt{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.05em}
-.trow:has(.refus) .c-name .t1{color:var(--non)}
-.trow:has(.refus){background:var(--non-bg)}
-.trow:has(.refus):hover{background:#f9e2de}
+.refus .dt{font-size:12.5px;font-weight:600}
 
 /* Bandeau de refus en tête de fiche */
 .alert{
@@ -539,6 +535,9 @@ textarea.notes:focus{border-color:var(--focus)}
 textarea.notes::placeholder{color:var(--ink-3)}
 
 .note-hint{margin-top:8px;font-size:12px;color:var(--ink-3)}
+.echline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.statsel select{padding:3px 24px 3px 9px;font-size:12.5px;border-radius:var(--r)}
+.statsel .chev{right:7px}
 
 /* --- Fil des emails --- */
 .linkbtn.sync{color:var(--ink-3);font-size:12px}
@@ -620,17 +619,19 @@ textarea.notes::placeholder{color:var(--ink-3)}
 .callbox .askname b{color:var(--ink)}
 
 /* argumentaire */
-.pitch{border-top:1px solid var(--line);padding-top:14px;margin-bottom:16px}
-.pitch .lbl{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
-.pitch ul{list-style:none;margin:0;padding:0}
-.pitch li{position:relative;padding:0 0 0 15px;margin-bottom:6px;font-size:13px;line-height:1.55;color:var(--ink-2)}
-.pitch li:before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:1px;background:var(--eng)}
-.pitch li.ctx:before{background:var(--line-strong)}
+.pitch{margin-bottom:16px}
+.callbox .pitch{border-top:1px solid var(--line);padding-top:14px}
+.pitch .ask{font-size:14.5px;color:var(--ink-2);margin-bottom:11px}
+.pitch .ask b{color:var(--ink);font-weight:650}
+.pitch .lev{display:flex;flex-wrap:wrap;gap:6px}
+.pitch .tag{
+  padding:6px 11px;border-radius:var(--r);background:var(--eng-bg);color:var(--eng);
+  font-size:13px;font-weight:600;cursor:help;
+}
 .pitch .facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .pitch .facts span{
-  font-family:var(--mono);font-size:10.5px;padding:3px 7px;border-radius:var(--r-sm);
-  background:var(--surface-2);color:var(--ink-2);
+  font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink-3);
 }
 
 /* résultat de l'appel */
@@ -1235,7 +1236,7 @@ function dueChip(r){
   else if(d===1)  quand="Demain";
   else if(d<7)    quand="Dans "+d+" j";
   else            quand=String(r.due_label).split(" à ")[0];
-  return '<span class="due d-'+esc(cls)+(d<0?" late":"")+'" title="'+esc(r.due_label)+'">'+
+  return '<span class="due k-'+esc(cls)+(d<0?" late":"")+'" title="'+esc(r.due_label)+'">'+
     '<span class="ty">'+esc(DUE_LABEL[cls]||"Rappel")+'</span>'+
     '<span class="dt">'+esc(quand)+'</span></span>';
 }
@@ -1254,7 +1255,7 @@ function sentChip(r){
   /* Un refus explicite prime sur tout le reste : c'est l'information
      qui doit t'empêcher de décrocher le téléphone. */
   if(r.has_refusal) return '<span class="refus" title="'+esc(r.reply_excerpt||"")+'">'+I.ban+
-    '<span class="dt">A REFUSÉ</span></span>';
+    '<span class="dt">A refusé</span></span>';
 
   if(r.has_bounce)      cls=" bad";
   else if(r.has_reply)  cls=" rep";
@@ -1286,8 +1287,7 @@ function renderTable(){
     var sub='<span>'+esc(r.type||"hôtel")+(s?(" "+s+"★"):"")+'</span>'+
       (r.city?('<span class="sep">·</span><span>'+esc(r.city)+'</span>'):"")+
       (r.departement_code?('<span class="dep">'+esc(r.departement_code)+'</span>'):"")+
-      (r.callback_label?('<span class="cbchip '+esc(r.callback_state||"")+'">'+
-         (r.callback_state==="retard"?"En retard":"Rappel")+' '+esc(r.callback_label)+'</span>'):"");
+      (r.has_bounce?'<span class="dep" style="color:var(--non);border-color:var(--non-bg)">adresse KO</span>':"");
     var rating=r.overall_rating
       ? '<span class="rating"><span class="v">'+Number(r.overall_rating).toFixed(1)+'</span><span class="n">'+(r.reviews_count||0)+' avis</span></span>'
       : '<span class="muted">—</span>';
@@ -1410,9 +1410,12 @@ function renderRecord(){
 
   var meta='<span>'+esc(r.type||"hôtel")+(s?(" · "+s+"★"):"")+'</span>'+
     (r.city?('<span class="sep">·</span><span>'+esc(r.city)+(r.departement_code?(" ("+esc(r.departement_code)+")"):"")+'</span>'):"")+
-    '<span class="sep">·</span><span class="pill" data-s="'+st+'"><span class="pd"></span>'+esc(STATUS_LABEL[st]||"Nouveau")+'</span>';
+    '<span class="sep">·</span><span class="ctrl statsel"><select id="recStatus" aria-label="Statut">'+
+      ['nouveau'].concat(STATUS_SET.map(function(x){return x[0];})).map(function(k){
+        return '<option value="'+k+'"'+(st===k?' selected':'')+'>'+esc(STATUS_LABEL[k])+'</option>';
+      }).join("")+'</select>'+CHEV+'</span>';
 
-  var badges=eng?('<div class="badges"><span class="badge"><span class="pt"></span>A ouvert le guidebook'+(r.last_open?(" · "+esc(r.last_open)):"")+(r.opens>1?(" · "+r.opens+" fois"):"")+'</span></div>'):"";
+  var badges="";   /* remplacé par la ligne d'état, une seule source d'info */
 
   var hero='<div class="hero">'+
     avatar(r,'big')+
@@ -1470,30 +1473,22 @@ function renderRecord(){
   (r.hotel_description?('<p class="desc" style="margin-top:18px">'+esc(r.hotel_description)+'</p>'):"")+
   '</div>';
 
-  var suivi='<div class="section"><div class="sec-head"><h3>Suivi</h3><span class="saved" data-saved="'+esc(r.id)+'">Enregistré</span></div>'+
-    '<div class="plan" style="margin-bottom:20px">'+
-      '<div><div class="k">Rappel téléphonique</div>'+
-        '<input class="dtin" type="datetime-local" data-cb="'+esc(r.id)+'" value="'+esc(r.callback_input||"")+'">'+
-        '<div class="row">'+(r.callback_label
-          ? '<span class="hintline">Alerte Discord à '+esc(r.callback_label)+'</span><button class="linkbtn" data-cbclear="'+esc(r.id)+'">Supprimer</button>'
-          : '<span class="hintline">Vous serez alerté sur Discord à l\'heure dite.</span>')+'</div></div>'+
-      '<div><div class="k">Rendez-vous</div>'+
-        '<input class="dtin" type="datetime-local" data-mt="'+esc(r.id)+'" value="'+esc(r.meeting_input||"")+'">'+
-        '<input class="inp" style="margin-top:8px" data-mtmail="'+esc(r.id)+'" value="'+esc(r.meeting_email||"")+'" '+
-          'placeholder="Adresse d\'invitation (si différente)" spellcheck="false" autocomplete="off">'+
-        '<div class="row">'+(r.meeting_label
-          ? '<a class="btn" style="padding:6px 11px;font-size:12.5px" target="_blank" rel="noopener" href="'+gcalUrl(r)+'">'+I.cal+'Google Agenda</a>'+
-            '<button class="linkbtn" data-mtclear="'+esc(r.id)+'">Supprimer</button>'
-          : '<span class="hintline">Alerte Discord 1 h avant.</span>')+'</div>'+
-        '<div class="hintline" style="margin-top:6px">Invitation envoyée à <b>'+esc(inviteOf(r)||"aucune adresse")+'</b>'+
-          (r.meeting_email&&r.meeting_email.trim()?"":" (adresse de campagne)")+'</div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="seg">'+STATUS_SET.map(function(x){
-      return '<button class="segbtn" data-status="'+esc(r.id)+'" data-s="'+x[0]+'" aria-pressed="'+(st===x[0])+'">'+esc(x[1])+'</button>';
-    }).join("")+'</div>'+
-    '<textarea class="notes" style="margin-top:16px" data-notes="'+esc(r.id)+'" placeholder="Ce qu\'ils ont dit, objections, quand rappeler…">'+esc(r.crm_notes||"")+'</textarea>'+
-    '<div class="note-hint">Sauvegarde automatique.</div>'+
+  /* L'échéance et les notes, sans rien qui double le panneau d'appel :
+     le statut et les dates se posent en enregistrant un appel. */
+  var ech = r.due_label
+    ? ('<div class="echline"><span class="due k-'+esc(r.due_kind||"rappel")+(r.due_days<0?" late":"")+'">'+
+         '<span class="ty">'+esc(DUE_LABEL[r.due_kind]||"Rappel")+'</span>'+
+         '<span class="dt">'+esc(r.due_label)+'</span></span>'+
+       (r.due_kind==="rdv"&&r.meeting_utc
+         ? '<a class="linkbtn" target="_blank" rel="noopener" href="'+gcalUrl(r)+'">Ajouter à l\'agenda</a>' : '')+
+       '<button class="linkbtn" data-echclear="'+esc(r.id)+'">Retirer</button></div>')
+    : '<div class="echline"><span class="muted">Aucune échéance posée</span></div>';
+
+  var suivi='<div class="section"><div class="sec-head"><h3>Suivi</h3>'+
+      '<span class="saved" data-saved="'+esc(r.id)+'">Enregistré</span></div>'+
+    ech+
+    '<textarea class="notes" style="margin-top:14px" data-notes="'+esc(r.id)+'" placeholder="Ce qu\'ils ont dit, objections…">'+esc(r.crm_notes||"")+'</textarea>'+
+    '<div class="note-hint">Sauvegarde automatique. Le statut et les dates se posent en enregistrant un appel.</div>'+
   '</div>';
 
   var guide='<div class="section"><div class="sec-head"><h3>Guidebook</h3></div>'+
@@ -1516,7 +1511,7 @@ function renderRecord(){
   var mailline='<div class="mailline'+((r.opens>0&&!r.has_refusal)?" eng":"")+'">'+
     ml.join('<span class="sep2">·</span>')+'</div>';
 
-  var pitchSec='<div class="section"><div class="sec-head"><h3>Argumentaire d\'appel</h3></div>'+
+  var pitchSec='<div class="section"><div class="sec-head"><h3>À dire pendant l\'appel</h3></div>'+
     '<div id="pitchBox"><p class="desc" style="margin:0">Chargement…</p></div></div>';
 
   var callSec='<div class="section"><div class="sec-head"><h3>Historique des appels</h3>'+
@@ -1577,23 +1572,20 @@ function outcomeBy(code){
   return null;
 }
 
+/* Des mots-clés, pas des phrases : ça se lit en parlant.
+   L'explication reste accessible au survol. */
 function pitchHtml(pi){
   if(!pi) return "";
-  var acc=(pi.accroches||[]), ctx=(pi.contexte||[]);
-  if(!acc.length && !ctx.length && !pi.decideur) return "";
-  var facts=[];
-  if(pi.classe)   facts.push(String(pi.classe).replace("Hôtel de tourisme ",""));
-  if(pi.note)     facts.push(pi.note+"★ ("+(pi.avis||0)+" avis)");
-  if(pi.tarif)    facts.push(pi.tarif+" €/nuit");
-  if(pi.checkout) facts.push("check-out "+pi.checkout);
+  var lev=(pi.leviers||[]), fa=(pi.faits||[]);
+  if(!lev.length && !fa.length && !pi.decideur) return "";
   return '<div class="pitch">'+
-    '<div class="lbl">À dire pendant l\'appel</div>'+
-    '<ul>'+
-      (pi.decideur?('<li><b>Demander '+esc(pi.decideur)+'</b> (dirigeant au registre du commerce)</li>'):'')+
-      acc.map(function(t){return '<li>'+esc(t)+'</li>';}).join("")+
-      ctx.map(function(t){return '<li class="ctx">'+esc(t)+'</li>';}).join("")+
-    '</ul>'+
-    (facts.length?('<div class="facts">'+facts.map(function(f){return '<span>'+esc(f)+'</span>';}).join("")+'</div>'):'')+
+    (pi.decideur?('<div class="ask">Demander <b>'+esc(pi.decideur)+'</b></div>'):'')+
+    (lev.length?('<div class="lev">'+lev.map(function(l){
+       return '<span class="tag" title="'+esc(l.d||"")+'">'+esc(l.t)+'</span>';
+     }).join("")+'</div>'):'')+
+    (fa.length?('<div class="facts">'+fa.map(function(f){
+       return '<span>'+esc(f)+'</span>';
+     }).join("")+'</div>'):'')+
   '</div>';
 }
 
@@ -2038,6 +2030,14 @@ document.addEventListener("click",function(e){
   var stBtn=t.closest("[data-status]");
   if(stBtn){setStatus(stBtn.getAttribute("data-status"),stBtn.getAttribute("data-s"));return;}
 
+  var ecl=t.closest("[data-echclear]");
+  if(ecl){
+    var rr2=rows[cursor];
+    if(rr2&&rr2.due_kind==="rdv") setMeeting(ecl.getAttribute("data-echclear"),"");
+    else setCallback(ecl.getAttribute("data-echclear"),"");
+    return;
+  }
+
   var cbc=t.closest("[data-cbclear]");
   if(cbc){ setCallback(cbc.getAttribute("data-cbclear"),""); return; }
 
@@ -2100,6 +2100,11 @@ document.addEventListener("keydown",function(e){
 });
 
 document.addEventListener("change",function(e){
+  if(e.target.id==="recStatus"){
+    var rs=rows[cursor];
+    if(rs) setStatus(rs.id, e.target.value);
+    return;
+  }
   var sf=e.target.closest("[data-sfield]");
   if(sf){
     var i1=parseInt(sf.getAttribute("data-sfield"),10), l1=sortsFor(view).slice();
