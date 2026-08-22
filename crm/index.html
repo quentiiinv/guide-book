@@ -435,7 +435,7 @@ input,textarea{font:inherit}
 .sidearrow svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 .record{
-  width:100%;max-width:920px;height:100%;max-height:100%;
+  width:100%;max-width:1180px;height:100%;max-height:100%;
   background:var(--surface);border-radius:var(--r-lg);overflow:hidden;
   display:flex;flex-direction:column;box-shadow:var(--sh-2);
   animation:rise .16s ease-out;
@@ -459,7 +459,12 @@ input,textarea{font:inherit}
 .kbd{font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:2px 5px;font-variant-numeric:tabular-nums}
 
 .rec-scroll{flex:1;overflow-y:auto}
-.rec-inner{max-width:760px;margin:0 auto;padding:32px 28px 80px}
+.rec-inner{max-width:1080px;margin:0 auto;padding:28px 28px 72px}
+/* deux colonnes : à gauche ce qui sert pendant l'appel, à droite l'historique */
+.reccols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0 34px;align-items:start}
+.reccols > div{min-width:0}
+.reccols .section:first-child{margin-top:0}
+@media(max-width:1000px){.reccols{grid-template-columns:minmax(0,1fr);gap:0}}
 
 /* identité */
 .hero{display:flex;align-items:flex-start;gap:16px}
@@ -477,6 +482,7 @@ input,textarea{font:inherit}
 .badge .pt{width:6px;height:6px;border-radius:50%;background:currentColor}
 
 /* actions */
+/* barre d'actions */
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
 .btn{
   display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:var(--r);
@@ -491,12 +497,13 @@ input,textarea{font:inherit}
 .btn.danger:hover{background:#f9e2de}
 
 /* sections */
-.section{margin-top:36px}
-.sec-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.section{margin-top:26px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;margin-bottom:13px;border-bottom:1px solid var(--line)}
 .sec-head h3{margin:0;font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .saved{font-size:11.5px;color:var(--rdv);font-weight:500;opacity:0;transition:opacity .2s}
 
-.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 28px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 22px}
+@media(max-width:520px){.fields{grid-template-columns:1fr}}
 @media(max-width:620px){.fields{grid-template-columns:1fr}}
 .field{min-width:0}
 .field .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-bottom:4px}
@@ -527,7 +534,7 @@ input,textarea{font:inherit}
 .segbtn[aria-pressed="true"][data-s="injoignable"]{background:var(--inj-bg);color:var(--inj)}
 
 textarea.notes{
-  width:100%;min-height:132px;resize:vertical;padding:12px 14px;
+  width:100%;min-height:96px;resize:vertical;padding:12px 14px;
   border:1px solid var(--line-strong);border-radius:var(--r-md);background:var(--surface);
   color:var(--ink);font-size:13.5px;line-height:1.65;outline:none;transition:border-color .12s;
 }
@@ -646,7 +653,7 @@ textarea.notes::placeholder{color:var(--ink-3)}
 .outc button[aria-pressed="true"][data-c="rdv"]{background:var(--rdv-bg);color:var(--rdv)}
 .outc button[aria-pressed="true"][data-c="non"]{background:var(--non-bg);color:var(--non)}
 .outc button[aria-pressed="true"][data-c="inj"]{background:var(--inj-bg);color:var(--inj)}
-.outc button[aria-pressed="true"][data-c="att"]{background:var(--att-bg);color:var(--att)}
+.outc button[aria-pressed="true"][data-c="attente"]{background:var(--att-bg);color:var(--att)}
 .outc button[aria-pressed="true"][data-c="eng"]{background:var(--eng-bg);color:var(--eng)}
 .outc button[aria-pressed="true"][data-c="neutral"]{background:var(--selected);color:var(--ink)}
 
@@ -669,7 +676,7 @@ textarea.notes::placeholder{color:var(--ink-3)}
 .callitem .dot2{width:7px;height:7px;border-radius:2px;margin-top:6px;flex:none;background:var(--line-strong)}
 .callitem .dot2.c-rappel{background:var(--rappel)} .callitem .dot2.c-rdv{background:var(--rdv)}
 .callitem .dot2.c-non{background:var(--non)} .callitem .dot2.c-inj{background:var(--inj)}
-.callitem .dot2.c-att{background:var(--att)} .callitem .dot2.c-eng{background:var(--eng)}
+.callitem .dot2.c-attente{background:var(--att)} .callitem .dot2.c-eng{background:var(--eng)}
 .callitem .cx{min-width:0;flex:1}
 .callitem .c1{font-size:13.5px;font-weight:600;color:var(--ink)}
 .callitem .c2{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:1px}
@@ -678,7 +685,7 @@ textarea.notes::placeholder{color:var(--ink-3)}
 /* ligne de statut email en tete de fiche */
 .mailline{
   display:flex;flex-wrap:wrap;align-items:center;gap:8px;
-  padding:10px 13px;margin-bottom:18px;border-radius:var(--r-md);
+  padding:9px 12px;margin-bottom:14px;border-radius:var(--r-md);
   background:var(--surface-2);border:1px solid var(--line);font-size:13px;color:var(--ink-2);
 }
 .mailline b{color:var(--ink);font-weight:600}
@@ -1457,21 +1464,20 @@ function renderRecord(){
     '</div>'+
     '<div class="hintline">Envoie le premier mail à cette adresse depuis la campagne active.</div>'+
     '</div>';
-  var coords='<div class="section"><div class="sec-head"><h3>Coordonnées</h3></div><div class="fields">'+
+  var coords='<div class="section"><div class="sec-head"><h3>Fiche établissement</h3></div><div class="fields">'+
     field("Téléphone",r.phone_primary,true)+
     emailField+
     field("Site web",r.website_link,false,true)+
     field("Ville",(r.city||"")+(r.departement_code?(" ("+r.departement_code+")"):""),false)+
-  '</div></div>';
-
-  var etab='<div class="section"><div class="sec-head"><h3>Établissement</h3></div><div class="fields">'+
     field("Type",(r.type||"hôtel")+(s?(" · "+s+" étoiles"):""),false)+
     field("Note Google",r.overall_rating?(Number(r.overall_rating).toFixed(1)+" / 5 · "+(r.reviews_count||0)+" avis"):"",false)+
     field("Tarif indicatif",r.rate_per_night?(r.rate_per_night+" € / nuit"):"",false)+
     field("Contact au registre",r.dirigeant_prenom||"",false)+
   '</div>'+
-  (r.hotel_description?('<p class="desc" style="margin-top:18px">'+esc(r.hotel_description)+'</p>'):"")+
+  (r.hotel_description?('<p class="desc" style="margin-top:14px">'+esc(r.hotel_description)+'</p>'):"")+
   '</div>';
+
+  var etab='';
 
   /* L'échéance et les notes, sans rien qui double le panneau d'appel :
      le statut et les dates se posent en enregistrant un appel. */
@@ -1524,7 +1530,11 @@ function renderRecord(){
   '</div>';
 
   document.getElementById("recInner").innerHTML=
-    hero+alerte+mailline+actions+pitchSec+suivi+callSec+mails+coords+etab+guide;
+    hero+alerte+mailline+actions+
+    '<div class="reccols">'+
+      '<div>'+pitchSec+suivi+'</div>'+
+      '<div>'+callSec+mails+coords+guide+'</div>'+
+    '</div>';
   loadRecord(r.id,false);
 }
 
@@ -1558,7 +1568,7 @@ function outcomeList(){
   return (rec&&rec.outcomes&&rec.outcomes.length)?rec.outcomes:[
     {code:"pas_repondu",label:"Pas de réponse",besoin:"rappel",couleur:"neutral"},
     {code:"rappeler",label:"À rappeler plus tard",besoin:"rappel",couleur:"rappel"},
-    {code:"decideur",label:"Transmis au décideur",besoin:"attente",couleur:"att"},
+    {code:"decideur",label:"Transmis au décideur",besoin:"attente",couleur:"attente"},
     {code:"interesse",label:"Intéressé",besoin:"rappel",couleur:"eng"},
     {code:"rdv",label:"RDV pris",besoin:"rdv",couleur:"rdv"},
     {code:"pas_interesse",label:"Pas intéressé",besoin:null,couleur:"non"},
@@ -1643,7 +1653,7 @@ function openCall(){
   callState={id:r.id,outcome:null,record:recordCache[r.id]||null};
   document.getElementById("callwrap").classList.add("open");
   renderCall();
-  if(!callState.record) loadRecord(r.id,false);
+  if(!callState.record) loadRecord(r.id,false);   /* le panneau s'affiche déjà avec les valeurs par défaut */
 }
 function closeCall(){
   document.getElementById("callwrap").classList.remove("open");
@@ -1771,27 +1781,56 @@ function renderMails(d){
   }).join("");
 }
 
-/* Une seule requête ramène argumentaire, emails et appels. */
+/* Une seule requête ramène argumentaire, emails et appels.
+   On charge d'abord SANS synchroniser Smartlead : c'est instantané.
+   La synchro (qui fait des appels réseau côté serveur) part ensuite en
+   arrière-plan, pour ne jamais bloquer l'affichage de la fiche. */
+var syncedOnce={};
 function loadRecord(id,force){
-  if(!force&&recordCache[id]){ paintRecord(id); return; }
-  var host=document.getElementById("mailThread");
-  if(host) host.innerHTML='<p class="desc" style="margin:0">'+(force?"Synchronisation avec Smartlead…":"Chargement…")+'</p>';
-  api({action:"record",id:id,sync:(force||!recordCache[id])}).then(function(d){
+  if(!force&&recordCache[id]){ paintRecord(id); backgroundSync(id); return; }
+  setLoading(id, force?"Synchronisation avec Smartlead…":"Chargement…");
+  api({action:"record",id:id,sync:force===true}).then(function(d){
     recordCache[id]=d;
+    if(force) syncedOnce[id]=true;
     if(callState.id===id){ callState.record=d; renderCall(); }
     paintRecord(id);
     if(force) toast("Historique à jour");
+    else backgroundSync(id);
   }).catch(function(e){
     if(e&&e.auth){showLogin("Mot de passe incorrect.");return;}
-    var h=document.getElementById("mailThread");
-    if(h) h.innerHTML='<p class="desc" style="margin:0">Historique indisponible.</p>';
+    setError(id, String((e&&e.message)||e||"erreur"));
   });
+}
+/* Rafraîchit l'historique email une seule fois par fiche et par session,
+   sans jamais laisser l'utilisateur devant un écran d'attente. */
+function backgroundSync(id){
+  if(syncedOnce[id]) return;
+  syncedOnce[id]=true;
+  api({action:"record",id:id,sync:true}).then(function(d){
+    recordCache[id]=d;
+    if(callState.id===id){ callState.record=d; renderCall(); }
+    paintRecord(id);
+  }).catch(function(){ /* la fiche reste affichée avec ce qu'on avait */ });
+}
+function setLoading(id,txt){
+  ["mailThread","callHist","pitchBox"].forEach(function(k){
+    var el=document.getElementById(k);
+    if(el) el.innerHTML='<p class="desc" style="margin:0">'+esc(txt)+'</p>';
+  });
+}
+function setError(id,msg){
+  ["mailThread","callHist","pitchBox"].forEach(function(k){
+    var el=document.getElementById(k);
+    if(el) el.innerHTML='<p class="desc" style="margin:0">Impossible de charger. '+
+      '<button class="linkbtn" data-recsync="'+esc(id)+'">Réessayer</button></p>';
+  });
+  toast("Fiche partiellement chargée");
 }
 /* Remplit les blocs dépendants du chargement asynchrone. */
 function paintRecord(id){
   var r=rows[cursor]; if(!r||r.id!==id) return;
-  var d=recordCache[id]; if(!d) return;
-  renderMails(d.emails||{});
+  var d=recordCache[id]||{};
+  renderMails(d.emails||{messages:[]});
   var hc=document.getElementById("callHist");
   if(hc) hc.innerHTML=callsHtml(d.calls||[]);
   var hp=document.getElementById("pitchBox");
