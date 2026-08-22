@@ -343,6 +343,42 @@ input,textarea{font:inherit}
 .sent.rep .pt{background:var(--eng)}
 .sent.rep .dt{color:var(--eng)}
 
+/* Refus explicite : le seul marqueur volontairement voyant du tableau.
+   Il doit se voir avant même de lire le nom de l'établissement. */
+.refus{
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  padding:4px 9px;border-radius:var(--r);
+  background:var(--non);color:#fff;
+}
+.refus svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2;flex:none}
+.refus .dt{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.05em}
+.trow:has(.refus) .c-name .t1{color:var(--non)}
+.trow:has(.refus){background:var(--non-bg)}
+.trow:has(.refus):hover{background:#f9e2de}
+
+/* Bandeau de refus en tête de fiche */
+.alert{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:14px 16px;margin-bottom:20px;border-radius:var(--r-md);
+  background:var(--non-bg);border:1px solid var(--non);
+}
+.alert .ic{flex:none;width:20px;height:20px;color:var(--non);margin-top:1px}
+.alert .ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.1}
+.alert .tx{min-width:0;flex:1}
+.alert .ti{font-size:14.5px;font-weight:700;color:var(--non);letter-spacing:-.01em}
+.alert .sb{margin-top:3px;font-size:12.5px;color:var(--non);opacity:.85;font-family:var(--mono)}
+.alert .qt{
+  margin-top:9px;padding:9px 11px;border-radius:var(--r);
+  background:rgba(255,255,255,.65);color:var(--ink);font-size:13px;line-height:1.6;font-style:italic;
+}
+.alert .act{margin-top:11px}
+.alert .act button{
+  padding:7px 13px;border-radius:var(--r);border:1px solid var(--non);
+  background:var(--non);color:#fff;font-size:12.5px;font-weight:600;
+}
+.alert .act button:hover{opacity:.88}
+.alert .act .done{background:transparent;color:var(--non);font-weight:600;font-size:12.5px;padding:7px 0}
+
 .pill{
   display:inline-flex;align-items:center;gap:6px;
   padding:3px 8px;border-radius:var(--r-sm);font-size:11.5px;font-weight:600;white-space:nowrap;
@@ -804,7 +840,8 @@ var VIEWS={
   non:{nav:"Pas intéressé",title:"Pas intéressé",dot:"d-non"},
   injoignable:{nav:"Injoignable",title:"Injoignable",dot:"d-inj"},
   ouvert:{nav:"Ont ouvert",title:"Ont ouvert le guidebook",dot:"d-eng"},
-  chaud:{nav:"Ouverts, sans statut",title:"Ont ouvert le livret, aucun statut",dot:"d-eng"}
+  chaud:{nav:"Ouverts, sans statut",title:"Ont ouvert le livret, aucun statut",dot:"d-eng"},
+  reponses:{nav:"Ont répondu",title:"Ont répondu par email",dot:"d-non"}
 };
 var NAV=[
   {label:"Vues",items:[
@@ -814,7 +851,8 @@ var NAV=[
   {label:"À traiter",items:[
     {k:"aujourdhui",nm:"Rappels du jour",     dot:"d-rappel"},
     {k:"chaud",     nm:"Ouverts à traiter",  dot:"d-eng"},
-    {k:"ouvert",    nm:"Ont ouvert",          dot:"d-eng"}
+    {k:"ouvert",    nm:"Ont ouvert",          dot:"d-eng"},
+    {k:"reponses",  nm:"Ont répondu",         dot:"d-non"}
   ]},
   {label:"Pipeline",items:[
     {k:"tous",       nm:"Tous"},
@@ -841,7 +879,8 @@ var I={
   pin:'<svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
   cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>',
   undo:'<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 015 5v1"/></svg>',
-  send:'<svg viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-8-8-4z"/></svg>'
+  send:'<svg viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-8-8-4z"/></svg>',
+  ban:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>'
 };
 
 /* ============================================================
@@ -1053,6 +1092,11 @@ function sentChip(r){
   else if(d<7)     txt="Il y a "+d+" j";
   else             txt=String(r.last_sent_label).split(" à ")[0];
 
+  /* Un refus explicite prime sur tout le reste : c'est l'information
+     qui doit t'empêcher de décrocher le téléphone. */
+  if(r.has_refusal) return '<span class="refus" title="'+esc(r.reply_excerpt||"")+'">'+I.ban+
+    '<span class="dt">A REFUSÉ</span></span>';
+
   if(r.has_bounce)      cls=" bad";
   else if(r.has_reply)  cls=" rep";
   else if(!isNaN(d)&&d<=1) cls=" fresh";
@@ -1216,6 +1260,23 @@ function renderRecord(){
     '<div class="h-txt"><h1>'+esc(r.hotel_name)+'</h1><div class="meta">'+meta+'</div>'+badges+'</div>'+
   '</div>';
 
+  /* Bandeau de refus, placé avant les actions : il doit se lire avant
+     d'avoir la possibilité de cliquer sur « Appeler ». */
+  var alerte='';
+  if(r.has_refusal){
+    alerte='<div class="alert">'+
+      '<span class="ic">'+I.ban+'</span>'+
+      '<div class="tx">'+
+        '<div class="ti">Ce prospect a refusé par email</div>'+
+        '<div class="sb">'+esc(r.reply_label||"")+'</div>'+
+        (r.reply_excerpt?('<div class="qt">« '+esc(r.reply_excerpt)+' »</div>'):'')+
+        '<div class="act">'+(st==="non"
+          ? '<span class="done">Déjà classé Pas intéressé</span>'
+          : '<button data-status="'+esc(r.id)+'" data-s="non">Classer Pas intéressé</button>')+'</div>'+
+      '</div>'+
+    '</div>';
+  }
+
   var actions='<div class="actions">'+
     (r.phone_primary?('<a class="btn primary" href="'+telHref(r.phone_primary)+'">'+I.phone+'Appeler</a>'):"")+
     (mailOf(r)?('<a class="btn" href="mailto:'+esc(mailOf(r))+'">'+I.mail+'Écrire</a>'):"")+
@@ -1288,7 +1349,7 @@ function renderRecord(){
     '<div id="mailThread"><p class="desc" style="margin:0">Chargement de l\'historique…</p></div>'+
   '</div>';
 
-  document.getElementById("recInner").innerHTML=hero+actions+coords+etab+suivi+mails+guide;
+  document.getElementById("recInner").innerHTML=hero+alerte+actions+coords+etab+suivi+mails+guide;
   loadMails(r.id,false);
 }
 
