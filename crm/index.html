@@ -1477,7 +1477,10 @@ function renderRecord(){
     field("Type",(r.type||"hôtel")+(s?(" · "+s+" étoiles"):""),false)+
     field("Note Google",r.overall_rating?(Number(r.overall_rating).toFixed(1)+" / 5 · "+(r.reviews_count||0)+" avis"):"",false)+
     field("Tarif indicatif",r.rate_per_night?(r.rate_per_night+" € / nuit"):"",false)+
-    field("Contact au registre",r.dirigeant_prenom||"",false)+
+    /* nom complet + qualité : c'est la même personne que « Demander » du pitch,
+       qui n'en garde que le premier prénom pour l'usage au téléphone */
+    field("Contact au registre",
+      (r.dirigeant_primary||r.dirigeant_prenom||"")+(r.dirigeant_role?" · "+r.dirigeant_role:""),false)+
   '</div>'+
   (r.hotel_description?('<p class="desc" style="margin-top:14px">'+esc(r.hotel_description)+'</p>'):"")+
   '</div>';
