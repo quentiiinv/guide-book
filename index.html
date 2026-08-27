@@ -223,7 +223,8 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
 #lh-app .lh-photo{position:relative;width:100%;background:linear-gradient(135deg,var(--c-primary),rgba(var(--c-accent-rgb),0.55));background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #lh-app .lh-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 /* EXTRAS — cartes produit payantes */
-#lh-app .xtra-card{background:white;border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 10px rgba(var(--c-primary-rgb),0.04);transition:box-shadow 0.2s}
+/* marge latérale de 18px : les cartes s'alignent sur le texte d'intro et l'encart */
+#lh-app .xtra-card{background:white;border-radius:16px;overflow:hidden;margin:0 18px 14px;box-shadow:0 2px 10px rgba(var(--c-primary-rgb),0.04);transition:box-shadow 0.2s}
 #lh-app .xtra-card:hover{box-shadow:0 6px 20px rgba(var(--c-primary-rgb),0.1)}
 #lh-app .xtra-card .lh-photo{height:150px}
 #lh-app .xtra-bd{padding:16px 18px}
@@ -241,7 +242,7 @@ html,body{margin:0;padding:0;background:var(--c-cream);min-height:100%}
 #lh-app .ib-lb{font-size:9px;font-weight:700;color:var(--c-accent);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px}
 #lh-app .ib-tx{font-size:13px;color:#555;line-height:1.6}
 /* RECOMMANDATIONS LOCALES */
-#lh-app .reco-card{background:white;border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 10px rgba(var(--c-primary-rgb),0.04)}
+#lh-app .reco-card{background:white;border-radius:16px;overflow:hidden;margin:0 18px 14px;box-shadow:0 2px 10px rgba(var(--c-primary-rgb),0.04)}
 #lh-app .reco-card .lh-photo{height:140px}
 #lh-app .reco-bd{padding:14px 16px}
 #lh-app .reco-cat{display:inline-block;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--c-accent);background:rgba(var(--c-accent-rgb),0.12);padding:4px 10px;border-radius:20px;margin-bottom:8px}
@@ -1661,7 +1662,7 @@ function lhMarkPdjBooked(){
 
     <div class="cd">
       <div class="cd-lb"><span data-t="rsHr">Horaires d'ouverture</span><span id="lh-rs-hours-ex"></span></div>
-      <div style="margin-top:8px">
+      <div style="margin-top:8px" id="lh-rs-hours">
         <div class="tm-r"><span class="tm-d" data-t="rsD1">Lundi & Mardi</span><span class="tm-c" data-t="rsClosed">Fermé</span></div>
         <div class="tm-r"><span class="tm-d" data-t="rsD2">Mercredi</span><span class="tm-h">12h-14h · 19h30-21h30</span></div>
         <div class="tm-r"><span class="tm-d" data-t="rsD3">Jeudi</span><span class="tm-h">12h-14h · 19h30-21h30</span></div>
@@ -2829,7 +2830,35 @@ function lhApplyHotel(d){
     if(u){ e.href=u; e.style.display=''; } else { e.style.display='none'; } }
   lhLinkBtn('lh-rs-book', d.resto_lien_reservation, HOTEL.site_web);
   lhLinkBtn('lh-rs-menu', d.resto_lien_menu, HOTEL.site_web);
+  lhApplyResto(d.restaurant, d.resto_horaires);
   lhRenderExtras(); lhRenderReco(); lhRenderInfos(); lhRenderSocial(); lhRenderLco(); lhRenderXtraBanner(); lhApplySections();
+}
+
+/* Restaurant : nom, accroche et horaires viennent de la base.
+   La colonne hotels.restaurant peut porter {nom, eyebrow, jours:[{jour,horaire}]}.
+   À défaut de « jours », on affiche la ligne libre resto_horaires.
+   Sans rien, on garde le planning d'exemple déjà présent dans la page. */
+function lhApplyResto(resto, horaires){
+  var r = resto || {};
+  function set(sel, val){
+    var e=document.querySelector(sel);
+    if(e && val && (''+val).trim()){ e.textContent=val; e.removeAttribute('data-t'); }
+  }
+  set('#scr-rs .s-ti', r.nom);
+  set('#scr-rs .s-ey', r.eyebrow);
+  set('#scr-rs [data-t="rsDesc"]', r.description);
+
+  var host=document.getElementById('lh-rs-hours'); if(!host) return;
+  var jours=Array.isArray(r.jours)?r.jours:null;
+  if(jours && jours.length){
+    host.innerHTML = jours.map(function(j){
+      var ferme = !j.horaire || /^ferm/i.test(j.horaire);
+      return '<div class="tm-r"><span class="tm-d">'+lhEsc(j.jour||'')+'</span>'
+           + '<span class="'+(ferme?'tm-c':'tm-h')+'">'+lhEsc(ferme?lhT('rsClosed'):j.horaire)+'</span></div>';
+    }).join('');
+  } else if(horaires && (''+horaires).trim()){
+    host.innerHTML = '<div class="tm-r"><span class="tm-h" style="margin-left:auto">'+lhEsc(horaires)+'</span></div>';
+  }
 }
 
 /* Fusion « modèle partagé + spécifique hôtel ».
@@ -2921,6 +2950,7 @@ function lhFetchHotel(slug){
         couleur_principale:hotel.couleur_principale, couleur_accent:hotel.couleur_accent,
         wifi_reseau:hotel.wifi_reseau, wifi_motdepasse:hotel.wifi_motdepasse,
         checkin:hotel.checkin, checkout_std:hotel.checkout_std,
+        restaurant:hotel.restaurant,
         resto_horaires:hotel.resto_horaires, resto_exemple:hotel.resto_exemple,
         resto_lien_reservation:hotel.resto_lien_reservation, resto_lien_menu:hotel.resto_lien_menu,
         pdj_exemple:hotel.pdj_exemple, extras_exemple:hotel.extras_exemple,
