@@ -443,6 +443,19 @@ var LH_T_EXTRA={
  xtraIntro:{fr:"Ajoutez une touche spéciale à votre séjour, commandé en un clic et préparé pour votre arrivée.",en:"Add a special touch to your stay — ordered in one click, ready for your arrival.",es:"Añade un toque especial a tu estancia, en un clic y listo a tu llegada.",it:"Aggiungi un tocco speciale al soggiorno, in un clic e pronto al tuo arrivo.",de:"Verleihen Sie Ihrem Aufenthalt eine besondere Note – in einem Klick, bereit bei Ankunft.",pt:"Dê um toque especial à sua estadia, num clique e pronto à chegada.",nl:"Geef je verblijf een speciaal tintje — in één klik, klaar bij aankomst."},
  xtraNote:{fr:"À réserver au moins 4h avant votre arrivée, le temps de tout préparer.",en:"Book at least 4h before arrival so we can prepare everything.",es:"Resérvalo al menos 4h antes de llegar para prepararlo todo.",it:"Prenota almeno 4h prima dell'arrivo per preparare tutto.",de:"Mindestens 4 Std. vor Ankunft buchen, damit wir alles vorbereiten können.",pt:"Reserve pelo menos 4h antes da chegada para prepararmos tudo.",nl:"Reserveer minstens 4 uur voor aankomst zodat we alles kunnen klaarzetten."},
  orderBtn:{fr:"Commander",en:"Order",es:"Pedir",it:"Ordina",de:"Bestellen",pt:"Encomendar",nl:"Bestellen"},
+ cmdTitle:{fr:"Votre commande",en:"Your order",es:"Su pedido",it:"Il tuo ordine",de:"Ihre Bestellung",pt:"O seu pedido",nl:"Uw bestelling"},
+ cmdRoom:{fr:"Numéro de chambre",en:"Room number",es:"Número de habitación",it:"Numero di camera",de:"Zimmernummer",pt:"Número do quarto",nl:"Kamernummer"},
+ cmdName:{fr:"Votre nom",en:"Your name",es:"Su nombre",it:"Il tuo nome",de:"Ihr Name",pt:"O seu nome",nl:"Uw naam"},
+ cmdEmail:{fr:"Votre email",en:"Your email",es:"Su correo",it:"La tua email",de:"Ihre E-Mail",pt:"O seu email",nl:"Uw e-mail"},
+ cmdRoomRequired:{fr:"Merci d'indiquer votre numéro de chambre.",en:"Please enter your room number.",es:"Indique su número de habitación.",it:"Inserisci il numero di camera.",de:"Bitte geben Sie Ihre Zimmernummer an.",pt:"Indique o número do quarto.",nl:"Vul uw kamernummer in."},
+ cmdPayOnSite:{fr:"Rien à payer maintenant : votre commande sera ajoutée à votre note.",en:"Nothing to pay now: your order will be added to your bill.",es:"No hay que pagar ahora: se añadirá a su cuenta.",it:"Nulla da pagare ora: sarà aggiunto al conto.",de:"Jetzt nichts zu zahlen: Es wird Ihrer Rechnung hinzugefügt.",pt:"Nada a pagar agora: será adicionado à sua conta.",nl:"Nu niets te betalen: het komt op uw rekening."},
+ cmdPayOnSiteShort:{fr:"à régler sur place",en:"to pay on site",es:"a pagar en el hotel",it:"da pagare in loco",de:"vor Ort zu zahlen",pt:"a pagar no local",nl:"ter plaatse te betalen"},
+ cmdSend:{fr:"Confirmer ma commande",en:"Confirm my order",es:"Confirmar mi pedido",it:"Conferma l'ordine",de:"Bestellung bestätigen",pt:"Confirmar o pedido",nl:"Bestelling bevestigen"},
+ cmdSending:{fr:"Envoi en cours…",en:"Sending…",es:"Enviando…",it:"Invio…",de:"Wird gesendet…",pt:"A enviar…",nl:"Verzenden…"},
+ cmdCancel:{fr:"Annuler",en:"Cancel",es:"Cancelar",it:"Annulla",de:"Abbrechen",pt:"Cancelar",nl:"Annuleren"},
+ cmdOk:{fr:"Commande enregistrée",en:"Order received",es:"Pedido registrado",it:"Ordine registrato",de:"Bestellung erfasst",pt:"Pedido registado",nl:"Bestelling ontvangen"},
+ cmdRef:{fr:"Gardez cette référence",en:"Keep this reference",es:"Guarde esta referencia",it:"Conserva questo riferimento",de:"Bewahren Sie diese Referenz auf",pt:"Guarde esta referência",nl:"Bewaar deze referentie"},
+ cmdError:{fr:"La commande n'a pas pu être enregistrée. Merci de contacter la réception.",en:"The order could not be saved. Please contact reception.",es:"No se pudo registrar el pedido. Contacte con recepción.",it:"Ordine non registrato. Contatta la reception.",de:"Bestellung konnte nicht gespeichert werden. Bitte an die Rezeption wenden.",pt:"Não foi possível registar o pedido. Contacte a receção.",nl:"Bestelling kon niet worden opgeslagen. Neem contact op met de receptie."},
  loadingW:{fr:"Chargement",en:"Loading",es:"Cargando",it:"Caricamento",de:"Wird geladen",pt:"A carregar",nl:"Laden"},
  nfTi:{fr:"Guide introuvable",en:"Guide not found",es:"Guía no encontrada",it:"Guida non trovata",de:"Reiseführer nicht gefunden",pt:"Guia não encontrado",nl:"Gids niet gevonden"},
  nfBody:{fr:"Ce lien ne correspond à aucun guide de séjour. Vérifiez l'adresse, ou contactez directement votre hôtel.",en:"This link doesn't match any guide. Check the address, or contact your hotel directly.",es:"Este enlace no corresponde a ninguna guía. Verifica la dirección o contacta con tu hotel.",it:"Questo link non corrisponde ad alcuna guida. Verifica l'indirizzo o contatta l'hotel.",de:"Dieser Link gehört zu keinem Reiseführer. Prüfen Sie die Adresse oder kontaktieren Sie Ihr Hotel.",pt:"Este link não corresponde a nenhum guia. Verifique o endereço ou contacte o seu hotel.",nl:"Deze link hoort bij geen enkele gids. Controleer het adres of neem contact op met je hotel."},
@@ -2371,6 +2384,67 @@ function lhIcon(n){
    Même UI/parcours que le petit-déjeuner. Confirmation Stripe simulée
    pour la maquette de prospection. En prod : POST vers le webhook n8n
    (cf. lhConfirmPdj) qui renvoie l'URL Stripe → redirection. */
+/* ---------- COMMANDE RÉELLE ----------
+   Ouvre un formulaire, envoie la commande à la fonction passer_commande et
+   affiche la référence renvoyée par le serveur. Les prix sont recalculés côté
+   base : ce que le navigateur annonce n'est jamais pris pour argent comptant. */
+function lhCommander(lignes, resume, montantIndicatif, onDone){
+  var modal=document.createElement('div');
+  modal.className='lh-cmd-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(var(--c-primary-rgb),0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:lhFade 0.25s ease';
+  var card=document.createElement('div');
+  card.style.cssText='background:var(--c-cream);border-radius:20px;padding:26px 24px;width:100%;max-width:380px;font-family:Montserrat,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto';
+
+  function champ(id,label,type,ph,req){
+    return '<label style="display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8a8a8a;margin:0 0 5px">'+lhEsc(label)+(req?' *':'')+'</label>'
+      +'<input id="'+id+'" type="'+type+'" placeholder="'+lhEsc(ph||'')+'" '
+      +'style="width:100%;padding:11px 13px;border:1px solid rgba(var(--c-primary-rgb),0.18);border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:14px;background:#fff;color:var(--c-primary)">';
+  }
+  card.innerHTML='<div style="font-size:17px;font-weight:700;color:var(--c-primary);margin-bottom:4px">'+lhT('cmdTitle')+'</div>'
+    +'<div style="font-size:13px;color:#777;line-height:1.6;margin-bottom:18px">'+lhEsc(resume)
+    +(montantIndicatif?' · <strong style="color:var(--c-primary)">'+montantIndicatif+'€</strong>':'')+'</div>'
+    +champ('lh-cmd-chambre',lhT('cmdRoom'),'text','12',true)
+    +champ('lh-cmd-nom',lhT('cmdName'),'text','Dupont',false)
+    +champ('lh-cmd-email',lhT('cmdEmail'),'email','vous@exemple.fr',false)
+    +'<div id="lh-cmd-err" style="display:none;font-size:12.5px;color:#a3372f;background:#fbeceb;border-radius:8px;padding:9px 11px;margin-bottom:12px;line-height:1.5"></div>'
+    +'<div style="font-size:11.5px;color:#999;line-height:1.6;margin-bottom:16px">'+lhT('cmdPayOnSite')+'</div>'
+    +'<button id="lh-cmd-go" class="lh-submit-dk" style="width:100%">'+lhT('cmdSend')+'</button>'
+    +'<button id="lh-cmd-no" style="width:100%;margin-top:9px;background:none;border:none;font-family:inherit;font-size:13px;color:#999;cursor:pointer;padding:8px">'+lhT('cmdCancel')+'</button>';
+  modal.appendChild(card);
+  (document.getElementById('lh-app')||document.body).appendChild(modal);
+  setTimeout(function(){var c=document.getElementById('lh-cmd-chambre'); if(c)c.focus();},80);
+
+  document.getElementById('lh-cmd-no').onclick=function(){ modal.remove(); };
+  document.getElementById('lh-cmd-go').onclick=function(){
+    var btn=this, err=document.getElementById('lh-cmd-err');
+    var chambre=(document.getElementById('lh-cmd-chambre').value||'').trim();
+    function stop(msg){ err.textContent=msg; err.style.display='block';
+      btn.disabled=false; btn.textContent=lhT('cmdSend'); }
+    if(!chambre){ return stop(lhT('cmdRoomRequired')); }
+    err.style.display='none'; btn.disabled=true; btn.textContent=lhT('cmdSending');
+
+    fetch(LH_SUPA_URL+'/rest/v1/rpc/passer_commande',{
+      method:'POST',
+      headers:{'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY,'content-type':'application/json'},
+      body:JSON.stringify({p_slug:LH_SLUG, p_mode:'sur_place', p_lignes:lignes, p_client:{
+        chambre:chambre,
+        nom:(document.getElementById('lh-cmd-nom').value||'').trim(),
+        email:(document.getElementById('lh-cmd-email').value||'').trim(),
+        langue:LH_LANG }})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(!d || d.ok!==true){ return stop((d&&d.message)||lhT('cmdError')); }
+      card.style.textAlign='center';
+      card.innerHTML='<div style="font-size:40px;margin-bottom:10px">✓</div>'
+        +'<div style="font-size:16px;font-weight:700;color:var(--c-primary);margin-bottom:10px">'+lhT('cmdOk')+'</div>'
+        +'<div style="font-size:13px;color:#777;line-height:1.7;margin-bottom:6px">'+lhEsc(resume)+'</div>'
+        +'<div style="font-size:22px;font-weight:700;color:var(--c-primary);letter-spacing:.04em;margin-bottom:6px">'+lhEsc(d.reference)+'</div>'
+        +'<div style="font-size:12px;color:#999;line-height:1.7;margin-bottom:20px">'+lhT('cmdRef')+'<br><strong style="color:var(--c-primary)">'+d.total+'€</strong> · '+lhT('cmdPayOnSiteShort')+'</div>'
+        +'<button class="lh-submit-dk" style="max-width:200px;margin:0 auto">'+lhT('payThanks')+'</button>';
+      card.querySelector('button').onclick=function(){ modal.remove(); if(onDone)onDone(); };
+    }).catch(function(){ stop(lhT('cmdError')); });
+  };
+}
+
 function lhDemoPay(label, montant, onDone){
   var modal=document.createElement('div');
   modal.style.cssText='position:fixed;inset:0;background:rgba(var(--c-primary-rgb),0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:lhFade 0.25s ease';
@@ -2407,7 +2481,8 @@ function lhRenderExtras(){
 }
 function lhOrderExtra(id){
   var x=null; LH_EXTRAS.forEach(function(e){if(e.id===id)x=e;});
-  if(x)lhDemoPay(x.nom, x.prix);
+  if(!x) return;
+  lhCommander([{type:'extra', extra_id:x.id, quantite:1}], x.nom, x.prix);
 }
 
 /* ---------- 2. LATE CHECK-OUT ---------- */
@@ -2431,7 +2506,8 @@ function lhSelLco(id){
 function lhPayLco(){
   var o=null; LH_LATE_CO.forEach(function(x){if(x.id===lhLcoSel)o=x;});
   if(!o)return;
-  lhDemoPay('Départ tardif à '+o.heure, o.prix, function(){
+  lhCommander([{type:'late_checkout', heure_service:o.heure}],
+              lhT('lcoDepartAt')+o.heure, o.prix, function(){
     lhLcoSel=null; lhRenderLco();
     var b=document.getElementById('lh-lco-pay'); if(b)b.disabled=true;
   });
