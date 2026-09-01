@@ -2926,20 +2926,19 @@ function lhBuildInfos(amenities, rows, hid){
       hôtel — jamais le contenu des autres hôtels. */
 function lhFetchHotel(slug){
   try{
-    var H={'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY};
-    var base=LH_SUPA_URL+'/rest/v1/';
-    function g(t,q){ return fetch(base+t+'?'+q,{headers:H}).then(function(r){return r.json();}); }
-    g('hotels','slug=eq.'+encodeURIComponent(slug)+'&select=*').then(function(rows){
-      var hotel=rows&&rows[0];
+    var H={'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY,
+           'content-type':'application/json'};
+    /* Un seul appel, et il exige un slug : la liste complète des établissements
+       n'est plus interrogeable depuis le navigateur. */
+    fetch(LH_SUPA_URL+'/rest/v1/rpc/livret',
+          {method:'POST',headers:H,body:JSON.stringify({p_slug:slug})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+      var hotel=d&&d.hotel;
       if(!hotel){ if(slug!==LH_DB.slug) lhShow404(); return; }   /* slug inconnu -> écran introuvable */
       var hid=hotel.id;
-      var partage='or=(hotel_id.is.null,hotel_id.eq.'+hid+')';   /* modèles partagés + cet hôtel */
-      return Promise.all([
-        g('hotel_extras','select=*&order=ordre&'+partage),
-        g('hotel_facilities','select=*&'+partage),
-        g('hotel_recos','select=*&order=ordre&hotel_id=eq.'+hid),
-        g('hotel_infos','select=*&order=ordre&'+partage)
-      ]).then(function(res){
+      var res=[d.extras||[], d.facilities||[], d.recos||[], d.infos||[]];
+      {
       /* Facilities : modèle partagé (hotel_id null) surchargé par le spécifique, clé = type */
       var fac={}; lhMergeRows(res[1], hid, function(f){return f.type;}).forEach(function(f){
         fac[f.type]={titre:f.titre,emoji:f.emoji,photo:f.photo_url,description:f.description,horaires:f.horaires,acces:f.acces,prevoir:f.a_prevoir,maps:f.maps_url}; });
@@ -2967,7 +2966,7 @@ function lhFetchHotel(slug){
         infos:lhBuildInfos(hotel.amenities, res[3], hid)
       });
       lhShowLoading(false);                       /* contenu prêt : on retire le chargement */
-      });
+      }
     }).catch(function(){
       /* réseau bloqué : si on n'a pas déjà le snapshot L'Harmony, on montre l'écran introuvable */
       if(slug!==LH_DB.slug) lhShow404();
