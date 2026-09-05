@@ -120,6 +120,17 @@ section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .tag.servie{background:var(--ok-soft);color:var(--ok)}
 .tag.annulee{background:var(--crit-soft);color:var(--crit)}
 .vide{text-align:center;color:var(--ink-3);padding:40px 20px;font-size:14.5px}
+.pastille{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;
+  margin-left:7px;padding:0 5px;border-radius:10px;background:var(--crit);color:#fff;
+  font-size:11px;font-weight:800;font-style:normal;vertical-align:1px}
+.todo{background:var(--warn-soft);border:1px solid #efdcb8;border-radius:14px;padding:15px 17px;margin-bottom:18px}
+.todo b{display:block;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--warn);margin-bottom:9px}
+.todo button{display:block;width:100%;text-align:left;background:none;border:none;padding:5px 0 5px 18px;
+  position:relative;font-size:13.5px;line-height:1.5;color:var(--ink);text-decoration:underline;
+  text-decoration-color:rgba(138,101,36,.35);text-underline-offset:3px}
+.todo button::before{content:"→";position:absolute;left:0;color:var(--warn);font-weight:700;text-decoration:none}
+.todo button:hover{text-decoration-color:var(--warn)}
 
 .item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--white)}
 .item-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -249,7 +260,10 @@ function demarrer(){
     el('login').classList.add('hide'); el('app').classList.remove('hide');
     el('hd-nom').textContent=HOTEL.nom||'Mon établissement';
     el('hd-livret').href='https://guide.solvia.pro/?slug='+encodeURIComponent(HOTEL.slug);
-    chargerExtras(); chargerRecos(); chargerInfos(); rendreOnglets(); rendre();
+    /* Les listes servent aussi au pense-bete « À compléter » : on attend
+       qu'elles soient la avant de dessiner. */
+    Promise.all([chargerExtras(),chargerRecos(),chargerInfos()])
+      .then(function(){ rendreOnglets(); rendre(); suivre(); });
   }).catch(function(e){
     if(e.status===401){ localStorage.removeItem('solvia_tok'); TOK=null; return; }
     msg('lg-msg',e.message,'err'); });
@@ -259,7 +273,8 @@ function rendreOnglets(){
   var l=[['cmd','Commandes'],['modules','Modules'],['etab','Mon établissement']];
   MODULES.forEach(function(m){ if(m.onglet && HOTEL[m.c]) l.push([m.onglet,m.nom]); });
   el('tabs').innerHTML=l.map(function(t){
-    return '<button data-t="'+t[0]+'"'+(ONGLET===t[0]?' class="on"':'')+'>'+esc(t[1])+'</button>';}).join('');
+    var p=(t[0]==='cmd'&&NOUVELLES)?'<i class="pastille">'+NOUVELLES+'</i>':'';
+    return '<button data-t="'+t[0]+'"'+(ONGLET===t[0]?' class="on"':'')+'>'+esc(t[1])+p+'</button>';}).join('');
   el('tabs').querySelectorAll('button').forEach(function(b){
     b.onclick=function(){ ONGLET=b.dataset.t; rendreOnglets(); rendre(); }; });
 }
@@ -278,7 +293,9 @@ function flash(i,ok){ if(!i)return;
 /* ---------- rendu ---------- */
 function rendre(){
   var v=el('vue');
-  if(ONGLET==='cmd')      { v.innerHTML=vueCommandes();  chargerCommandes(); }
+  if(ONGLET==='cmd')      { v.innerHTML=vueCommandes();  chargerCommandes();
+    v.querySelectorAll('[data-go]').forEach(function(b){
+      b.onclick=function(){ ONGLET=b.dataset.go; rendreOnglets(); rendre(); }; }); }
   else if(ONGLET==='modules'){ v.innerHTML=vueModules();  brancherModules(); }
   else if(ONGLET==='etab'){ v.innerHTML=vueEtab();       brancherChamps(); }
   else if(ONGLET==='pdj') { v.innerHTML=vuePdj();        brancherChamps(); brancherPhotos('pdj_images','petit-dejeuner'); }
@@ -665,14 +682,55 @@ function brancherExtras(){
 
 /* --- commandes --- */
 function vueCommandes(){
-  return '<section><h2>Commandes</h2><p class="hint">Les demandes de vos clients, la plus récente en premier.</p>'
+  return '<section><h2>Commandes</h2><p class="hint">Les demandes de vos clients, la plus récente en premier. '
+    +'Cette page se met à jour toute seule.</p>'+aFaire()
     +'<div id="cmd-liste"><div class="vide">Chargement…</div></div></section>';
 }
+/* Ce qui empeche encore le livret d'etre complet. On ne parle que des
+   modules allumes : eteindre une section est une reponse valable. */
+function aFaire(){
+  var m=[];
+  if(HOTEL.a_petit_dej && HOTEL.pdj_prix_adulte==null)
+    m.push(['pdj','Indiquez le prix du petit-déjeuner, sans lui vos clients ne peuvent pas le commander']);
+  if(HOTEL.a_petit_dej && !HOTEL.pdj_horaire) m.push(['pdj','Précisez les horaires du petit-déjeuner']);
+  if(HOTEL.a_restaurant && !((HOTEL.restaurant||{}).jours||[]).some(function(j){return j.mode&&j.mode!=='ferme';}))
+    m.push(['resto','Renseignez les horaires du restaurant']);
+  if(HOTEL.a_late_checkout && HOTEL.late_prix==null)
+    m.push(['lco','Fixez le supplément du départ tardif']);
+  if(HOTEL.a_extras && !EXTRAS.filter(function(x){return x.actif!==false;}).length)
+    m.push(['extras','Proposez au moins une petite attention']);
+  if(HOTEL.a_recos && !RECOS.length) m.push(['recos','Ajoutez vos bonnes adresses']);
+  if(!HOTEL.wifi_reseau) m.push(['etab','Renseignez le Wi-Fi, c\'est la première chose qu\'on cherche']);
+  if(!m.length) return '';
+  return '<div class="todo"><b>À compléter</b>'+m.map(function(x){
+    return '<button data-go="'+x[0]+'">'+esc(x[1])+'</button>';}).join('')+'</div>';
+}
 var LIB={nouvelle:'Nouvelle',vue:'Vue',preparee:'Préparée',servie:'Servie',annulee:'Annulée'};
-function chargerCommandes(){
-  api('/rest/v1/commandes?select=*,commande_lignes(*)&order=created_at.desc&limit=60')
-    .then(function(l){ rendreCommandes(l||[]); })
-    .catch(function(e){ el('cmd-liste').innerHTML='<div class="vide">'+esc(e.message)+'</div>'; });
+var NOUVELLES=0, MINUTEUR=null, VUES={};
+function chargerCommandes(silencieux){
+  return api('/rest/v1/commandes?select=*,commande_lignes(*)&order=created_at.desc&limit=60')
+    .then(function(l){ l=l||[];
+      var neuves=l.filter(function(c){ return c.statut==='nouvelle'; });
+      /* Une commande arrivee pendant que l'onglet etait ailleurs : on previent. */
+      neuves.forEach(function(c){ if(!VUES[c.id]){ VUES[c.id]=1; if(silencieux) prevenir(c); } });
+      NOUVELLES=neuves.length; rendreOnglets();
+      if(ONGLET==='cmd') rendreCommandes(l); })
+    .catch(function(e){ var h=el('cmd-liste');
+      if(h) h.innerHTML='<div class="vide">'+esc(e.message)+'</div>'; });
+}
+function prevenir(c){
+  try{
+    if(!('Notification' in window) || Notification.permission!=='granted') return;
+    new Notification('Nouvelle commande · chambre '+(c.chambre||'?'),
+      {body:c.total+' € · '+c.reference, tag:c.id});
+  }catch(e){}
+}
+function suivre(){
+  if(MINUTEUR) clearInterval(MINUTEUR);
+  MINUTEUR=setInterval(function(){ if(!document.hidden) chargerCommandes(true); },30000);
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden) chargerCommandes(true); });
+  try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }catch(e){}
 }
 function rendreCommandes(l){
   if(!l.length){ el('cmd-liste').innerHTML='<div class="vide">Aucune commande pour le moment.<br>'
@@ -683,8 +741,14 @@ function rendreCommandes(l){
              +d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     var lignes=(c.commande_lignes||[]).map(function(x){
       var q=x.type==='pdj'?(x.nb_adulte+' adulte(s)'+(x.nb_enfant?', '+x.nb_enfant+' enfant(s)':'')):('x'+x.quantite);
+      var quand=x.date_service
+        ? new Date(x.date_service+'T00:00:00').toLocaleDateString('fr-FR',
+            {weekday:'short',day:'numeric',month:'long'})
+        : '';
       return '<div class="cmd-li">'+esc(x.libelle)+' · '+esc(q)
-        +(x.date_service?' · '+esc(x.date_service):'')+' — '+x.total+' €</div>';}).join('');
+        +(quand?' · <strong>'+esc(quand)+'</strong>':'')
+        +(x.heure_service?' à '+esc(x.heure_service):'')
+        +' — '+x.total+' €</div>';}).join('');
     return '<div class="cmd '+(c.statut==='nouvelle'?'nouvelle':'')+'">'
       +'<div class="cmd-h"><span class="cmd-ch">Chambre '+esc(c.chambre||'?')+'</span>'
       +'<span class="cmd-ref">'+esc(c.reference)+' · '+quand+'</span>'
