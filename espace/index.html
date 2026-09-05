@@ -106,11 +106,14 @@ section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 <div id="login">
   <div class="card">
     <h1>Espace hôtelier</h1>
-    <p class="sub">Recevez un lien de connexion par email. Pas de mot de passe à retenir.</p>
+    <p class="sub">Connectez-vous avec les identifiants que SolvIA vous a transmis.</p>
     <div id="lg-msg"></div>
-    <label for="lg-mail">Votre adresse email</label>
-    <input id="lg-mail" type="email" placeholder="vous@votre-hotel.fr" autocomplete="email">
-    <button class="btn" id="lg-go">Recevoir mon lien</button>
+    <label for="lg-mail">Adresse email</label>
+    <input id="lg-mail" type="email" placeholder="vous@votre-hotel.fr" autocomplete="username">
+    <label for="lg-mdp">Mot de passe</label>
+    <input id="lg-mdp" type="password" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn" id="lg-go">Se connecter</button>
+    <button class="btn-2" id="lg-oubli" style="width:100%;margin-top:10px;background:none;border:none;color:var(--ink-3)">Mot de passe oublié</button>
   </div>
 </div>
 
@@ -217,15 +220,28 @@ function api(chemin,opt){
 
 /* ---------- connexion ---------- */
 el('lg-go').onclick=function(){
-  var mail=(el('lg-mail').value||'').trim();
+  var mail=(el('lg-mail').value||'').trim(), mdp=el('lg-mdp').value||'';
   if(!mail || mail.indexOf('@')<1) return msg('lg-msg','Merci d\'indiquer une adresse email valide.','err');
-  var b=this; b.disabled=true; b.textContent='Envoi…'; msg('lg-msg','','');
-  api('/auth/v1/otp',{method:'POST',body:{email:mail,create_user:true,
-      options:{email_redirect_to:location.origin+location.pathname}}})
-    .then(function(){ msg('lg-msg','Lien envoyé. Ouvrez votre boîte mail, il est valable 1 heure.','ok');
-      b.textContent='Lien envoyé'; })
-    .catch(function(e){ msg('lg-msg',e.message||'Envoi impossible.','err');
-      b.disabled=false; b.textContent='Recevoir mon lien'; });
+  if(!mdp) return msg('lg-msg','Merci de saisir votre mot de passe.','err');
+  var b=this; b.disabled=true; b.textContent='Connexion…'; msg('lg-msg','','');
+  api('/auth/v1/token?grant_type=password',{method:'POST',body:{email:mail,password:mdp}})
+    .then(function(d){
+      if(!d||!d.access_token) throw new Error('Identifiants incorrects.');
+      TOK=d.access_token; localStorage.setItem('solvia_tok',TOK); demarrer();
+    })
+    .catch(function(e){
+      var m=e.message||'';
+      msg('lg-msg', /credential|invalid|grant/i.test(m) ? 'Email ou mot de passe incorrect.' : m, 'err');
+      b.disabled=false; b.textContent='Se connecter';
+    });
+};
+el('lg-mdp').addEventListener('keydown',function(e){ if(e.key==='Enter') el('lg-go').click(); });
+el('lg-oubli').onclick=function(){
+  var mail=(el('lg-mail').value||'').trim();
+  if(!mail || mail.indexOf('@')<1) return msg('lg-msg','Saisissez d\'abord votre adresse email.','err');
+  api('/auth/v1/recover',{method:'POST',body:{email:mail}})
+    .then(function(){ msg('lg-msg','Si ce compte existe, un lien de réinitialisation vient de partir.','ok'); })
+    .catch(function(){ msg('lg-msg','Si ce compte existe, un lien de réinitialisation vient de partir.','ok'); });
 };
 el('hd-out').onclick=function(){ localStorage.removeItem('solvia_tok'); location.href=location.pathname; };
 
