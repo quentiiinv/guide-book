@@ -3032,6 +3032,7 @@ function lhFetchHotel(slug){
         pdj_images:hotel.pdj_images||[], resto_images:hotel.resto_images||[],
         telephone:hotel.telephone, email:hotel.email, lien_avis:hotel.lien_avis,
         pdj_prix_adulte:hotel.pdj_prix_adulte, pdj_prix_enfant:hotel.pdj_prix_enfant,
+        late_prix:hotel.late_prix, late_exemple:hotel.late_exemple,
         social:{instagram:hotel.social_instagram,facebook:hotel.social_facebook,linkedin:hotel.social_linkedin,youtube:hotel.social_youtube,tiktok:hotel.social_tiktok,twitter:hotel.social_twitter},
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:lhMergeRows(res[0], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,code:e.code,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
