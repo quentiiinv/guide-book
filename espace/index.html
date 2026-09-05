@@ -131,6 +131,18 @@ section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
   text-decoration-color:rgba(138,101,36,.35);text-underline-offset:3px}
 .todo button::before{content:"→";position:absolute;left:0;color:var(--warn);font-weight:700;text-decoration:none}
 .todo button:hover{text-decoration-color:var(--warn)}
+.integ.off{opacity:.6}
+.integ-h{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+.integ-h b{font-size:14.5px;font-weight:700}
+.etat{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.etat.on{background:var(--ok-soft);color:var(--ok)}
+.etat.off2{background:var(--warn-soft);color:var(--warn)}
+.etat.vide2,.etat.attente{background:var(--brand-soft);color:var(--ink-3)}
+.integ-d{font-size:13.5px;color:var(--ink-2);line-height:1.55;margin:0 0 13px}
+.integ-a{font-size:12.5px;color:var(--ink-3);line-height:1.55}
+.integ-err{display:none;font-size:12.5px;color:var(--crit);background:var(--crit-soft);
+  border-radius:8px;padding:8px 11px;margin:-4px 0 10px;line-height:1.5}
 
 .item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--white)}
 .item-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -203,7 +215,7 @@ var ICONES=[['parking','Parking'],['wifi','Wi-Fi'],['animaux','Animaux'],['nonfu
   ['defaut','Autre']];
 var CATEGORIES=['Restaurant','Bar','Café','Visite','Activité','Nature','Boutique'];
 var TRAJETS=[['pied','à pied'],['voiture','en voiture'],['velo','à vélo'],['transports','en transports']];
-var TOK=null, HOTEL=null, EXTRAS=[], RECOS=[], INFOS=[], ONGLET='cmd';
+var TOK=null, HOTEL=null, EXTRAS=[], RECOS=[], INFOS=[], CATALOGUE=[], BRANCHE={}, ONGLET='cmd';
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -262,7 +274,7 @@ function demarrer(){
     el('hd-livret').href='https://guide.solvia.pro/?slug='+encodeURIComponent(HOTEL.slug);
     /* Les listes servent aussi au pense-bete « À compléter » : on attend
        qu'elles soient la avant de dessiner. */
-    Promise.all([chargerExtras(),chargerRecos(),chargerInfos()])
+    Promise.all([chargerExtras(),chargerRecos(),chargerInfos(),chargerIntegrations()])
       .then(function(){ rendreOnglets(); rendre(); suivre(); });
   }).catch(function(e){
     if(e.status===401){ localStorage.removeItem('solvia_tok'); TOK=null; return; }
@@ -272,6 +284,7 @@ function demarrer(){
 function rendreOnglets(){
   var l=[['cmd','Commandes'],['modules','Modules'],['etab','Mon établissement']];
   MODULES.forEach(function(m){ if(m.onglet && HOTEL[m.c]) l.push([m.onglet,m.nom]); });
+  l.push(['integ','Intégrations']);
   el('tabs').innerHTML=l.map(function(t){
     var p=(t[0]==='cmd'&&NOUVELLES)?'<i class="pastille">'+NOUVELLES+'</i>':'';
     return '<button data-t="'+t[0]+'"'+(ONGLET===t[0]?' class="on"':'')+'>'+esc(t[1])+p+'</button>';}).join('');
@@ -304,6 +317,70 @@ function rendre(){
   else if(ONGLET==='lco')  { v.innerHTML=vueLco();       brancherChamps(); }
   else if(ONGLET==='recos'){ v.innerHTML=vueRecos();     brancherRecos(); }
   else if(ONGLET==='infos'){ v.innerHTML=vueInfos();     brancherInfos(); }
+  else if(ONGLET==='integ'){ v.innerHTML=vueIntegrations(); brancherIntegrations(); }
+}
+
+/* --- integrations ---
+   L'ecran est dessine depuis la table integrations : en ajouter une plus tard
+   ne demande qu'une ligne en base, pas une nouvelle version de cette page. */
+function chargerIntegrations(){
+  return Promise.all([
+    api('/rest/v1/integrations?select=*&order=ordre'),
+    api('/rest/v1/hotel_integrations?select=*&hotel_id=eq.'+HOTEL.id)
+  ]).then(function(r){
+    CATALOGUE=r[0]||[]; BRANCHE={};
+    (r[1]||[]).forEach(function(x){ BRANCHE[x.code]=x; });
+  });
+}
+function vueIntegrations(){
+  var dispo=CATALOGUE.filter(function(i){return i.disponible;});
+  var plus =CATALOGUE.filter(function(i){return !i.disponible;});
+  return '<section><h2>Intégrations</h2>'
+    +'<p class="hint">Branchez vos outils. Rien n\'est obligatoire : ce que vous laissez vide '
+    +'reste simplement inactif dans le livret.</p>'
+    +dispo.map(carteInteg).join('')
+    +(plus.length?'<h3 style="font-size:13px;font-weight:700;margin:26px 0 10px;color:var(--ink-3);'
+      +'letter-spacing:.04em;text-transform:uppercase">Bientôt</h3>'+plus.map(carteInteg).join(''):'')
+    +'</section>';
+}
+function carteInteg(i){
+  var v=BRANCHE[i.code]||{}, rempli=!!v.valeur, off=!i.disponible;
+  return '<div class="bloc integ'+(off?' off':'')+'" data-i="'+esc(i.code)+'">'
+    +'<div class="integ-h"><b>'+esc(i.nom)+'</b>'
+    +(off?'<span class="etat attente">Bientôt</span>'
+        :(rempli&&v.actif!==false?'<span class="etat on">Actif</span>'
+        :(rempli?'<span class="etat off2">En pause</span>':'<span class="etat vide2">Non branché</span>')))
+    +'</div>'
+    +'<p class="integ-d">'+esc(i.description||'')+'</p>'
+    +(off?'':'<input data-v type="'+(i.gabarit==='email'?'email':'text')+'" '
+      +'placeholder="'+esc(i.exemple||'')+'" value="'+esc(v.valeur||'')+'">'
+      +'<div class="integ-err"></div>'
+      +(i.aide?'<div class="integ-a">'+esc(i.aide)+'</div>':'')
+      +(rempli?'<label class="sw" style="margin-top:10px"><input type="checkbox" data-on'
+        +(v.actif!==false?' checked':'')+'> Activé</label>':''))
+    +(i.publique===false&&!off?'<div class="integ-a" style="margin-top:8px">'
+      +'🔒 Cette information reste entre vous et nous, elle n\'apparaît jamais dans le livret.</div>':'')
+    +'</div>';
+}
+function brancherIntegrations(){
+  el('vue').querySelectorAll('[data-i]').forEach(function(b){
+    var code=b.dataset.i, champ=b.querySelector('[data-v]'), err=b.querySelector('.integ-err');
+    function ecrire(corps,input){
+      if(err){ err.textContent=''; err.style.display='none'; }
+      /* Un upsert : la ligne peut ne pas exister encore. */
+      corps.hotel_id=HOTEL.id; corps.code=code;
+      return api('/rest/v1/hotel_integrations',{method:'POST',body:corps,
+          prefer:'resolution=merge-duplicates,return=representation'})
+        .then(function(rows){ if(rows&&rows[0]) BRANCHE[code]=rows[0];
+          flash(input,true); rendre(); })
+        .catch(function(e){ flash(input,false);
+          if(err){ err.textContent=e.message; err.style.display='block'; } });
+    }
+    if(champ) champ.onchange=function(){
+      ecrire({valeur:champ.value.trim()||null, actif:true}, champ); };
+    var on=b.querySelector('[data-on]');
+    if(on) on.onchange=function(){ ecrire({valeur:(BRANCHE[code]||{}).valeur, actif:on.checked}, null); };
+  });
 }
 
 /* Edition d'une ligne d'une table annexe : un PATCH par champ modifie. */

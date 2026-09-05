@@ -842,7 +842,7 @@ function lhPdjStep(n){
 var lhPdjDays=[];
 var LH_DAYS={"fr":["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"],"en":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"de":["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],"es":["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"],"it":["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"],"pt":["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"],"nl":["Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"],"ru":["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"],"zh":["星期日","星期一","星期二","星期三","星期四","星期五","星期六"],"ja":["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"],"ko":["일요일","월요일","화요일","수요일","목요일","금요일","토요일"],"ar":["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],"pl":["Niedziela","Poniedziałek","Wtorek","Środa","Czwartek","Piątek","Sobota"],"ro":["Duminică","Luni","Marți","Miercuri","Joi","Vineri","Sâmbătă"],"sv":["Söndag","Måndag","Tisdag","Onsdag","Torsdag","Fredag","Lördag"],"da":["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"],"fi":["Sunnuntai","Maanantai","Tiistai","Keskiviikko","Torstai","Perjantai","Lauantai"],"no":["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"],"cs":["Neděle","Pondělí","Úterý","Středa","Čtvrtek","Pátek","Sobota"],"hu":["Vasárnap","Hétfő","Kedd","Szerda","Csütörtök","Péntek","Szombat"],"el":["Κυριακή","Δευτέρα","Τρίτη","Τετάρτη","Πέμπτη","Παρασκευή","Σάββατο"],"tr":["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"],"uk":["Неділя","Понеділок","Вівторок","Середа","Четвер","П'ятниця","Субота"],"he":["יום ראשון","יום שני","יום שלישי","יום רביעי","יום חמישי","יום שישי","שבת"],"hi":["रविवार","सोमवार","मंगलवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"],"th":["วันอาทิตย์","วันจันทร์","วันอังคาร","วันพุธ","วันพฤหัสบดี","วันศุกร์","วันเสาร์"],"vi":["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"],"id":["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"]};
 function lhJours(){return LH_DAYS[LH_LANG]||LH_DAYS.en;}
-var lhPdjPayMethod='stripe';
+var lhPdjPayMethod='place';   /* bascule sur 'stripe' seulement si l'hotel a branche un lien */
 var lhPdjPrepaid=0;
 var lhPdjPrepaidEnfant=0;
 var lhPdjClientData={};
@@ -1063,7 +1063,19 @@ function lhBuildRecap(){
 }
 
 /* PAYMENT MODE */
+/* Intégrations branchées par l'hôtelier depuis son espace (valeurs publiques
+   uniquement : le serveur ne descend jamais les autres). */
+var LH_INTEG={};
+/* Sans lien de paiement configuré, on n'affiche pas « payer maintenant » :
+   le client ne doit pas croire qu'il a réglé alors que rien n'est encaissé. */
+function lhApplyPaiement(){
+  var possible=!!(LH_INTEG && LH_INTEG.stripe_lien);
+  var s=document.getElementById('lh-pay-stripe');
+  if(s) s.style.display=possible?'':'none';
+  if(!possible && lhPdjPayMethod==='stripe') lhPdjPayMode('place');
+}
 function lhPdjPayMode(mode){
+  if(mode==='stripe' && !(LH_INTEG && LH_INTEG.stripe_lien)) mode='place';
   lhPdjPayMethod=mode;
   var s=document.getElementById('lh-pay-stripe');
   var p=document.getElementById('lh-pay-place');
@@ -1153,6 +1165,14 @@ function lhConfirmPdj(){
       p_client:{chambre:room, nom:nom, prenom:prenom, email:email, note:detail, langue:LH_LANG}})
   }).then(function(r){ return r.json(); }).then(function(d){
     if(!d || d.ok!==true) return echec((d&&d.message)||lhT('cmdError'));
+    /* Paiement en ligne : la commande est enregistrée, on envoie le client
+       sur le lien de l'hôtel en y attachant la référence pour le rapprochement. */
+    if(effectivePay==='stripe' && LH_INTEG && LH_INTEG.stripe_lien){
+      var u=LH_INTEG.stripe_lien+(LH_INTEG.stripe_lien.indexOf('?')<0?'?':'&')
+        +'client_reference_id='+encodeURIComponent(d.reference)
+        +(email?'&prefilled_email='+encodeURIComponent(email):'');
+      location.href=u; return;
+    }
     var nb=lhPdjDays.length;
     var head='<div style="font-size:32px;margin-bottom:12px">✓</div>'
       +'<strong style="color:var(--c-primary);font-size:15px">'+lhT('reservationConfirmedTitle')+'</strong><br><br>';
@@ -2901,6 +2921,7 @@ function lhApplyHotel(d){
   lhApplyContact(); lhApplyPdjPrices();
   if(d.late_prix!==undefined && d.late_prix!==null) LH_LATE_PRICE=d.late_prix;
   if(d.late_exemple!==undefined) LH_LATE_EXEMPLE=d.late_exemple;
+  if(d.integrations){ LH_INTEG=d.integrations; lhApplyPaiement(); }
   var ey=document.querySelector('#scr-home .hero-ey'); if(ey&&d.nom) ey.textContent=d.nom+(d.lieu?' · '+d.lieu:'');
   var dey=document.getElementById('lh-dt-hotel'); if(dey&&d.nom) dey.textContent=d.nom+(d.lieu?' · '+d.lieu:'');
   /* Champs texte lus directement depuis la ligne Supabase (vide = vide) */
@@ -3063,6 +3084,7 @@ function lhFetchHotel(slug){
         telephone:hotel.telephone, email:hotel.email, lien_avis:hotel.lien_avis,
         pdj_prix_adulte:hotel.pdj_prix_adulte, pdj_prix_enfant:hotel.pdj_prix_enfant,
         late_prix:hotel.late_prix, late_exemple:hotel.late_exemple,
+        integrations:d.integrations||{},
         social:{instagram:hotel.social_instagram,facebook:hotel.social_facebook,linkedin:hotel.social_linkedin,youtube:hotel.social_youtube,tiktok:hotel.social_tiktok,twitter:hotel.social_twitter},
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:lhMergeRows(res[0], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,code:e.code,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
