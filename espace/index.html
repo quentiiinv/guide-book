@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Espace hôtelier · SolvIA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --ink:#2a2118; --ink-2:#6b6154; --ink-3:#9b9184;
+  --cream:#faf8f5; --white:#fff; --line:#e8e2d9; --line-2:#d6cec2;
+  --brand:#5b4a35; --brand-soft:#f0eae0;
+  --ok:#2f7d5b; --ok-soft:#e7f2ec;
+  --warn:#8a6524; --warn-soft:#faf1e0;
+  --crit:#a3372f; --crit-soft:#fbeceb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);
+  font-family:Montserrat,system-ui,sans-serif;font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+.hide{display:none!important}
+
+/* connexion */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:var(--white);border-radius:18px;padding:32px 28px;width:100%;max-width:400px;
+  box-shadow:0 10px 40px rgba(42,33,24,.08)}
+.card h1{margin:0 0 6px;font-size:21px;font-weight:800;letter-spacing:-.02em}
+.card .sub{color:var(--ink-2);font-size:14px;margin:0 0 22px}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 6px}
+input[type=text],input[type=email],input[type=number],input[type=url],textarea,select{
+  width:100%;padding:11px 13px;border:1px solid var(--line-2);border-radius:10px;
+  background:var(--white);margin-bottom:14px}
+textarea{min-height:88px;resize:vertical;line-height:1.55}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:transparent}
+.btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:12px 18px;
+  font-weight:700;font-size:14px;width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+.btn-2{background:var(--white);color:var(--ink);border:1px solid var(--line-2);
+  border-radius:9px;padding:8px 14px;font-weight:600;font-size:13px;width:auto}
+.msg{border-radius:9px;padding:10px 12px;font-size:13.5px;margin-bottom:14px;line-height:1.5}
+.msg.err{background:var(--crit-soft);color:var(--crit)}
+.msg.ok{background:var(--ok-soft);color:var(--ok)}
+
+/* application */
+header{background:var(--brand);color:#fff;padding:14px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+header .nm{font-weight:800;font-size:16px;letter-spacing:-.01em}
+header .sp{margin-left:auto;display:flex;gap:10px;align-items:center}
+header a,header button.lnk{color:#fff;background:none;border:none;font-size:13px;
+  font-weight:600;text-decoration:none;opacity:.85;padding:4px}
+header a:hover,header button.lnk:hover{opacity:1}
+nav.tabs{background:var(--white);border-bottom:1px solid var(--line);
+  display:flex;gap:2px;overflow-x:auto;padding:0 12px;position:sticky;top:53px;z-index:19}
+nav.tabs button{background:none;border:none;padding:13px 14px;font-size:13.5px;font-weight:600;
+  color:var(--ink-2);border-bottom:2px solid transparent;white-space:nowrap}
+nav.tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
+main{max-width:820px;margin:0 auto;padding:22px 18px 80px}
+section h2{font-size:17px;font-weight:800;margin:0 0 3px;letter-spacing:-.015em}
+section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
+.bloc{background:var(--white);border:1px solid var(--line);border-radius:14px;
+  padding:20px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.saved{font-size:12px;color:var(--ok);font-weight:600;opacity:0;transition:opacity .25s}
+.saved.on{opacity:1}
+
+/* commandes */
+.cmd{background:var(--white);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin-bottom:12px}
+.cmd.nouvelle{border-left:4px solid var(--warn)}
+.cmd-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.cmd-ch{font-size:17px;font-weight:800}
+.cmd-ref{font-size:11.5px;color:var(--ink-3);font-weight:600;letter-spacing:.04em}
+.cmd-tot{margin-left:auto;font-size:17px;font-weight:800}
+.cmd-li{font-size:14px;color:var(--ink-2);padding:3px 0}
+.cmd-ft{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 8px;border-radius:20px}
+.tag.nouvelle{background:var(--warn-soft);color:var(--warn)}
+.tag.vue{background:var(--brand-soft);color:var(--brand)}
+.tag.preparee{background:var(--brand-soft);color:var(--brand)}
+.tag.servie{background:var(--ok-soft);color:var(--ok)}
+.tag.annulee{background:var(--crit-soft);color:var(--crit)}
+.vide{text-align:center;color:var(--ink-3);padding:40px 20px;font-size:14.5px}
+
+/* listes editables */
+.item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;
+  background:var(--white)}
+.item-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.item-h .em{font-size:20px}
+.item-h .nm{font-weight:700;flex:1}
+.sw{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);
+  font-weight:600;cursor:pointer}
+.sw input{margin:0;width:auto}
+.rm{background:none;border:none;color:var(--crit);font-size:12.5px;font-weight:600;padding:4px}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="card">
+    <h1>Espace hôtelier</h1>
+    <p class="sub">Recevez un lien de connexion par email. Pas de mot de passe à retenir.</p>
+    <div id="lg-msg"></div>
+    <label for="lg-mail">Votre adresse email</label>
+    <input id="lg-mail" type="email" placeholder="vous@votre-hotel.fr" autocomplete="email">
+    <button class="btn" id="lg-go">Recevoir mon lien</button>
+  </div>
+</div>
+
+<div id="app" class="hide">
+  <header>
+    <span class="nm" id="hd-nom">…</span>
+    <span class="sp">
+      <a id="hd-livret" href="#" target="_blank" rel="noopener">Voir mon livret</a>
+      <button class="lnk" id="hd-out">Déconnexion</button>
+    </span>
+  </header>
+  <nav class="tabs">
+    <button data-t="cmd" class="on">Commandes</button>
+    <button data-t="etab">Mon établissement</button>
+    <button data-t="pdj">Petit-déjeuner</button>
+    <button data-t="resto">Restaurant</button>
+    <button data-t="extras">Petites attentions</button>
+  </nav>
+  <main>
+    <section id="s-cmd">
+      <h2>Commandes</h2>
+      <p class="hint">Les demandes de vos clients, la plus récente en premier.</p>
+      <div id="cmd-liste"></div>
+    </section>
+
+    <section id="s-etab" class="hide">
+      <h2>Mon établissement</h2>
+      <p class="hint">Les informations affichées en haut de votre livret.</p>
+      <div class="bloc">
+        <div class="grid2">
+          <div><label>Nom</label><input data-f="nom" type="text"></div>
+          <div><label>Ville</label><input data-f="lieu" type="text"></div>
+          <div><label>Téléphone</label><input data-f="telephone" type="text"></div>
+          <div><label>Email</label><input data-f="email" type="email"></div>
+          <div><label>Heure d'arrivée</label><input data-f="checkin" type="text" placeholder="15:00"></div>
+          <div><label>Heure de départ</label><input data-f="checkout_std" type="text" placeholder="11:00"></div>
+          <div><label>Nom du réseau Wi-Fi</label><input data-f="wifi_reseau" type="text"></div>
+          <div><label>Mot de passe Wi-Fi</label><input data-f="wifi_motdepasse" type="text"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="s-pdj" class="hide">
+      <h2>Petit-déjeuner</h2>
+      <p class="hint">Sans prix renseigné, vos clients ne peuvent pas le commander.</p>
+      <div class="bloc">
+        <div class="grid2">
+          <div><label>Prix adulte (€)</label><input data-f="pdj_prix_adulte" type="number" step="0.5"></div>
+          <div><label>Prix enfant (€)</label><input data-f="pdj_prix_enfant" type="number" step="0.5"></div>
+        </div>
+        <label>Horaires</label><input data-f="pdj_horaire" type="text" placeholder="7h00 – 10h30">
+        <label>Description</label><textarea data-f="pdj_description"></textarea>
+      </div>
+    </section>
+
+    <section id="s-resto" class="hide">
+      <h2>Restaurant</h2>
+      <p class="hint">Laissez vide si vous n'avez pas de restaurant.</p>
+      <div class="bloc">
+        <label>Nom</label><input data-r="nom" type="text">
+        <label>Accroche</label><input data-r="eyebrow" type="text">
+        <label>Description</label><textarea data-r="description"></textarea>
+        <div class="grid2">
+          <div><label>Lien de réservation</label><input data-f="resto_lien_reservation" type="text"></div>
+          <div><label>Lien de la carte</label><input data-f="resto_lien_menu" type="text"></div>
+        </div>
+        <label style="margin-top:6px">Horaires par jour</label>
+        <div id="resto-jours"></div>
+      </div>
+    </section>
+
+    <section id="s-extras" class="hide">
+      <h2>Petites attentions</h2>
+      <p class="hint">Ce que vos clients peuvent commander depuis leur chambre.</p>
+      <div id="ex-liste"></div>
+      <button class="btn-2" id="ex-add">Ajouter une attention</button>
+    </section>
+  </main>
+</div>
+
+<script>
+var SUPA='https://nocifyylfyafbfppmykp.supabase.co';
+var KEY='sb_publishable_OKNvEE9qH7CMfjMXBmItNA_gSed6gjJ';
+var JOURS=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+var TOK=null, HOTEL=null, EXTRAS=[];
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function el(id){return document.getElementById(id);}
+function msg(box,txt,type){el(box).innerHTML=txt?'<div class="msg '+type+'">'+esc(txt)+'</div>':'';}
+
+function api(chemin,opt){
+  opt=opt||{};
+  var h={'apikey':KEY,'content-type':'application/json'};
+  if(TOK) h['authorization']='Bearer '+TOK;
+  if(opt.prefer) h['prefer']=opt.prefer;
+  return fetch(SUPA+chemin,{method:opt.method||'GET',headers:h,
+    body:opt.body?JSON.stringify(opt.body):undefined})
+    .then(function(r){ return r.text().then(function(t){
+      var d=null; try{d=t?JSON.parse(t):null;}catch(e){}
+      if(!r.ok){ var e=new Error((d&&(d.message||d.error_description))||'Erreur '+r.status); e.status=r.status; throw e; }
+      return d; }); });
+}
+
+/* ---------- connexion ---------- */
+el('lg-go').onclick=function(){
+  var mail=(el('lg-mail').value||'').trim();
+  if(!mail || mail.indexOf('@')<1) return msg('lg-msg','Merci d\'indiquer une adresse email valide.','err');
+  var b=this; b.disabled=true; b.textContent='Envoi…'; msg('lg-msg','','');
+  api('/auth/v1/otp',{method:'POST',body:{email:mail,create_user:true,
+      options:{email_redirect_to:location.origin+location.pathname}}})
+    .then(function(){ msg('lg-msg','Lien envoyé. Ouvrez votre boîte mail, il est valable 1 heure.','ok');
+      b.textContent='Lien envoyé'; })
+    .catch(function(e){ msg('lg-msg',e.message||'Envoi impossible.','err');
+      b.disabled=false; b.textContent='Recevoir mon lien'; });
+};
+el('hd-out').onclick=function(){ localStorage.removeItem('solvia_tok'); location.href=location.pathname; };
+
+function jetonDepuisUrl(){
+  var h=location.hash||''; if(h.indexOf('access_token=')<0) return null;
+  var p={}; h.replace(/^#/,'').split('&').forEach(function(kv){
+    var i=kv.indexOf('='); p[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1)); });
+  return p.access_token||null;
+}
+
+/* ---------- chargement ---------- */
+function demarrer(){
+  TOK=jetonDepuisUrl()||localStorage.getItem('solvia_tok');
+  if(!TOK) return;
+  localStorage.setItem('solvia_tok',TOK);
+  history.replaceState(null,'',location.pathname);
+  api('/rest/v1/hotels?select=*&limit=1').then(function(rows){
+    if(!rows||!rows.length){
+      msg('lg-msg','Ce compte n\'est rattaché à aucun établissement. Contactez SolvIA.','err');
+      localStorage.removeItem('solvia_tok'); TOK=null; return;
+    }
+    HOTEL=rows[0];
+    el('login').classList.add('hide'); el('app').classList.remove('hide');
+    el('hd-nom').textContent=HOTEL.nom||'Mon établissement';
+    el('hd-livret').href='https://guide.solvia.pro/?slug='+encodeURIComponent(HOTEL.slug);
+    remplirChamps(); chargerExtras(); chargerCommandes();
+  }).catch(function(e){
+    if(e.status===401){ localStorage.removeItem('solvia_tok'); TOK=null; return; }
+    msg('lg-msg',e.message,'err');
+  });
+}
+
+/* ---------- onglets ---------- */
+document.querySelectorAll('nav.tabs button').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('nav.tabs button').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on');
+    ['cmd','etab','pdj','resto','extras'].forEach(function(t){
+      el('s-'+t).classList.toggle('hide', t!==b.dataset.t); });
+    if(b.dataset.t==='cmd') chargerCommandes();
+  };
+});
+
+/* ---------- fiche : enregistrement au fil de l'eau ---------- */
+function remplirChamps(){
+  document.querySelectorAll('[data-f]').forEach(function(i){
+    var v=HOTEL[i.dataset.f]; i.value=(v==null?'':v);
+    i.onchange=function(){ enregistrer(i.dataset.f, i.type==='number'
+      ? (i.value===''?null:parseFloat(i.value)) : (i.value.trim()||null), i); };
+  });
+  var r=HOTEL.restaurant||{};
+  document.querySelectorAll('[data-r]').forEach(function(i){
+    i.value=r[i.dataset.r]||'';
+    i.onchange=function(){ var o=HOTEL.restaurant||{}; o[i.dataset.r]=i.value.trim()||null;
+      enregistrer('restaurant',o,i); };
+  });
+  var jours=(r.jours&&r.jours.length)?r.jours:JOURS.map(function(j){return {jour:j,horaire:''};});
+  el('resto-jours').innerHTML=jours.map(function(j,n){
+    return '<div style="display:flex;gap:10px;align-items:center;margin-bottom:7px">'
+      +'<span style="width:88px;font-size:13.5px;color:var(--ink-2);font-weight:600">'+esc(j.jour)+'</span>'
+      +'<input type="text" data-j="'+n+'" value="'+esc(j.horaire||'')+'" placeholder="Fermé" style="margin:0">'
+      +'</div>';}).join('');
+  el('resto-jours').querySelectorAll('[data-j]').forEach(function(i){
+    i.onchange=function(){
+      var o=HOTEL.restaurant||{}; o.jours=jours.map(function(j,n){
+        var f=el('resto-jours').querySelector('[data-j="'+n+'"]');
+        return {jour:j.jour, horaire:(f.value||'').trim()||'Fermé'}; });
+      enregistrer('restaurant',o,i); };
+  });
+}
+
+function enregistrer(champ,valeur,input){
+  var patch={}; patch[champ]=valeur;
+  api('/rest/v1/hotels?id=eq.'+HOTEL.id,{method:'PATCH',body:patch,prefer:'return=representation'})
+    .then(function(rows){ if(rows&&rows[0]) HOTEL=rows[0]; flash(input,true); })
+    .catch(function(){ flash(input,false); });
+}
+function flash(input,ok){
+  if(!input) return;
+  input.style.transition='border-color .2s';
+  input.style.borderColor = ok ? 'var(--ok)' : 'var(--crit)';
+  setTimeout(function(){ input.style.borderColor=''; }, 1200);
+}
+
+/* ---------- extras ---------- */
+function chargerExtras(){
+  api('/rest/v1/hotel_extras?select=*&hotel_id=eq.'+HOTEL.id+'&order=ordre').then(function(l){
+    EXTRAS=l||[]; rendreExtras(); });
+}
+function rendreExtras(){
+  if(!EXTRAS.length){ el('ex-liste').innerHTML='<div class="vide">Aucune attention pour le moment.</div>'; return; }
+  el('ex-liste').innerHTML=EXTRAS.map(function(x){
+    return '<div class="item" data-x="'+x.id+'">'
+      +'<div class="item-h"><span class="em">'+esc(x.emoji||'✨')+'</span>'
+      +'<span class="nm">'+esc(x.nom||'Sans nom')+'</span>'
+      +'<button class="rm" data-del="'+x.id+'">Supprimer</button></div>'
+      +'<div class="grid2">'
+      +'<div><label>Nom</label><input data-k="nom" type="text" value="'+esc(x.nom||'')+'"></div>'
+      +'<div><label>Prix (€)</label><input data-k="prix" type="number" step="0.5" value="'+(x.prix==null?'':x.prix)+'"></div>'
+      +'</div>'
+      +'<label>Description</label><textarea data-k="description">'+esc(x.description||'')+'</textarea>'
+      +'<label class="sw"><input type="checkbox" data-k="actif"'+(x.actif!==false?' checked':'')+'> Proposé aux clients</label>'
+      +'</div>';}).join('');
+  el('ex-liste').querySelectorAll('.item').forEach(function(bloc){
+    var id=bloc.dataset.x;
+    bloc.querySelectorAll('[data-k]').forEach(function(i){
+      i.onchange=function(){
+        var v = i.type==='checkbox' ? i.checked
+              : i.type==='number' ? (i.value===''?null:parseFloat(i.value))
+              : (i.value.trim()||null);
+        var patch={}; patch[i.dataset.k]=v;
+        api('/rest/v1/hotel_extras?id=eq.'+id,{method:'PATCH',body:patch})
+          .then(function(){ flash(i,true); }).catch(function(){ flash(i,false); });
+      };
+    });
+    bloc.querySelector('[data-del]').onclick=function(){
+      if(!confirm('Supprimer cette attention ?')) return;
+      api('/rest/v1/hotel_extras?id=eq.'+id,{method:'DELETE'}).then(chargerExtras);
+    };
+  });
+}
+el('ex-add').onclick=function(){
+  api('/rest/v1/hotel_extras',{method:'POST',prefer:'return=representation',
+    body:{hotel_id:HOTEL.id,nom:'Nouvelle attention',prix:0,emoji:'✨',
+          ordre:EXTRAS.length,actif:false}})
+    .then(chargerExtras).catch(function(e){ alert(e.message); });
+};
+
+/* ---------- commandes ---------- */
+function chargerCommandes(){
+  if(!HOTEL) return;
+  api('/rest/v1/commandes?select=*,commande_lignes(*)&order=created_at.desc&limit=60')
+    .then(function(l){ rendreCommandes(l||[]); })
+    .catch(function(e){ el('cmd-liste').innerHTML='<div class="vide">'+esc(e.message)+'</div>'; });
+}
+var LIB={nouvelle:'Nouvelle',vue:'Vue',preparee:'Préparée',servie:'Servie',annulee:'Annulée'};
+function rendreCommandes(l){
+  if(!l.length){ el('cmd-liste').innerHTML='<div class="vide">Aucune commande pour le moment.<br>'
+    +'Elles apparaîtront ici dès qu\'un client en passera une depuis son livret.</div>'; return; }
+  el('cmd-liste').innerHTML=l.map(function(c){
+    var d=new Date(c.created_at);
+    var quand=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+' à '
+             +d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    var lignes=(c.commande_lignes||[]).map(function(x){
+      var q=x.type==='pdj' ? (x.nb_adulte+' adulte(s)'+(x.nb_enfant?', '+x.nb_enfant+' enfant(s)':''))
+                           : ('x'+x.quantite);
+      return '<div class="cmd-li">'+esc(x.libelle)+' · '+esc(q)
+        +(x.date_service?' · '+esc(x.date_service):'')+' — '+x.total+' €</div>';}).join('');
+    return '<div class="cmd '+(c.statut==='nouvelle'?'nouvelle':'')+'">'
+      +'<div class="cmd-h"><span class="cmd-ch">Chambre '+esc(c.chambre||'?')+'</span>'
+      +'<span class="cmd-ref">'+esc(c.reference)+' · '+quand+'</span>'
+      +'<span class="cmd-tot">'+c.total+' €</span></div>'
+      +lignes
+      +(c.nom||c.email ? '<div class="cmd-li" style="margin-top:6px">'+esc([c.nom,c.email].filter(Boolean).join(' · '))+'</div>' : '')
+      +'<div class="cmd-ft"><span class="tag '+esc(c.statut)+'">'+esc(LIB[c.statut]||c.statut)+'</span>'
+      +(c.statut!=='servie'&&c.statut!=='annulee'
+        ? '<button class="btn-2" data-st="preparee" data-id="'+c.id+'">Préparée</button>'
+          +'<button class="btn-2" data-st="servie" data-id="'+c.id+'">Servie</button>'
+          +'<button class="btn-2" data-st="annulee" data-id="'+c.id+'">Annuler</button>' : '')
+      +'<span style="margin-left:auto;font-size:12.5px;color:var(--ink-3)">à régler sur place</span>'
+      +'</div></div>';}).join('');
+  el('cmd-liste').querySelectorAll('[data-st]').forEach(function(b){
+    b.onclick=function(){
+      b.disabled=true;
+      api('/rest/v1/commandes?id=eq.'+b.dataset.id,{method:'PATCH',
+        body:{statut:b.dataset.st,updated_at:new Date().toISOString()}})
+        .then(chargerCommandes).catch(function(e){ alert(e.message); b.disabled=false; });
+    };
+  });
+}
+
+demarrer();
+</script>
+</body>
+</html>
