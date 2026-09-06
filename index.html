@@ -1069,13 +1069,68 @@ var LH_INTEG={};
 /* Sans lien de paiement configuré, on n'affiche pas « payer maintenant » :
    le client ne doit pas croire qu'il a réglé alors que rien n'est encaissé. */
 function lhApplyPaiement(){
-  var possible=!!(LH_INTEG && LH_INTEG.stripe_lien);
+  var possible=lhPaiementPossible();
   var s=document.getElementById('lh-pay-stripe');
   if(s) s.style.display=possible?'':'none';
   if(!possible && lhPdjPayMethod==='stripe') lhPdjPayMode('place');
 }
+/* Soit l'hôtel a confié sa clé (montant exact, voie normale), soit il n'a
+   qu'un lien de paiement à montant fixe (dépannage). */
+function lhPaiementPossible(){
+  return !!(LH_INTEG && (LH_INTEG.stripe_actif || LH_INTEG.stripe_lien));
+}
+/* Le montant n'est pas envoyé d'ici : le serveur le relit en base à partir de
+   la référence, puis crée la page de paiement avec la clé de l'hôtel. */
+function lhPayerEnLigne(reference, siEchec){
+  if(LH_INTEG && LH_INTEG.stripe_actif){
+    fetch(LH_SUPA_URL+'/functions/v1/paiement',{
+      method:'POST',
+      headers:{'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY,'content-type':'application/json'},
+      body:JSON.stringify({slug:LH_SLUG, reference:reference, retour:location.origin+location.pathname})
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(d && d.url){ location.href=d.url; return; }
+      siEchec((d&&d.erreur)||lhT('cmdError'));
+    }).catch(function(){ siEchec(lhT('cmdError')); });
+    return;
+  }
+  /* Repli : lien à montant fixe, avec la référence pour le rapprochement. */
+  var l=LH_INTEG&&LH_INTEG.stripe_lien;
+  if(!l) return siEchec(lhT('cmdError'));
+  location.href=l+(l.indexOf('?')<0?'?':'&')+'client_reference_id='+encodeURIComponent(reference);
+}
+/* Retour depuis Stripe : on ne croit pas le paramètre d'URL, on redemande au
+   serveur si le paiement est bien encaissé. */
+function lhRetourPaiement(){
+  var p=new URLSearchParams(location.search);
+  var etat=p.get('paiement'), ref=p.get('ref');
+  if(!etat||!ref) return;
+  history.replaceState({},'',location.pathname+(LH_SLUG?'?slug='+encodeURIComponent(LH_SLUG):''));
+  if(etat!=='ok') return;
+  fetch(LH_SUPA_URL+'/functions/v1/paiement',{
+    method:'POST',
+    headers:{'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY,'content-type':'application/json'},
+    body:JSON.stringify({action:'verifier', slug:LH_SLUG, reference:ref})
+  }).then(function(r){ return r.json(); }).then(function(d){
+    lhMessagePaiement(ref, !!(d&&d.paye));
+  }).catch(function(){ lhMessagePaiement(ref, false); });
+}
+function lhMessagePaiement(ref, paye){
+  var m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(var(--c-primary-rgb),0.75);z-index:9999;'
+    +'display:flex;align-items:center;justify-content:center;padding:24px';
+  m.innerHTML='<div style="background:var(--c-cream);border-radius:20px;padding:30px 24px;max-width:340px;'
+    +'text-align:center;font-family:Montserrat,sans-serif">'
+    +'<div style="font-size:40px;margin-bottom:10px">'+(paye?'✓':'⏳')+'</div>'
+    +'<div style="font-size:16px;font-weight:700;color:var(--c-primary);margin-bottom:8px">'
+    +lhT(paye?'payConfirmed':'cmdOk')+'</div>'
+    +'<div style="font-size:20px;font-weight:700;color:var(--c-primary);letter-spacing:.04em;margin-bottom:16px">'
+    +lhEsc(ref)+'</div>'
+    +'<button class="lh-submit-dk" style="max-width:200px;margin:0 auto">'+lhT('payThanks')+'</button></div>';
+  (document.getElementById('lh-app')||document.body).appendChild(m);
+  m.querySelector('button').onclick=function(){ m.remove(); };
+}
 function lhPdjPayMode(mode){
-  if(mode==='stripe' && !(LH_INTEG && LH_INTEG.stripe_lien)) mode='place';
+  if(mode==='stripe' && !lhPaiementPossible()) mode='place';
   lhPdjPayMethod=mode;
   var s=document.getElementById('lh-pay-stripe');
   var p=document.getElementById('lh-pay-place');
@@ -1165,14 +1220,9 @@ function lhConfirmPdj(){
       p_client:{chambre:room, nom:nom, prenom:prenom, email:email, note:detail, langue:LH_LANG}})
   }).then(function(r){ return r.json(); }).then(function(d){
     if(!d || d.ok!==true) return echec((d&&d.message)||lhT('cmdError'));
-    /* Paiement en ligne : la commande est enregistrée, on envoie le client
-       sur le lien de l'hôtel en y attachant la référence pour le rapprochement. */
-    if(effectivePay==='stripe' && LH_INTEG && LH_INTEG.stripe_lien){
-      var u=LH_INTEG.stripe_lien+(LH_INTEG.stripe_lien.indexOf('?')<0?'?':'&')
-        +'client_reference_id='+encodeURIComponent(d.reference)
-        +(email?'&prefilled_email='+encodeURIComponent(email):'');
-      location.href=u; return;
-    }
+    /* Paiement en ligne : la commande est enregistrée d'abord, puis le serveur
+       ouvre une page Stripe du montant exact sur le compte de l'hôtel. */
+    if(effectivePay==='stripe'){ lhPayerEnLigne(d.reference, echec); return; }
     var nb=lhPdjDays.length;
     var head='<div style="font-size:32px;margin-bottom:12px">✓</div>'
       +'<strong style="color:var(--c-primary);font-size:15px">'+lhT('reservationConfirmedTitle')+'</strong><br><br>';
@@ -3095,6 +3145,7 @@ function lhFetchHotel(slug){
         infos:lhBuildInfos(hotel.amenities, res[3], hid)
       });
       lhShowLoading(false);                       /* contenu prêt : on retire le chargement */
+      lhRetourPaiement();                         /* de retour depuis Stripe ? */
       }
     }).catch(function(){
       /* réseau bloqué : si on n'a pas déjà le snapshot L'Harmony, on montre l'écran introuvable */

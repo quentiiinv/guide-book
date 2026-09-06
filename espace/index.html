@@ -143,6 +143,10 @@ section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .integ-a{font-size:12.5px;color:var(--ink-3);line-height:1.55}
 .integ-err{display:none;font-size:12.5px;color:var(--crit);background:var(--crit-soft);
   border-radius:8px;padding:8px 11px;margin:-4px 0 10px;line-height:1.5}
+.cle{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;letter-spacing:.08em;
+  background:var(--brand-soft);border-radius:9px;padding:10px 13px;margin-bottom:11px;color:var(--ink-2)}
+.zone{margin-top:11px}
+.zone input{margin-bottom:9px}
 
 .item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--white)}
 .item-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -215,7 +219,7 @@ var ICONES=[['parking','Parking'],['wifi','Wi-Fi'],['animaux','Animaux'],['nonfu
   ['defaut','Autre']];
 var CATEGORIES=['Restaurant','Bar','Café','Visite','Activité','Nature','Boutique'];
 var TRAJETS=[['pied','à pied'],['voiture','en voiture'],['velo','à vélo'],['transports','en transports']];
-var TOK=null, HOTEL=null, EXTRAS=[], RECOS=[], INFOS=[], CATALOGUE=[], BRANCHE={}, ONGLET='cmd';
+var TOK=null, HOTEL=null, EXTRAS=[], RECOS=[], INFOS=[], CATALOGUE=[], BRANCHE={}, SECRETS={}, ONGLET='cmd';
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -326,9 +330,10 @@ function rendre(){
 function chargerIntegrations(){
   return Promise.all([
     api('/rest/v1/integrations?select=*&order=ordre'),
-    api('/rest/v1/hotel_integrations?select=*&hotel_id=eq.'+HOTEL.id)
+    api('/rest/v1/hotel_integrations?select=*&hotel_id=eq.'+HOTEL.id),
+    api('/rest/v1/rpc/etat_secrets',{method:'POST',body:{}})
   ]).then(function(r){
-    CATALOGUE=r[0]||[]; BRANCHE={};
+    CATALOGUE=r[0]||[]; BRANCHE={}; SECRETS=r[2]||{};
     (r[1]||[]).forEach(function(x){ BRANCHE[x.code]=x; });
   });
 }
@@ -344,6 +349,7 @@ function vueIntegrations(){
     +'</section>';
 }
 function carteInteg(i){
+  if(i.gabarit==='secret') return carteSecret(i);
   var v=BRANCHE[i.code]||{}, rempli=!!v.valeur, off=!i.disponible;
   return '<div class="bloc integ'+(off?' off':'')+'" data-i="'+esc(i.code)+'">'
     +'<div class="integ-h"><b>'+esc(i.nom)+'</b>'
@@ -362,7 +368,50 @@ function carteInteg(i){
       +'🔒 Cette information reste entre vous et nous, elle n\'apparaît jamais dans le livret.</div>':'')
     +'</div>';
 }
+/* Une clé se dépose, elle ne se relit pas : on n'affiche que ses 4 derniers
+   caractères, renvoyés par le serveur. */
+function carteSecret(i){
+  var s=SECRETS[i.code];
+  return '<div class="bloc integ" data-s="'+esc(i.code)+'">'
+    +'<div class="integ-h"><b>'+esc(i.nom)+'</b>'
+    +(s?'<span class="etat on">Actif</span>':'<span class="etat vide2">Non branché</span>')+'</div>'
+    +'<p class="integ-d">'+esc(i.description||'')+'</p>'
+    +(s?'<div class="cle">•••••••••••••'+esc(s.indice||'')+'</div>'
+        +'<div class="integ-err"></div>'
+        +'<button class="btn-2" data-remplacer>Remplacer</button> '
+        +'<button class="btn-2" data-retirer>Retirer</button>'
+        +'<div class="zone hide"><input data-secret type="password" autocomplete="off" '
+        +'placeholder="'+esc(i.exemple||'')+'"><button class="btn-2" data-valider>Enregistrer</button></div>'
+      :'<input data-secret type="password" autocomplete="off" placeholder="'+esc(i.exemple||'')+'">'
+       +'<div class="integ-err"></div>')
+    +(i.aide?'<div class="integ-a">'+esc(i.aide)+'</div>':'')
+    +'<div class="integ-a" style="margin-top:8px">🔒 Déposée chiffrée. Ni le livret, ni cet écran, '
+    +'ni nous ne pouvons la relire ensuite : seul le serveur qui parle à Stripe y accède.</div>'
+    +'</div>';
+}
+function brancherSecrets(){
+  el('vue').querySelectorAll('[data-s]').forEach(function(b){
+    var code=b.dataset.s, err=b.querySelector('.integ-err');
+    function deposer(valeur,input){
+      if(err){ err.textContent=''; err.style.display='none'; }
+      return api('/rest/v1/rpc/enregistrer_secret',{method:'POST',body:{p_code:code,p_valeur:valeur}})
+        .then(function(){ return chargerIntegrations(); }).then(rendre)
+        .catch(function(e){ flash(input,false);
+          if(err){ err.textContent=e.message; err.style.display='block'; } });
+    }
+    var champ=b.querySelector('[data-secret]'), zone=b.querySelector('.zone');
+    var rempl=b.querySelector('[data-remplacer]'), ret=b.querySelector('[data-retirer]');
+    var val=b.querySelector('[data-valider]');
+    if(rempl) rempl.onclick=function(){ zone.classList.remove('hide'); champ.focus(); };
+    if(ret)   ret.onclick=function(){
+      if(confirm('Retirer cette clé ? Vos clients ne pourront plus payer par carte.')) deposer(null,null); };
+    if(val)   val.onclick=function(){ deposer(champ.value,champ); };
+    if(champ) champ.onkeydown=function(e){ if(e.key==='Enter') deposer(champ.value,champ); };
+    if(champ && !zone) champ.onchange=function(){ if(champ.value) deposer(champ.value,champ); };
+  });
+}
 function brancherIntegrations(){
+  brancherSecrets();
   el('vue').querySelectorAll('[data-i]').forEach(function(b){
     var code=b.dataset.i, champ=b.querySelector('[data-v]'), err=b.querySelector('.integ-err');
     function ecrire(corps,input){
