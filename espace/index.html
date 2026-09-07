@@ -188,6 +188,7 @@ section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .srv-pay{flex:none;font-size:12px;font-weight:700;padding:4px 9px;border-radius:20px;white-space:nowrap}
 .srv-pay.ok{background:var(--ok-soft);color:var(--ok)}
 .srv-pay.du{background:var(--warn-soft);color:var(--warn)}
+.srv-mix{flex:none;font-size:11px;color:var(--ink-3);font-weight:600;white-space:nowrap}
 .srv-b{flex:none;background:var(--white);border:1px solid var(--line-2);border-radius:9px;
   padding:9px 13px;font-size:13px;font-weight:600;white-space:nowrap}
 .srv.fait .srv-b{background:none;border-color:transparent;color:var(--ok);font-weight:700}
@@ -459,9 +460,10 @@ function rendreService(){
     h.innerHTML='<div class="vide">Aucun petit-déjeuner ce jour-là.<br>'
       +'Les réservations apparaissent ici dès qu\'un client en passe une.</div>'; return; }
 
-  var ad=0,en=0,ca=0,reste=0;
+  var ad=0,en=0,ca=0,reste=0,compris=0;
   vivantes.forEach(function(x){ ad+=x.nb_adulte||0; en+=x.nb_enfant||0;
-    ca+=Number(x.total||0); if(x.statut==='a_preparer') reste+=(x.nb_adulte||0)+(x.nb_enfant||0); });
+    ca+=Number(x.total||0); compris+=(x.nb_adulte_prepaye||0)+(x.nb_enfant_prepaye||0);
+    if(x.statut==='a_preparer') reste+=(x.nb_adulte||0)+(x.nb_enfant||0); });
 
   /* Regroupement par heure : c'est l'unité de travail en cuisine. */
   var parHeure={}, heures=[];
@@ -474,7 +476,8 @@ function rendreService(){
     +'<div><b>'+(ad+en)+'</b><span>couvert'+(ad+en>1?'s':'')+'</span></div>'
     +'<div><b>'+ad+'</b><span>adulte'+(ad>1?'s':'')+'</span></div>'
     +'<div><b>'+en+'</b><span>enfant'+(en>1?'s':'')+'</span></div>'
-    +'<div><b>'+Math.round(ca)+' €</b><span>commandé</span></div>'
+    +(compris?'<div><b>'+compris+'</b><span>compris dans le séjour</span></div>':'')
+    +'<div><b>'+Math.round(ca)+' €</b><span>à encaisser</span></div>'
     +(reste?'<div class="reste"><b>'+reste+'</b><span>à servir</span></div>':'')
     +'</div>'
     +heures.map(function(hh){
@@ -498,13 +501,18 @@ function ligneService(x){
   var servi=x.statut==='servi';
   var pax=(x.nb_adulte||0)+' adulte'+((x.nb_adulte||0)>1?'s':'')
     +((x.nb_enfant||0)?' · '+x.nb_enfant+' enfant'+(x.nb_enfant>1?'s':''):'');
+  var compris=(x.nb_adulte_prepaye||0)+(x.nb_enfant_prepaye||0);
+  var du=Number(x.total||0);
   return '<div class="srv'+(servi?' fait':'')+'">'
     +'<span class="srv-ch">'+esc(x.chambre||'?')+'</span>'
     +'<span class="srv-tx"><b>'+esc(pax)+'</b>'
     +'<span>'+esc([x.prenom,x.nom].filter(Boolean).join(' ')||x.reference)
     +(x.langue&&x.langue!=='fr'?' · '+esc(String(x.langue).toUpperCase()):'')
     +(x.note?' · '+esc(x.note):'')+'</span></span>'
-    +'<span class="srv-pay '+(x.paye?'ok':'du')+'">'+(x.paye?'réglé':Math.round(x.total)+' €')+'</span>'
+    +'<span class="srv-pay '+(x.paye||!du?'ok':'du')+'">'
+    +(du===0 ? (compris?'compris':'offert')
+             : (x.paye?'réglé':Math.round(du)+' €'))+'</span>'
+    +(compris&&du>0?'<span class="srv-mix">dont '+compris+' compris</span>':'')
     +'<button class="srv-b" data-servi="'+x.id+'" data-etat="'+esc(x.statut)+'">'
     +(servi?'Servi ✓':'Marquer servi')+'</button></div>';
 }
