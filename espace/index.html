@@ -194,6 +194,8 @@ section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
   padding:9px 6px;background:var(--white)}
 .qr-c img{width:88px;height:88px;display:block;margin:0 auto 5px;image-rendering:pixelated}
 .qr-c b{display:block;font-size:15px;font-weight:800}
+.qr-c .qr-code{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;
+  font-size:10px;letter-spacing:.06em;color:var(--ink-3)}
 .qr-c .rm{font-size:11px;padding:2px}
 .ch-add{display:flex;gap:9px;align-items:center}
 .ch-add input{margin-bottom:0}
@@ -451,10 +453,11 @@ function rendre(){
    Le lien personnel d'un client sert à deux choses : le reconnaître sans
    qu'il saisisse quoi que ce soit, et savoir combien de petits-déjeuners
    sont déjà compris dans son tarif. Tout le reste du livret marche sans. */
-function lienSejour(r){ return 'https://guide.solvia.pro/?slug='
-  +encodeURIComponent(HOTEL.slug||'')+'&token='+encodeURIComponent(r.token||''); }
-function lienChambre(numero){ return 'https://guide.solvia.pro/?slug='
-  +encodeURIComponent(HOTEL.slug||'')+'&chambre='+encodeURIComponent(numero||''); }
+/* Adresse courte : le code ne revele ni l'hotel ni la chambre, et surtout il
+   n'y a plus rien a modifier dans la barre d'adresse. */
+function lienCode(code){ return 'https://guide.solvia.pro/'+encodeURIComponent(code||''); }
+function lienSejour(r){ return lienCode(r.token); }
+function lienChambre(c){ return lienCode(c && c.code); }
 function qrData(texte,taille){
   try{ var q=qrcode(0,'M'); q.addData(texte); q.make(); return q.createDataURL(taille||4,2); }
   catch(e){ return ''; }
@@ -1159,8 +1162,8 @@ function blocChambres(){
     +'<p class="integ-a" style="margin-bottom:12px">Imprimez ces codes et posez-les '
     +'dans les chambres. Le client scanne, son numéro est déjà rempli.</p>'
     +'<div class="qrs">'+l.map(function(c){
-      return '<div class="qr-c"><img src="'+qrData(lienChambre(c.numero),4)+'" alt="">'
-        +'<b>'+esc(c.numero)+'</b>'
+      return '<div class="qr-c"><img src="'+qrData(lienChambre(c),4)+'" alt="">'
+        +'<b>'+esc(c.numero)+'</b><span class="qr-code">'+esc(c.code||'')+'</span>'
         +'<button class="rm" data-chsup="'+c.id+'">Retirer</button></div>'; }).join('')
     +(l.length?'':'<div class="integ-a">Aucune chambre pour le moment.</div>')+'</div>'
     +'<div class="ch-add"><input id="ch-num" type="text" placeholder="Numéro, ou 1-20 pour une série">'

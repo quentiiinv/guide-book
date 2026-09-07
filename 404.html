@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SolvIA</title>
+<style>
+  html,body{height:100%;margin:0;background:#faf8f5;color:#6b6154;
+    font-family:Montserrat,system-ui,sans-serif}
+  main{height:100%;display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:24px;line-height:1.6}
+  a{color:#5b4a35}
+</style>
+</head>
+<body>
+<main><div id="msg">Ouverture de votre livret…</div></main>
+<script>
+/* GitHub Pages sert cette page pour tout chemin inconnu. C'est ce qui permet
+   une adresse nue « guide.solvia.pro/MW2QH262 » : on lit le code du chemin et
+   on rejoint le livret. Un chemin qui n'est pas un code part sur l'accueil. */
+(function(){
+  var chemin = location.pathname.replace(/^\/+|\/+$/g,'');
+  var code = /^[0-9A-Za-z]{6,24}$/.test(chemin) ? chemin.toUpperCase() : '';
+  if(code){ location.replace('/?c=' + encodeURIComponent(code) + location.hash); return; }
+  document.getElementById('msg').innerHTML =
+    'Cette adresse n’existe pas.<br><a href="/">Retour au livret</a>';
+})();
+</script>
+</body>
+</html>

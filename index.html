@@ -3337,6 +3337,45 @@ function lhApplyPhotos(bucket, trackIds, rowImages){
   var hb=document.getElementById('lh-home-xtra-title'); if(hb)hb.textContent=LH_EXTRAS_TITLE;
   var _qs=new URLSearchParams(location.search);
   var real=_qs.get('hotel')||_qs.get('slug');   /* accepte ?hotel= ET ?slug= */
+
+  /* Adresse courte : ?c=XXXXXXXX. Le code ne dit rien par lui-même, c'est le
+     serveur qui indique l'hôtel et, le cas échéant, la chambre ou le séjour.
+     Rien n'est modifiable depuis la barre d'adresse. */
+  var _code=(_qs.get('c')||'').trim();
+  if(_code && !real){
+    lhShowLoading(true);
+    fetch(LH_SUPA_URL+'/rest/v1/rpc/ouvrir',{method:'POST',
+      headers:{'apikey':LH_SUPA_KEY,'authorization':'Bearer '+LH_SUPA_KEY,'content-type':'application/json'},
+      body:JSON.stringify({p_code:_code})})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || !d.slug){ lhShow404(); return; }
+        LH_SLUG=d.slug;
+        if(d.type==='sejour'){
+          lhGuestToken=_code;
+          lhApplyParams({get:function(k){
+            if(k==='token') return _code;
+            if(k==='prenom') return d.prenom||'';
+            if(k==='chambre') return String(d.chambre||'');
+            if(k==='pdj') return String(d.pdj_restant_adulte||0);
+            if(k==='pdj_enfant') return String(d.pdj_restant_enfant||0);
+            if(k==='code') return String(d.code_acces||'');
+            return '';
+          }});
+        } else {
+          lhApplyParams({get:function(k){
+            if(k==='chambre') return String(d.chambre||'');
+            if(k==='code') return String(d.code_acces||'');
+            return '';
+          }});
+        }
+        lhFetchDone=true;
+        lhFetchHotel(d.slug);
+      })
+      .catch(function(){ lhShow404(); });
+    return;
+  }
+
   /* Aucun slug -> on n'affiche PAS L'Harmony : on montre la vitrine SolvIA
      (transforme un lien nu / une faute de frappe en pub). Démo = ?slug=lharmony. */
   if(!real){ lhShow404(); return; }
