@@ -1066,6 +1066,11 @@ function lhBuildRecap(){
 /* Intégrations branchées par l'hôtelier depuis son espace (valeurs publiques
    uniquement : le serveur ne descend jamais les autres). */
 var LH_INTEG={};
+/* Livret de démarchage : l'hôtel n'est pas encore client, rien n'est réel.
+   On garde le parcours entier (c'est l'argument de vente) mais on n'écrit
+   rien en base et on ne montre jamais d'erreur technique. Le serveur refuse
+   ces commandes de son côté, même si on l'appelle directement. */
+var LH_DEMO=true;
 /* Sans lien de paiement configuré, on n'affiche pas « payer maintenant » :
    le client ne doit pas croire qu'il a réglé alors que rien n'est encaissé. */
 function lhApplyPaiement(){
@@ -1077,7 +1082,7 @@ function lhApplyPaiement(){
 /* Soit l'hôtel a confié sa clé (montant exact, voie normale), soit il n'a
    qu'un lien de paiement à montant fixe (dépannage). */
 function lhPaiementPossible(){
-  return !!(LH_INTEG && (LH_INTEG.stripe_actif || LH_INTEG.stripe_lien));
+  return !LH_DEMO && !!(LH_INTEG && (LH_INTEG.stripe_actif || LH_INTEG.stripe_lien));
 }
 /* Le montant n'est pas envoyé d'ici : le serveur le relit en base à partir de
    la référence, puis crée la page de paiement avec la clé de l'hôtel. */
@@ -1201,6 +1206,7 @@ function lhConfirmPdj(){
   });
 
   function afficher(head, corps){
+    /* défini plus bas, mais utilisé par les deux chemins */
     document.getElementById('lh-pdj-confirm-msg').innerHTML=head+corps;
     document.getElementById('lh-pdj-back-home').style.display='block';
     lhPdjStep(4);
@@ -1210,6 +1216,20 @@ function lhConfirmPdj(){
     afficher('<div style="font-size:32px;margin-bottom:12px">⚠️</div>'
       +'<strong style="color:var(--c-primary);font-size:15px">'+lhT('cmdError')+'</strong><br><br>',
       '<span style="font-size:12px;color:#888;line-height:1.7">'+lhEsc(message)+'</span>');
+  }
+
+  /* Vitrine de démarchage : on montre le résultat, on n'enregistre rien. */
+  if(LH_DEMO){
+    var nbD=lhPdjDays.length;
+    setTimeout(function(){
+      afficher('<div style="font-size:32px;margin-bottom:12px">✓</div>'
+        +'<strong style="color:var(--c-primary);font-size:15px">'+lhT('reservationConfirmedTitle')+'</strong><br><br>',
+        nbD+' '+lhT('pdjTi')+(nbD>1?'s':'')+' · <strong>'+grandTotal+'€</strong>'
+        +'<br><br><span class="lh-ex-tag dk">'+lhT('exempleW')+'</span>'
+        +'<br><span style="font-size:11px;color:#aaa">'+lhT('payOnSiteDesc')+'</span>');
+      lhMarkPdjBooked();
+    },900);
+    return;
   }
 
   fetch(LH_SUPA_URL+'/rest/v1/rpc/passer_commande',{
@@ -2489,6 +2509,8 @@ function lhIcon(n){
    affiche la référence renvoyée par le serveur. Les prix sont recalculés côté
    base : ce que le navigateur annonce n'est jamais pris pour argent comptant. */
 function lhCommander(lignes, resume, montantIndicatif, onDone){
+  /* Vitrine de démarchage : on montre le parcours sans rien enregistrer. */
+  if(LH_DEMO) return lhDemoPay(resume, montantIndicatif, onDone);
   var modal=document.createElement('div');
   modal.className='lh-cmd-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(var(--c-primary-rgb),0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:lhFade 0.25s ease';
@@ -2971,7 +2993,9 @@ function lhApplyHotel(d){
   lhApplyContact(); lhApplyPdjPrices();
   if(d.late_prix!==undefined && d.late_prix!==null) LH_LATE_PRICE=d.late_prix;
   if(d.late_exemple!==undefined) LH_LATE_EXEMPLE=d.late_exemple;
-  if(d.integrations){ LH_INTEG=d.integrations; lhApplyPaiement(); }
+  if(d.integrations){ LH_INTEG=d.integrations; }
+  if(d.demo!==undefined) LH_DEMO=!!d.demo;
+  lhApplyPaiement();
   var ey=document.querySelector('#scr-home .hero-ey'); if(ey&&d.nom) ey.textContent=d.nom+(d.lieu?' · '+d.lieu:'');
   var dey=document.getElementById('lh-dt-hotel'); if(dey&&d.nom) dey.textContent=d.nom+(d.lieu?' · '+d.lieu:'');
   /* Champs texte lus directement depuis la ligne Supabase (vide = vide) */
@@ -3134,7 +3158,7 @@ function lhFetchHotel(slug){
         telephone:hotel.telephone, email:hotel.email, lien_avis:hotel.lien_avis,
         pdj_prix_adulte:hotel.pdj_prix_adulte, pdj_prix_enfant:hotel.pdj_prix_enfant,
         late_prix:hotel.late_prix, late_exemple:hotel.late_exemple,
-        integrations:d.integrations||{},
+        integrations:d.integrations||{}, demo:d.demo,
         social:{instagram:hotel.social_instagram,facebook:hotel.social_facebook,linkedin:hotel.social_linkedin,youtube:hotel.social_youtube,tiktok:hotel.social_tiktok,twitter:hotel.social_twitter},
         sections:{petitDej:hotel.a_petit_dej,restaurant:hotel.a_restaurant,piscine:hotel.a_piscine,spa:hotel.a_spa,sauna:hotel.a_sauna,extras:hotel.a_extras,recos:hotel.a_recos,avis:hotel.a_avis,infos:hotel.a_infos},
         extras:lhMergeRows(res[0], hid, function(e){return e.code||e.id;}).map(function(e){return {id:e.id,code:e.code,nom:e.nom,desc:e.description,prix:e.prix,emoji:e.emoji,photo:e.photo_url};}),
