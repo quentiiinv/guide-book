@@ -150,6 +150,70 @@ section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .integ-a{font-size:12.5px;color:var(--ink-3);line-height:1.55}
 .integ-err{display:none;font-size:12.5px;color:var(--crit);background:var(--crit-soft);
   border-radius:8px;padding:8px 11px;margin:-4px 0 10px;line-height:1.5}
+
+/* service des petits-déjeuners */
+.jour-nav{display:flex;align-items:center;gap:9px;margin-bottom:16px;flex-wrap:wrap}
+.jour-nav .btn-2{padding:9px 13px;font-size:15px;line-height:1}
+.jour-t{flex:1;min-width:150px}
+.jour-t b{display:block;font-size:16px;font-weight:800;text-transform:capitalize;letter-spacing:-.01em}
+.jour-t input{margin:2px 0 0;padding:3px 0;border:none;background:none;
+  font-size:12.5px;color:var(--ink-3);width:auto}
+.jour-nav .imp{margin-left:auto}
+.entete-imp{display:none}
+.bilan{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.bilan>div{flex:1;min-width:82px;background:var(--white);border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px}
+.bilan b{display:block;font-size:22px;font-weight:800;line-height:1.2}
+.bilan span{font-size:11.5px;color:var(--ink-3);font-weight:600}
+.bilan .reste{background:var(--warn-soft);border-color:#efdcb8}
+.bilan .reste b{color:var(--warn)}
+.creneau{margin-bottom:16px}
+.creneau-h{display:flex;align-items:baseline;gap:10px;padding:0 2px 7px;
+  border-bottom:2px solid var(--line)}
+.creneau-h b{font-size:19px;font-weight:800;letter-spacing:-.01em}
+.creneau-h span{font-size:12.5px;color:var(--ink-3);font-weight:600}
+.srv{display:flex;align-items:center;gap:13px;background:var(--white);
+  border:1px solid var(--line);border-top:none;padding:13px 15px}
+.srv:first-of-type{border-top:1px solid var(--line);margin-top:9px;
+  border-radius:12px 12px 0 0}
+.srv:last-child{border-radius:0 0 12px 12px}
+.srv.fait{background:var(--ok-soft);border-color:#cfe6da}
+.srv.fait .srv-ch,.srv.fait .srv-tx b{opacity:.5;text-decoration:line-through}
+.srv-ch{flex:none;min-width:46px;height:46px;border-radius:11px;background:var(--brand-soft);
+  color:var(--brand);display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:800;padding:0 8px}
+.srv-tx{flex:1;min-width:0}
+.srv-tx b{display:block;font-size:14.5px;font-weight:700}
+.srv-tx span{font-size:12.5px;color:var(--ink-3)}
+.srv-pay{flex:none;font-size:12px;font-weight:700;padding:4px 9px;border-radius:20px;white-space:nowrap}
+.srv-pay.ok{background:var(--ok-soft);color:var(--ok)}
+.srv-pay.du{background:var(--warn-soft);color:var(--warn)}
+.srv-b{flex:none;background:var(--white);border:1px solid var(--line-2);border-radius:9px;
+  padding:9px 13px;font-size:13px;font-weight:600;white-space:nowrap}
+.srv.fait .srv-b{background:none;border-color:transparent;color:var(--ok);font-weight:700}
+@media(max-width:560px){
+  .srv{flex-wrap:wrap}
+  .srv-b{width:100%;margin-top:4px}
+}
+
+/* Feuille de service : ce qui part à l'imprimante pour la cuisine. */
+@media print{
+  header,nav.tabs,.jour-nav,.todo,.srv-b{display:none!important}
+  body{background:#fff;font-size:12pt}
+  main{max-width:none;padding:0}
+  .entete-imp{display:block;font-size:14pt;margin-bottom:14px;
+    padding-bottom:8px;border-bottom:2px solid #000}
+  .entete-imp b{font-weight:800}
+  .bilan>div{border:1px solid #000;padding:6px 10px}
+  .bilan b{font-size:16pt}
+  .creneau{break-inside:avoid;page-break-inside:avoid}
+  .srv{border:1px solid #000;border-top:none;padding:8px 10px}
+  .srv.fait{background:none}
+  .srv-ch{background:none;border:1.5px solid #000;color:#000}
+  /* case à cocher, pour pointer au stylo */
+  .srv::after{content:"";flex:none;width:17px;height:17px;border:1.5px solid #000;border-radius:3px}
+  .srv.fait::after{content:"✓";display:flex;align-items:center;justify-content:center;font-weight:800}
+}
 .cle{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;letter-spacing:.08em;
   background:var(--brand-soft);border-radius:9px;padding:10px 13px;margin-bottom:11px;color:var(--ink-2)}
 .zone{margin-top:11px}
@@ -227,7 +291,8 @@ var ICONES=[['parking','Parking'],['wifi','Wi-Fi'],['animaux','Animaux'],['nonfu
 var CATEGORIES=['Restaurant','Bar','Café','Visite','Activité','Nature','Boutique'];
 var TRAJETS=[['pied','à pied'],['voiture','en voiture'],['velo','à vélo'],['transports','en transports']];
 var TOK=null, HOTEL=null, EXTRAS=[], RECOS=[], INFOS=[], CATALOGUE=[], BRANCHE={}, SECRETS={},
-    EQUIPEMENTS={}, ONGLET='cmd';
+    SERVICE=[], JOUR=null, A_PREPARER=0,
+    EQUIPEMENTS={}, ONGLET=null;
 var EQUIPS={piscine:['🏊','Piscine'], spa:['🧖','Spa'], sauna:['🔥','Sauna']};
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
@@ -288,18 +353,22 @@ function demarrer(){
     /* Les listes servent aussi au pense-bete « À compléter » : on attend
        qu'elles soient la avant de dessiner. */
     Promise.all([chargerExtras(),chargerRecos(),chargerInfos(),chargerIntegrations(),chargerEquipements()])
-      .then(function(){ rendreOnglets(); rendre(); suivre(); });
+      .then(function(){ if(!ONGLET) ONGLET = HOTEL.a_petit_dej ? 'service' : 'cmd';
+        rendreOnglets(); rendre(); suivre(); });
   }).catch(function(e){
     if(e.status===401){ localStorage.removeItem('solvia_tok'); TOK=null; return; }
     msg('lg-msg',e.message,'err'); });
 }
 
 function rendreOnglets(){
-  var l=[['cmd','Commandes'],['modules','Modules'],['etab','Mon établissement']];
+  var l=[];
+  if(HOTEL.a_petit_dej) l.push(['service','Petits-déjeuners']);
+  l.push(['cmd','Commandes'],['modules','Modules'],['etab','Mon établissement']);
   MODULES.forEach(function(m){ if(m.onglet && HOTEL[m.c]) l.push([m.onglet,m.nom]); });
   l.push(['integ','Intégrations']);
   el('tabs').innerHTML=l.map(function(t){
     var p=(t[0]==='cmd'&&NOUVELLES)?'<i class="pastille">'+NOUVELLES+'</i>':'';
+    if(t[0]==='service'&&A_PREPARER) p='<i class="pastille">'+A_PREPARER+'</i>';
     return '<button data-t="'+t[0]+'"'+(ONGLET===t[0]?' class="on"':'')+'>'+esc(t[1])+p+'</button>';}).join('');
   el('tabs').querySelectorAll('button').forEach(function(b){
     b.onclick=function(){ ONGLET=b.dataset.t; rendreOnglets(); rendre(); }; });
@@ -319,7 +388,8 @@ function flash(i,ok){ if(!i)return;
 /* ---------- rendu ---------- */
 function rendre(){
   var v=el('vue');
-  if(ONGLET==='cmd')      { v.innerHTML=vueCommandes();  chargerCommandes();
+  if(ONGLET==='service')  { v.innerHTML=vueService();     chargerService(); }
+  else if(ONGLET==='cmd') { v.innerHTML=vueCommandes();  chargerCommandes();
     v.querySelectorAll('[data-go]').forEach(function(b){
       b.onclick=function(){ ONGLET=b.dataset.go; rendreOnglets(); rendre(); }; }); }
   else if(ONGLET==='modules'){ v.innerHTML=vueModules();  brancherModules(); }
@@ -332,6 +402,118 @@ function rendre(){
   else if(ONGLET==='infos'){ v.innerHTML=vueInfos();     brancherInfos(); }
   else if(ONGLET==='integ'){ v.innerHTML=vueIntegrations(); brancherIntegrations(); }
   else if(EQUIPS[ONGLET]){ v.innerHTML=vueEquipement(ONGLET); brancherEquipement(ONGLET); }
+}
+
+/* --- service des petits-déjeuners ---
+   L'écran de tous les matins : ce que la cuisine doit sortir, à quelle heure
+   et pour quelle chambre. Une journée à la fois. */
+function jourISO(d){ return d.getFullYear()+'-'+
+  String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function jourDefaut(){
+  var d=new Date();
+  /* Après 14h on prépare le lendemain : c'est là que la cuisine s'organise. */
+  if(d.getHours()>=14) d.setDate(d.getDate()+1);
+  return jourISO(d);
+}
+function jourLisible(iso){
+  var d=new Date(iso+'T00:00:00'), a=jourISO(new Date());
+  var dem=new Date(); dem.setDate(dem.getDate()+1);
+  var prefixe = iso===a ? 'Aujourd\'hui · ' : (iso===jourISO(dem) ? 'Demain · ' : '');
+  return prefixe+d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+}
+function decaler(n){
+  var d=new Date((JOUR||jourDefaut())+'T00:00:00');
+  d.setDate(d.getDate()+n); JOUR=jourISO(d); rendre();
+}
+function vueService(){
+  JOUR=JOUR||jourDefaut();
+  return '<section><div class="jour-nav">'
+    +'<button class="btn-2" id="j-prec" aria-label="Jour précédent">‹</button>'
+    +'<div class="jour-t"><b>'+esc(jourLisible(JOUR))+'</b>'
+    +'<input type="date" id="j-date" value="'+esc(JOUR)+'"></div>'
+    +'<button class="btn-2" id="j-suiv" aria-label="Jour suivant">›</button>'
+    +'<button class="btn-2 imp" id="j-imp">Imprimer</button></div>'
+    +'<div class="entete-imp"><b>'+esc(HOTEL.nom||'')+'</b> · '+esc(jourLisible(JOUR))+'</div>'
+    +'<div id="serv"><div class="vide">Chargement…</div></div></section>';
+}
+function chargerService(){
+  var j=JOUR||jourDefaut();
+  return api('/rest/v1/service_pdj?select=*&date_service=eq.'+j)
+    .then(function(l){ SERVICE=l||[]; if(ONGLET==='service'){ rendreService(); brancherService(); } })
+    .catch(function(e){ var h=el('serv');
+      if(h) h.innerHTML='<div class="vide">'+esc(e.message)+'</div>'; });
+}
+/* Le compteur de l'onglet ne regarde que le service en cours de préparation. */
+function compterAPreparer(){
+  return api('/rest/v1/service_pdj?select=nb_adulte,nb_enfant&date_service=eq.'
+      +jourDefaut()+'&statut=eq.a_preparer')
+    .then(function(l){ A_PREPARER=(l||[]).reduce(function(s,x){
+      return s+(x.nb_adulte||0)+(x.nb_enfant||0); },0); rendreOnglets(); })
+    .catch(function(){});
+}
+function normHeure(s){ return String(s||'').replace('h',':').padStart(5,'0'); }
+function rendreService(){
+  var h=el('serv'); if(!h) return;
+  var vivantes=SERVICE.filter(function(x){ return x.statut!=='annule'; });
+  if(!vivantes.length){
+    h.innerHTML='<div class="vide">Aucun petit-déjeuner ce jour-là.<br>'
+      +'Les réservations apparaissent ici dès qu\'un client en passe une.</div>'; return; }
+
+  var ad=0,en=0,ca=0,reste=0;
+  vivantes.forEach(function(x){ ad+=x.nb_adulte||0; en+=x.nb_enfant||0;
+    ca+=Number(x.total||0); if(x.statut==='a_preparer') reste+=(x.nb_adulte||0)+(x.nb_enfant||0); });
+
+  /* Regroupement par heure : c'est l'unité de travail en cuisine. */
+  var parHeure={}, heures=[];
+  vivantes.forEach(function(x){
+    if(!parHeure[x.heure]){ parHeure[x.heure]=[]; heures.push(x.heure); }
+    parHeure[x.heure].push(x); });
+  heures.sort(function(a,b){ return normHeure(a).localeCompare(normHeure(b)); });
+
+  h.innerHTML='<div class="bilan">'
+    +'<div><b>'+(ad+en)+'</b><span>couvert'+(ad+en>1?'s':'')+'</span></div>'
+    +'<div><b>'+ad+'</b><span>adulte'+(ad>1?'s':'')+'</span></div>'
+    +'<div><b>'+en+'</b><span>enfant'+(en>1?'s':'')+'</span></div>'
+    +'<div><b>'+Math.round(ca)+' €</b><span>commandé</span></div>'
+    +(reste?'<div class="reste"><b>'+reste+'</b><span>à servir</span></div>':'')
+    +'</div>'
+    +heures.map(function(hh){
+      var g=parHeure[hh], p=g.reduce(function(s,x){return s+(x.nb_adulte||0)+(x.nb_enfant||0);},0);
+      g.sort(function(a,b){ return String(a.chambre||'').localeCompare(String(b.chambre||''),'fr',{numeric:true}); });
+      return '<div class="creneau"><div class="creneau-h"><b>'+esc(hh)+'</b>'
+        +'<span>'+p+' couvert'+(p>1?'s':'')+'</span></div>'
+        +g.map(ligneService).join('')+'</div>';
+    }).join('');
+  h.querySelectorAll('[data-servi]').forEach(function(b){
+    b.onclick=function(){
+      var neuf = b.dataset.etat==='servi' ? 'a_preparer' : 'servi';
+      b.disabled=true;
+      api('/rest/v1/commande_lignes?id=eq.'+b.dataset.servi,{method:'PATCH',body:{statut:neuf}})
+        .then(function(){ return chargerService(); }).then(compterAPreparer)
+        .catch(function(e){ alert(e.message); b.disabled=false; });
+    };
+  });
+}
+function ligneService(x){
+  var servi=x.statut==='servi';
+  var pax=(x.nb_adulte||0)+' adulte'+((x.nb_adulte||0)>1?'s':'')
+    +((x.nb_enfant||0)?' · '+x.nb_enfant+' enfant'+(x.nb_enfant>1?'s':''):'');
+  return '<div class="srv'+(servi?' fait':'')+'">'
+    +'<span class="srv-ch">'+esc(x.chambre||'?')+'</span>'
+    +'<span class="srv-tx"><b>'+esc(pax)+'</b>'
+    +'<span>'+esc([x.prenom,x.nom].filter(Boolean).join(' ')||x.reference)
+    +(x.langue&&x.langue!=='fr'?' · '+esc(String(x.langue).toUpperCase()):'')
+    +(x.note?' · '+esc(x.note):'')+'</span></span>'
+    +'<span class="srv-pay '+(x.paye?'ok':'du')+'">'+(x.paye?'réglé':Math.round(x.total)+' €')+'</span>'
+    +'<button class="srv-b" data-servi="'+x.id+'" data-etat="'+esc(x.statut)+'">'
+    +(servi?'Servi ✓':'Marquer servi')+'</button></div>';
+}
+function brancherService(){
+  var v=el('vue'); if(!v.querySelector('#j-date')) return;
+  v.querySelector('#j-prec').onclick=function(){ decaler(-1); };
+  v.querySelector('#j-suiv').onclick=function(){ decaler(1); };
+  v.querySelector('#j-date').onchange=function(){ JOUR=this.value||jourDefaut(); rendre(); };
+  v.querySelector('#j-imp').onclick=function(){ window.print(); };
 }
 
 /* --- piscine, spa, sauna ---
@@ -948,9 +1130,14 @@ function prevenir(c){
 }
 function suivre(){
   if(MINUTEUR) clearInterval(MINUTEUR);
-  MINUTEUR=setInterval(function(){ if(!document.hidden) chargerCommandes(true); },30000);
-  document.addEventListener('visibilitychange',function(){
-    if(!document.hidden) chargerCommandes(true); });
+  function battement(){
+    if(document.hidden) return;
+    chargerCommandes(true);
+    if(HOTEL.a_petit_dej){ compterAPreparer(); if(ONGLET==='service') chargerService(); }
+  }
+  MINUTEUR=setInterval(battement,30000);
+  document.addEventListener('visibilitychange',function(){ battement(); });
+  if(HOTEL.a_petit_dej) compterAPreparer();
   try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }catch(e){}
 }
 function rendreCommandes(l){
