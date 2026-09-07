@@ -1,0 +1,4 @@
+# Le livret client doit rester indexable, pas les outils internes.
+User-agent: *
+Disallow: /crm/
+Disallow: /espace/

@@ -207,9 +207,9 @@ var MODULES=[
   {c:'a_restaurant', ic:'🍽️', nom:'Restaurant',         desc:'Horaires, carte, réservation',     onglet:'resto'},
   {c:'a_extras',     ic:'✨', nom:'Petites attentions', desc:'Ce que vos clients commandent',    onglet:'extras'},
   {c:'a_late_checkout', ic:'🕐', nom:'Départ tardif',   desc:'Heure et supplément',              onglet:'lco'},
-  {c:'a_piscine',    ic:'🏊', nom:'Piscine',            desc:'Horaires et accès'},
-  {c:'a_spa',        ic:'🧖', nom:'Spa',                desc:'Horaires et accès'},
-  {c:'a_sauna',      ic:'🔥', nom:'Sauna',              desc:'Horaires et accès'},
+  {c:'a_piscine',    ic:'🏊', nom:'Piscine',            desc:'Horaires et accès',                onglet:'piscine'},
+  {c:'a_spa',        ic:'🧖', nom:'Spa',                desc:'Horaires et accès',                onglet:'spa'},
+  {c:'a_sauna',      ic:'🔥', nom:'Sauna',              desc:'Horaires et accès',                onglet:'sauna'},
   {c:'a_recos',      ic:'📍', nom:'Recommandations',    desc:'Vos bonnes adresses',              onglet:'recos'},
   {c:'a_avis',       ic:'⭐', nom:'Avis',               desc:'Inviter à laisser un avis'},
   {c:'a_infos',      ic:'ℹ️', nom:'Infos pratiques',    desc:'Parking, wifi, animaux…',          onglet:'infos'}
@@ -226,7 +226,9 @@ var ICONES=[['parking','Parking'],['wifi','Wi-Fi'],['animaux','Animaux'],['nonfu
   ['defaut','Autre']];
 var CATEGORIES=['Restaurant','Bar','Café','Visite','Activité','Nature','Boutique'];
 var TRAJETS=[['pied','à pied'],['voiture','en voiture'],['velo','à vélo'],['transports','en transports']];
-var TOK=null, HOTEL=null, EXTRAS=[], RECOS=[], INFOS=[], CATALOGUE=[], BRANCHE={}, SECRETS={}, ONGLET='cmd';
+var TOK=null, HOTEL=null, EXTRAS=[], RECOS=[], INFOS=[], CATALOGUE=[], BRANCHE={}, SECRETS={},
+    EQUIPEMENTS={}, ONGLET='cmd';
+var EQUIPS={piscine:['🏊','Piscine'], spa:['🧖','Spa'], sauna:['🔥','Sauna']};
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -285,7 +287,7 @@ function demarrer(){
     el('hd-livret').href='https://guide.solvia.pro/?slug='+encodeURIComponent(HOTEL.slug);
     /* Les listes servent aussi au pense-bete « À compléter » : on attend
        qu'elles soient la avant de dessiner. */
-    Promise.all([chargerExtras(),chargerRecos(),chargerInfos(),chargerIntegrations()])
+    Promise.all([chargerExtras(),chargerRecos(),chargerInfos(),chargerIntegrations(),chargerEquipements()])
       .then(function(){ rendreOnglets(); rendre(); suivre(); });
   }).catch(function(e){
     if(e.status===401){ localStorage.removeItem('solvia_tok'); TOK=null; return; }
@@ -329,6 +331,85 @@ function rendre(){
   else if(ONGLET==='recos'){ v.innerHTML=vueRecos();     brancherRecos(); }
   else if(ONGLET==='infos'){ v.innerHTML=vueInfos();     brancherInfos(); }
   else if(ONGLET==='integ'){ v.innerHTML=vueIntegrations(); brancherIntegrations(); }
+  else if(EQUIPS[ONGLET]){ v.innerHTML=vueEquipement(ONGLET); brancherEquipement(ONGLET); }
+}
+
+/* --- piscine, spa, sauna ---
+   Une ligne par équipement dans hotel_facilities. Le catalogue partagé
+   (hotel_id nul) sert de modèle ; à la première modification, l'hôtel se
+   crée la sienne. */
+function chargerEquipements(){
+  return api('/rest/v1/hotel_facilities?select=*&hotel_id=eq.'+HOTEL.id)
+    .then(function(l){ EQUIPEMENTS={}; (l||[]).forEach(function(x){ EQUIPEMENTS[x.type]=x; }); });
+}
+function vueEquipement(type){
+  var e=EQUIPEMENTS[type]||{}, d=EQUIPS[type];
+  return '<section><h2>'+d[0]+' '+esc(d[1])+'</h2>'
+    +'<p class="hint">Ce que vos clients liront avant de s\'y rendre. '
+    +'Laissez vide ce qui ne s\'applique pas.</p>'
+    +'<div class="bloc" data-eq="'+type+'"><div class="grid2">'
+    +'<div><label>Nom affiché</label><input data-e="titre" type="text" placeholder="'+esc(d[1])
+    +'" value="'+esc(e.titre||'')+'"></div>'
+    +'<div><label>Horaires</label><input data-e="horaires" type="text" '
+    +'placeholder="7h – 21h" value="'+esc(e.horaires||'')+'"></div>'
+    +'</div>'
+    +'<label>Description</label><textarea data-e="description">'+esc(e.description||'')+'</textarea>'
+    +'<div class="grid2">'
+    +'<div><label>Accès</label><input data-e="acces" type="text" '
+    +'placeholder="Au sous-sol, badge à la réception" value="'+esc(e.acces||'')+'"></div>'
+    +'<div><label>À prévoir</label><input data-e="a_prevoir" type="text" '
+    +'placeholder="Serviette fournie, bonnet obligatoire" value="'+esc(e.a_prevoir||'')+'"></div>'
+    +'</div>'
+    +'<label>Icône</label><div class="emo">'+EMOJIS.map(function(x){
+      return '<button type="button" data-emo="'+x+'"'+((e.emoji||d[0])===x?' class="on"':'')+'>'+x+'</button>';
+    }).join('')+'</div></div>'
+    +'<div class="bloc"><h3>Photo</h3><div class="pics" data-eqpic="'+type+'">'
+    +(e.photo_url?'<div class="pic"><img src="'+esc(e.photo_url)+'" alt="">'
+      +'<button data-eqdel aria-label="Supprimer">×</button></div>':'')
+    +'<button class="add-pic" data-eqadd>+ Ajouter</button></div>'
+    +'<div style="font-size:12.5px;color:var(--ink-3)">Format paysage conseillé. '
+    +'L\'image est réduite automatiquement.</div></div></section>';
+}
+function brancherEquipement(type){
+  var b=el('vue').querySelector('[data-eq="'+type+'"]');
+  /* Crée la ligne de l'hôtel si elle n'existe pas encore, puis la modifie. */
+  function ecrire(champ,valeur,input){
+    var e=EQUIPEMENTS[type];
+    var suite = e
+      ? api('/rest/v1/hotel_facilities?id=eq.'+e.id,{method:'PATCH',
+          body:(function(o){o[champ]=valeur;return o;})({}),prefer:'return=representation'})
+      : api('/rest/v1/hotel_facilities',{method:'POST',prefer:'return=representation',
+          body:(function(o){o.hotel_id=HOTEL.id;o.type=type;o.titre=EQUIPS[type][1];
+                o.emoji=EQUIPS[type][0];o[champ]=valeur;return o;})({})});
+    return suite.then(function(rows){ if(rows&&rows[0]) EQUIPEMENTS[type]=rows[0]; flash(input,true); })
+      .catch(function(err){ flash(input,false); alert(err.message); });
+  }
+  b.querySelectorAll('[data-e]').forEach(function(i){
+    i.onchange=function(){ ecrire(i.dataset.e, i.value.trim()||null, i); };
+  });
+  b.querySelectorAll('[data-emo]').forEach(function(t){
+    t.onclick=function(){
+      b.querySelectorAll('[data-emo]').forEach(function(x){x.classList.remove('on');});
+      t.classList.add('on'); ecrire('emoji',t.dataset.emo,null);
+    };
+  });
+  var zone=el('vue').querySelector('[data-eqpic="'+type+'"]');
+  var sup=zone.querySelector('[data-eqdel]');
+  if(sup) sup.onclick=function(){ ecrire('photo_url',null,null).then(rendre); };
+  zone.querySelector('[data-eqadd]').onclick=function(){
+    var f=document.createElement('input'); f.type='file'; f.accept='image/*';
+    f.onchange=function(){
+      if(!f.files||!f.files[0]) return;
+      reduire(f.files[0]).then(function(blob){
+        var nom=HOTEL.id+'/'+type+'-'+Date.now()+'.jpg';
+        return api('/storage/v1/object/equipements/'+nom,{method:'POST',raw:blob,type:'image/jpeg'})
+          .then(function(){ return ecrire('photo_url',
+            SUPA+'/storage/v1/object/public/equipements/'+nom, null); })
+          .then(rendre);
+      }).catch(function(err){ alert('Envoi impossible : '+err.message); });
+    };
+    f.click();
+  };
 }
 
 /* --- integrations ---
@@ -834,6 +915,13 @@ function aFaire(){
     m.push(['extras','Proposez au moins une petite attention']);
   if(HOTEL.a_recos && !RECOS.length) m.push(['recos','Ajoutez vos bonnes adresses']);
   if(!HOTEL.wifi_reseau) m.push(['etab','Renseignez le Wi-Fi, c\'est la première chose qu\'on cherche']);
+  Object.keys(EQUIPS).forEach(function(t){
+    var e=EQUIPEMENTS[t]||{};
+    if(HOTEL['a_'+t] && !e.horaires && !e.description)
+      m.push([t,'Décrivez '+(t==='spa'?'le spa':t==='sauna'?'le sauna':'la piscine')]);
+  });
+  if(!(BRANCHE.email_commandes||{}).valeur)
+    m.push(['integ','Indiquez où recevoir vos commandes par email']);
   if(!m.length) return '';
   return '<div class="todo"><b>À compléter</b>'+m.map(function(x){
     return '<button data-go="'+x[0]+'">'+esc(x[1])+'</button>';}).join('')+'</div>';
