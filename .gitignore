@@ -1,0 +1,4 @@
+# Outil de test local, jamais publie avec le site
+node_modules/
+package.json
+package-lock.json
