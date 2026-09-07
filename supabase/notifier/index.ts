@@ -1,9 +1,9 @@
 /* Prévient la réception qu'une commande vient d'arriver.
 
-   Appelée par un déclencheur de la base après l'insertion d'une commande,
-   avec la clé de service : elle n'est donc jamais joignable utilement de
-   l'extérieur. L'adresse destinataire est celle que l'hôtelier a saisie dans
-   ses intégrations (email_commandes), qui reste privée.
+   Appelée par la base juste après l'enregistrement, avec un secret partagé
+   rangé dans app_settings : sans ce secret, personne ne peut déclencher
+   d'envoi depuis l'extérieur. L'adresse destinataire est celle que l'hôtelier
+   a saisie dans ses intégrations, qui reste privée.
 
    Sans clé Resend configurée, la fonction ne casse rien : elle répond
    qu'aucun envoi n'est possible, et la commande reste enregistrée.
@@ -29,6 +29,14 @@ async function base(chemin) {
   return t ? JSON.parse(t) : null;
 }
 
+/* Comparaison à durée constante : ne pas laisser deviner le secret. */
+function memeSecret(a, b) {
+  if (!a || !b || a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
 function euros(n) {
   return (Math.round(Number(n || 0) * 100) / 100).toFixed(2).replace(".", ",") + " €";
 }
@@ -39,12 +47,14 @@ function propre(s) {
 
 Deno.serve(async (req) => {
   try {
-    /* Seul un appelant porteur de la clé de service peut demander un envoi. */
-    const jeton = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-    if (!SERVICE || jeton !== SERVICE) return repondre({ erreur: "non autorisé" }, 401);
-
-    const q = await req.json();
+    const q = await req.json().catch(() => null);
     if (!q || !q.commande_id) return repondre({ erreur: "commande_id manquant" }, 400);
+
+    /* Seul un appelant porteur du secret partagé peut déclencher un envoi. */
+    const attendu = (await base("app_settings?select=value&key=eq.notif_secret&limit=1"))[0];
+    if (!attendu || !memeSecret(req.headers.get("x-solvia-secret") || "", attendu.value)) {
+      return repondre({ erreur: "non autorisé" }, 401);
+    }
 
     const c = (await base("commandes?select=*,commande_lignes(*)&id=eq." +
       encodeURIComponent(q.commande_id) + "&limit=1"))[0];
@@ -77,6 +87,14 @@ Deno.serve(async (req) => {
       ? "<p style='margin:14px 0 0;color:#2f7d5b;font-weight:700'>Déjà réglé en ligne</p>"
       : "<p style='margin:14px 0 0;color:#8a6524;font-weight:700'>À encaisser sur place</p>";
 
+    /* Un numéro de chambre saisi par le client n'est pas une preuve : on le dit
+       quand rien ne le confirme, pour que la réception vérifie avant de servir. */
+    const doute = c.chambre_verifiee === false
+      ? "<p style='margin:14px 0 0;padding:10px 12px;background:#fbeceb;border-radius:8px;" +
+        "color:#a3372f;font-weight:700'>Chambre à confirmer : elle n'apparaît pas dans " +
+        "vos arrivées du jour. Vérifiez avant de servir.</p>"
+      : "";
+
     const html =
       "<div style=\"font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:520px;" +
       "color:#2a2118;line-height:1.6\">" +
@@ -86,7 +104,7 @@ Deno.serve(async (req) => {
       "<table style='width:100%;border-collapse:collapse;font-size:14px'>" + lignes +
       "<tr><td style='padding:10px 0 0;border-top:1px solid #e8e2d9;font-weight:700'>Total</td>" +
       "<td style='padding:10px 0 0;border-top:1px solid #e8e2d9;text-align:right;font-weight:700'>" +
-      euros(c.total) + "</td></tr></table>" + paye +
+      euros(c.total) + "</td></tr></table>" + doute + paye +
       (c.nom || c.email
         ? "<p style='margin:16px 0 0;font-size:13px;color:#6b6154'>" +
           propre([c.nom, c.prenom].filter(Boolean).join(" ")) +
@@ -102,7 +120,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: Deno.env.get("RESEND_FROM") || "SolvIA <commandes@solvia.pro>",
         to: [dest.valeur],
-        subject: "Chambre " + (c.chambre || "?") + " · " + euros(c.total) + " · " + c.reference,
+        subject: (c.chambre_verifiee === false ? "[à confirmer] " : "") +
+          "Chambre " + (c.chambre || "?") + " · " + euros(c.total) + " · " + c.reference,
         html: html,
       }),
     });

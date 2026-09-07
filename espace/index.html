@@ -212,6 +212,12 @@ section .hint{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .apercu .btn-2{margin-top:11px}
 #a-coller{min-height:96px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
 @media(max-width:560px){ .arr{flex-wrap:wrap} .arr .btn-2,.arr .rm{flex:1} }
+.srv.doute{border-left:4px solid var(--crit)}
+.srv-ch.ch-doute{background:var(--crit-soft);color:var(--crit)}
+.srv-pay.doute-b{background:var(--crit-soft);color:var(--crit);cursor:help}
+.tag.doute-t{background:var(--crit-soft);color:var(--crit)}
+.bilan .alerte{background:var(--crit-soft);border-color:#f0cdca}
+.bilan .alerte b{color:var(--crit)}
 .srv-mix{flex:none;font-size:11px;color:var(--ink-3);font-weight:600;white-space:nowrap}
 .srv-b{flex:none;background:var(--white);border:1px solid var(--line-2);border-radius:9px;
   padding:9px 13px;font-size:13px;font-weight:600;white-space:nowrap}
@@ -721,9 +727,10 @@ function rendreService(){
     h.innerHTML='<div class="vide">Aucun petit-déjeuner ce jour-là.<br>'
       +'Les réservations apparaissent ici dès qu\'un client en passe une.</div>'; return; }
 
-  var ad=0,en=0,ca=0,reste=0,compris=0;
+  var ad=0,en=0,ca=0,reste=0,compris=0,doutes=0;
   vivantes.forEach(function(x){ ad+=x.nb_adulte||0; en+=x.nb_enfant||0;
     ca+=Number(x.total||0); compris+=(x.nb_adulte_prepaye||0)+(x.nb_enfant_prepaye||0);
+    if(x.chambre_verifiee===false) doutes++;
     if(x.statut==='a_preparer') reste+=(x.nb_adulte||0)+(x.nb_enfant||0); });
 
   /* Regroupement par heure : c'est l'unité de travail en cuisine. */
@@ -740,6 +747,8 @@ function rendreService(){
     +(compris?'<div><b>'+compris+'</b><span>compris dans le séjour</span></div>':'')
     +'<div><b>'+Math.round(ca)+' €</b><span>à encaisser</span></div>'
     +(reste?'<div class="reste"><b>'+reste+'</b><span>à servir</span></div>':'')
+    +(doutes?'<div class="alerte"><b>'+doutes+'</b><span>chambre'+(doutes>1?'s':'')
+      +' à confirmer</span></div>':'')
     +'</div>'
     +heures.map(function(hh){
       var g=parHeure[hh], p=g.reduce(function(s,x){return s+(x.nb_adulte||0)+(x.nb_enfant||0);},0);
@@ -764,8 +773,9 @@ function ligneService(x){
     +((x.nb_enfant||0)?' · '+x.nb_enfant+' enfant'+(x.nb_enfant>1?'s':''):'');
   var compris=(x.nb_adulte_prepaye||0)+(x.nb_enfant_prepaye||0);
   var du=Number(x.total||0);
-  return '<div class="srv'+(servi?' fait':'')+'">'
-    +'<span class="srv-ch">'+esc(x.chambre||'?')+'</span>'
+  var doute = x.chambre_verifiee===false;
+  return '<div class="srv'+(servi?' fait':'')+(doute?' doute':'')+'">'
+    +'<span class="srv-ch'+(doute?' ch-doute':'')+'">'+esc(x.chambre||'?')+'</span>'
     +'<span class="srv-tx"><b>'+esc(pax)+'</b>'
     +'<span>'+esc([x.prenom,x.nom].filter(Boolean).join(' ')||x.reference)
     +(x.langue&&x.langue!=='fr'?' · '+esc(String(x.langue).toUpperCase()):'')
@@ -774,6 +784,8 @@ function ligneService(x){
     +(du===0 ? (compris?'compris':'offert')
              : (x.paye?'réglé':Math.round(du)+' €'))+'</span>'
     +(compris&&du>0?'<span class="srv-mix">dont '+compris+' compris</span>':'')
+    +(doute?'<span class="srv-pay doute-b" title="Cette chambre n\'est pas occupée aujourd\'hui '
+      +'selon vos arrivées. Vérifiez avant de servir.">chambre à confirmer</span>':'')
     +'<button class="srv-b" data-servi="'+x.id+'" data-etat="'+esc(x.statut)+'">'
     +(servi?'Servi ✓':'Marquer servi')+'</button></div>';
 }
@@ -1486,6 +1498,7 @@ function rendreCommandes(l){
         +' — '+x.total+' €</div>';}).join('');
     return '<div class="cmd '+(c.statut==='nouvelle'?'nouvelle':'')+'">'
       +'<div class="cmd-h"><span class="cmd-ch">Chambre '+esc(c.chambre||'?')+'</span>'
+      +(c.chambre_verifiee===false?'<span class="tag doute-t">chambre à confirmer</span>':'')
       +'<span class="cmd-ref">'+esc(c.reference)+' · '+quand+'</span>'
       +'<span class="cmd-tot">'+c.total+' €</span></div>'+lignes
       +((c.nom||c.email)?'<div class="cmd-li" style="margin-top:6px">'
