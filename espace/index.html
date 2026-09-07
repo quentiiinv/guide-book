@@ -53,6 +53,13 @@ header a,header button.lnk{color:#fff;background:none;border:none;font-size:13px
   font-weight:600;text-decoration:none;opacity:.85;padding:4px}
 nav.tabs{background:var(--white);border-bottom:1px solid var(--line);
   display:flex;gap:2px;overflow-x:auto;padding:0 12px;position:sticky;top:53px;z-index:19}
+/* Sur téléphone l'entête passe sur deux lignes : sa hauteur n'est plus celle
+   sur laquelle le décalage ci-dessus est calculé. On le laisse défiler et
+   c'est la barre d'onglets, seule, qui reste accessible. */
+@media(max-width:560px){
+  header{position:static}
+  nav.tabs{top:0}
+}
 nav.tabs button{background:none;border:none;padding:13px 14px;font-size:13.5px;font-weight:600;
   color:var(--ink-2);border-bottom:2px solid transparent;white-space:nowrap}
 nav.tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
