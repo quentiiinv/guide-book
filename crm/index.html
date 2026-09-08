@@ -308,6 +308,8 @@ input,textarea{font:inherit}
 .brutbar button:disabled{opacity:.4;cursor:default}
 .brutbar button.ghost{background:var(--surface);color:var(--ink-2);border-color:var(--line-strong)}
 .brutbar button.ghost:hover{background:var(--hover)}
+.brutbar button#enrichPaid{background:var(--rappel);border-color:var(--rappel)}
+.brutbar button#enrichPaid:hover{opacity:.88}
 .enrichpill{
   display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:var(--r-sm);
   font-size:11px;font-weight:600;background:var(--neutral-bg);color:var(--neutral);white-space:nowrap;
@@ -1507,7 +1509,8 @@ function renderBrutBar(){
   }
   host.innerHTML='<div class="brutbar">'+
     (nSel?('<b>'+nSel+'</b> sélectionné(s)&nbsp;'+
-      '<button id="enrichSel">Enrichir la sélection</button>'+
+      '<button id="enrichSel">Enrichir (gratuit, SIRENE)</button>'+
+      '<button id="enrichPaid">Enrichir (payant, Apify)</button>'+
       '<button class="ghost" id="selClearBtn">Désélectionner</button>'):
       '<span><b>'+nRestants+'</b> non enrichis dans ce filtre</span>')+
     '<span class="sp"></span>'+
@@ -1516,6 +1519,29 @@ function renderBrutBar(){
       '<button id="enrichFilter">Enrichir</button>'
     ):''))+
   '</div>';
+}
+
+/* Enrichissement payant (Apify, via n8n) : envoie les property_token de la
+   selection telle quelle, sans re-filtrer par criteres — c'est le CRM qui
+   decide de la cible, pas le formulaire n8n. Garde-fou : confirmation avec
+   le nombre exact avant de depenser. */
+function runEnrichPaid(){
+  var toks=[], sansToken=0;
+  rows.forEach(function(r){
+    if(!selectedIds[r.id]) return;
+    if(r.property_token) toks.push(r.property_token); else sansToken++;
+  });
+  if(!toks.length){ toast("Aucun établissement sélectionné n'a de property_token."); return; }
+  var msg="Lancer l'enrichissement PAYANT (Apify) sur "+toks.length+" établissement(s) ?"+
+    (sansToken?(" ("+sansToken+" ignoré(s), sans property_token.)"):"")+
+    "\n\nChaque établissement consomme un appel Apify facturé.";
+  if(!window.confirm(msg)) return;
+  api({action:"enrich_paid",tokens:toks}).then(function(d){
+    toast("Envoyé à n8n : "+(d&&d.sent||toks.length)+" établissement(s).");
+    selClear();renderBrutBar();renderTable();
+  }).catch(function(e){
+    toast("Erreur : "+String(e&&e.error||e));
+  });
 }
 
 function runEnrich(ids){
@@ -2353,6 +2379,7 @@ document.addEventListener("click",function(e){
   if(t.closest("[data-sel]")||t.closest("#chkAll")){ return; } /* traité par le handler "change" */
   if(t.closest("#selClearBtn")){ selClear(); renderBrutBar(); renderTable(); return; }
   if(t.closest("#enrichSel")){ runEnrich(Object.keys(selectedIds)); return; }
+  if(t.closest("#enrichPaid")){ runEnrichPaid(); return; }
   if(t.closest("#enrichFilter")){
     var nb=document.getElementById("enrichN");
     var lim=Math.min(Math.max(parseInt(nb&&nb.value,10)||100,1),3000);
