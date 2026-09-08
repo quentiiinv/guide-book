@@ -326,25 +326,25 @@ input,textarea{font:inherit}
    ============================================================ */
 .thead,.trow{
   display:grid;
-  grid-template-columns:minmax(0,1fr) 152px 146px 132px 132px;
-  align-items:center;gap:20px;padding:0 12px;
+  grid-template-columns:minmax(0,1fr) 152px 118px 138px 112px;
+  align-items:center;gap:16px;padding:0 12px;
 }
-.thead{height:34px;border-bottom:1px solid var(--line-strong);position:sticky;top:0;background:var(--bg);z-index:2}
+.thead{height:32px;border-bottom:1px solid var(--line-strong);position:sticky;top:0;background:var(--bg);z-index:2}
 .thead > div{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 
 .trow{
-  min-height:62px;border-bottom:1px solid var(--line);
+  min-height:54px;border-bottom:1px solid var(--line);
   border-radius:var(--r);transition:background .1s;
 }
 .trow:hover{background:var(--hover)}
 
-.c-name{display:flex;align-items:center;gap:12px;min-width:0}
+.c-name{display:flex;align-items:center;gap:10px;min-width:0}
 .mono{
   position:relative;overflow:hidden;
-  width:32px;height:32px;flex:none;border-radius:var(--r-sm);
+  width:28px;height:28px;flex:none;border-radius:var(--r-sm);
   background:var(--surface-2);color:var(--ink-2);
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:650;letter-spacing:.01em;
+  font-size:11px;font-weight:650;letter-spacing:.01em;
 }
 .mono.eng{background:var(--eng-bg);color:var(--eng)}
 /* Favicon de l'établissement : recouvre les initiales quand il charge,
@@ -356,9 +356,27 @@ input,textarea{font:inherit}
 }
 .mono.eng .fav{box-shadow:inset 0 0 0 1px var(--eng-bg)}
 .c-name .txt{min-width:0}
-.c-name .t1{font-weight:600;font-size:14px;letter-spacing:-.011em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.c-name .t2{display:flex;align-items:center;gap:7px;margin-top:2px;color:var(--ink-3);font-size:12.5px;overflow:hidden;white-space:nowrap}
+.c-name .t1{font-weight:600;font-size:13.5px;letter-spacing:-.011em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-name .t2{display:flex;align-items:center;gap:6px;margin-top:2px;color:var(--ink-3);font-size:12px;overflow:hidden;white-space:nowrap}
 .c-name .t2 .sep{opacity:.5}
+/* Le prénom du dirigeant : la première chose à savoir avant de décrocher,
+   donc en tête de la sous-ligne et dans une teinte qui le distingue. */
+.c-name .t2 .dirig{color:var(--eng);font-weight:600}
+
+/* Téléphone en colonne propre : appelable en un clic depuis la liste,
+   sans ouvrir la fiche. */
+.phonecell{
+  display:inline-flex;align-items:center;gap:6px;color:var(--ink);
+  font-family:var(--mono);font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.phonecell svg{width:13px;height:13px;stroke:var(--ink-3);fill:none;stroke-width:2;flex:none}
+.phonecell:hover{color:var(--link)}
+.phonecell:hover svg{stroke:var(--link)}
+
+/* Activité : fusionne "dernier mail" et "ouverture" (l'un ou l'autre, le
+   plus pertinent) pour rendre une colonne à la vue "appel". */
+.c-activity:empty{display:none}
 .cbchip{
   flex:none;display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:5px;
   font-size:11px;font-weight:600;background:var(--rappel-bg);color:var(--rappel);
@@ -841,8 +859,8 @@ textarea.notes::placeholder{color:var(--ink-3)}
   .content{padding:4px 12px 56px}
   .thead{display:none}
   .trow{grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 10px;min-height:0}
-  .trow .c-due,.trow .c-sent,.trow .c-opened,.trow .c-status{padding-left:46px}
-  .c-due:empty,.c-sent:empty,.c-opened:empty{display:none}
+  .trow .c-due,.trow .c-phone,.trow .c-activity,.trow .c-status{padding-left:38px}
+  .c-due:empty,.c-phone:empty,.c-activity:empty{display:none}
   .rec-inner{padding:24px 18px 64px}
   .overlay{padding:0;gap:0}
   .sidearrow{display:none}
@@ -906,7 +924,7 @@ textarea.notes::placeholder{color:var(--ink-3)}
         <div class="filters" id="filters"></div>
         <div id="brutBar"></div>
         <div class="thead" id="thead">
-          <div>Établissement</div><div>Échéance</div><div>Dernier mail</div><div>Ouverture</div><div>Statut</div>
+          <div>Établissement</div><div>Téléphone</div><div>Échéance</div><div>Activité</div><div>Statut</div>
         </div>
         <div id="rows"><div class="empty">Chargement…</div></div>
         <div class="pager" id="pager"></div>
@@ -1423,6 +1441,22 @@ function sentChip(r){
     '<span class="pt"></span><span class="dt">'+esc(txt)+'</span>'+nb+'</span>';
 }
 
+/* Numéro appelable directement depuis la liste : c'est l'info n°1 pour
+   quelqu'un qui déroule une liste d'appels, inutile d'ouvrir la fiche. */
+function phoneCell(r){
+  if(!r.phone_primary) return '<span class="muted">—</span>';
+  return '<a class="phonecell" data-noopen="1" href="'+telHref(r.phone_primary)+'">'+I.phone+
+    '<span>'+esc(r.phone_primary)+'</span></a>';
+}
+/* Fusionne "dernier mail" et "ouverture du livret" en une seule colonne :
+   on montre le signal le plus parlant (refus > ouverture > envoi). */
+function activityCell(r){
+  if(r.has_refusal) return '<span class="refus" title="'+esc(r.reply_excerpt||"")+'">'+I.ban+
+    '<span class="dt">A refusé</span></span>';
+  if(r.opens>0) return '<span class="opened" title="'+esc(r.last_open||"")+'"><span class="pt"></span><span class="dt">'+esc(r.last_open||"Ouvert")+'</span></span>';
+  return sentChip(r);
+}
+
 var NAF_CHIP={hotel:"Hôtel",hebergement_touristique:"Hébergement",restaurant:"Restaurant",
   hebergement_autre:"Autre hébergt",hors_sujet:"Hors sujet"};
 function enrichPill(r){
@@ -1441,7 +1475,7 @@ function renderTable(){
   document.getElementById("thead").innerHTML=brut
     ? '<div class="chkcell"><input type="checkbox" id="chkAll" aria-label="Tout sélectionner sur la page"></div>'+
       '<div>Établissement</div><div>Ville / dép.</div><div>Dirigeant</div><div>Enrichissement</div><div></div>'
-    : '<div>Établissement</div><div>Échéance</div><div>Dernier mail</div><div>Ouverture</div><div>Statut</div>';
+    : '<div>Établissement</div><div>Téléphone</div><div>Échéance</div><div>Activité</div><div>Statut</div>';
 
   renderBrutBar();
 
@@ -1455,7 +1489,8 @@ function renderTable(){
 
   host.innerHTML=rows.map(function(r,i){
     var eng=r.opens>0, st=r.crm_status||"nouveau", s=stars(r.hotel_class);
-    var sub='<span>'+esc(r.type||"hôtel")+(s?(" "+s+"★"):"")+'</span>'+
+    var sub=(r.dirigeant_prenom?('<span class="dirig">'+esc(r.dirigeant_prenom)+'</span><span class="sep">·</span>'):"")+
+      '<span>'+esc(r.type||"hôtel")+(s?(" "+s+"★"):"")+'</span>'+
       (r.city?('<span class="sep">·</span><span>'+esc(r.city)+'</span>'):"")+
       (r.departement_code?('<span class="dep">'+esc(r.departement_code)+'</span>'):"")+
       (r.has_bounce?'<span class="dep" style="color:var(--non);border-color:var(--non-bg)">adresse KO</span>':"");
@@ -1473,17 +1508,14 @@ function renderTable(){
       '</div>';
     }
 
-    var opened=eng
-      ? '<span class="opened"><span class="pt"></span><span class="dt">'+esc(r.last_open||"ouvert")+'</span></span>'
-      : '<span class="muted">—</span>';
     return '<div class="trow" data-idx="'+i+'" role="button" tabindex="0">'+
       '<div class="c-name">'+
         avatar(r)+
         '<div class="txt"><div class="t1">'+esc(r.hotel_name)+'</div><div class="t2">'+sub+'</div></div>'+
       '</div>'+
+      '<div class="c-phone">'+phoneCell(r)+'</div>'+
       '<div class="c-due">'+dueChip(r)+'</div>'+
-      '<div class="c-sent">'+sentChip(r)+'</div>'+
-      '<div class="c-opened">'+opened+'</div>'+
+      '<div class="c-activity">'+activityCell(r)+'</div>'+
       '<div class="c-status"><span class="pill" data-s="'+st+'"><span class="pd"></span>'+esc(STATUS_LABEL[st]||"Nouveau")+'</span></div>'+
     '</div>';
   }).join("");
@@ -2379,6 +2411,8 @@ document.addEventListener("click",function(e){
   if(t.closest("#prevRec")){prevRecord();return;}
   if(t.closest("#closeRec")){closeRecord();return;}
   if(t.id==="overlay"){closeRecord();return;}       /* clic sur les bords floutés */
+
+  if(t.closest("[data-noopen]")){ return; } /* ex: numéro de téléphone cliquable dans la liste */
 
   /* ---- sélection + enrichissement (vue "brut") ---- */
   if(t.closest("[data-sel]")||t.closest("#chkAll")){ return; } /* traité par le handler "change" */
