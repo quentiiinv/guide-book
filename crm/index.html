@@ -257,10 +257,32 @@ input,textarea{font:inherit}
 .pop .hint{padding:8px 2px 2px;margin-top:6px;border-top:1px solid var(--line);color:var(--ink-3);font-size:11.5px;line-height:1.5}
 .pop .empty-sort{padding:2px 2px 8px;color:var(--ink-3);font-size:12.5px}
 
+.cible-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cible-row .lb{flex:none;width:110px;font-size:12.5px;color:var(--ink-2);font-weight:500}
+.cible-row .sep{flex:none;font-size:11.5px;color:var(--ink-3)}
+.cible-row .wrap{position:relative;display:flex;align-items:center;flex:1;min-width:0}
+.cible-row .wrap select{width:100%}
+.cible-row .wrap .chev{position:absolute;right:8px;pointer-events:none;color:var(--ink-3);width:11px;height:11px}
+.cible-row .wrap .chev svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cible-row select{
+  appearance:none;-webkit-appearance:none;
+  height:30px;padding:0 24px 0 9px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:500;cursor:pointer;outline:none;
+}
+.cible-row select:hover{background:var(--hover)}
+.cible-row select:focus{border-color:var(--focus)}
+.cible-row input[type=number]{
+  flex:1;min-width:0;height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);font-size:12.5px;outline:none;
+}
+.cible-row input[type=number]:focus{border-color:var(--focus)}
+
 @media (max-width:640px){
   .pop{width:auto;left:12px;right:12px}
   .sortrow{flex-wrap:wrap}
   .sortrow .d{width:100%}
+  .cible-row{flex-wrap:wrap}
+  .cible-row .lb{width:100%}
 }
 
 /* ============================================================
@@ -893,6 +915,23 @@ var PER=25;
 var rows=[],counts={},deps=[],total=0,page=1,view="tous",query="",cursor=-1;
 var dep="";
 var mode="liste", calCursor=new Date(), calRows=[];
+
+/* Filtres de ciblage : combinables entre eux ET avec la case du pipeline
+   (view) et le département, contrairement à l'ancien système à un seul
+   filtre actif à la fois. */
+var CIBLE_DEFAUT={etoiles_min:"",etoiles_max:"",prix_min:"",prix_max:"",pdj:"any",type:"any",chaine:"any",naf:"any"};
+var cible=Object.assign({},CIBLE_DEFAUT);
+var cibleOpen=false;
+function cibleActive(){
+  return cible.etoiles_min!==""||cible.etoiles_max!==""||cible.prix_min!==""||cible.prix_max!==""||
+    cible.pdj!=="any"||cible.type!=="any"||cible.chaine!=="any"||cible.naf!=="any";
+}
+function cibleCount(){
+  var n=0;
+  ["etoiles_min","etoiles_max","prix_min","prix_max"].forEach(function(k){if(cible[k]!=="")n++;});
+  ["pdj","type","chaine","naf"].forEach(function(k){if(cible[k]!=="any")n++;});
+  return n;
+}
 var KEY=localStorage.getItem(LSK)||"";
 
 /* ------------------------------------------------------------
@@ -1113,7 +1152,10 @@ function api(payload){
    ============================================================ */
 function load(){
   document.getElementById("rows").innerHTML='<div class="empty">Chargement…</div>';
-  return api({action:"list",page:page,per:PER,filter:view,q:query,sorts:sortsFor(view),dep:dep}).then(function(d){
+  return api({action:"list",page:page,per:PER,filter:view,q:query,sorts:sortsFor(view),dep:dep,
+    etoiles_min:cible.etoiles_min||null,etoiles_max:cible.etoiles_max||null,
+    prix_min:cible.prix_min||null,prix_max:cible.prix_max||null,
+    pdj:cible.pdj,type_hebergement:cible.type,chaine:cible.chaine,naf:cible.naf}).then(function(d){
     rows=d.rows||[];counts=d.counts||{};deps=d.deps||[];total=d.total||0;
     renderNav();renderFilters();renderTable();
   }).catch(function(e){
@@ -1212,16 +1254,59 @@ function renderFilters(){
     return '<option value="'+esc(d.code)+'"'+(dep===d.code?' selected':'')+'>'+esc(d.code)+' ('+d.n+')</option>';
   }).join("");
 
-  var actif=(list.length>0||dep!=="");
+  var actif=(list.length>0||dep!==""||cibleActive());
   document.getElementById("filters").innerHTML=
     '<button class="trigbtn'+(list.length?" active":"")+'" id="sortBtn" aria-expanded="'+(sortOpen?"true":"false")+'">'+
       ICSORT+'<span>'+esc(sortSummary(list))+'</span>'+
       (list.length>1?'<span class="n">'+list.length+'</span>':'')+
     '</button>'+
+    '<button class="trigbtn'+(cibleActive()?" active":"")+'" id="cibleBtn" aria-expanded="'+(cibleOpen?"true":"false")+'">'+
+      '<span>Ciblage</span>'+(cibleCount()?'<span class="n">'+cibleCount()+'</span>':'')+
+    '</button>'+
     '<span class="ctrl'+(dep?" active":"")+'">'+
       '<select id="selDep" aria-label="Département">'+depOpts+'</select>'+CHEV+'</span>'+
     (actif?'<button class="clearf" id="clearFilters">Réinitialiser</button>':'')+
-    (sortOpen?sortPanelHtml():'');
+    (sortOpen?sortPanelHtml():'')+
+    (cibleOpen?ciblePanelHtml():'');
+}
+
+/* Panneau "Ciblage" : etoiles, prix, petit-dejeuner, type d'hebergement,
+   chaine, type d'entreprise (NAF). Chaque reglage se combine aux autres,
+   au statut du pipeline (view) et au departement — plus de filtre unique. */
+var NAF_LABEL={any:"Peu importe",hotel:"Hôtel (NAF vérifié)",hebergement_touristique:"Hébergement touristique (à vérifier)",
+  restaurant:"Restaurant",hebergement_autre:"Autre hébergement (camping…)",hors_sujet:"Hors sujet (mauvais rapprochement)"};
+function selectHtml(id,val,opts){
+  return '<select data-cible="'+id+'" aria-label="'+esc(id)+'">'+opts.map(function(o){
+    return '<option value="'+esc(o[0])+'"'+(String(val)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>';
+  }).join("")+'</select>'+CHEV;
+}
+function ciblePanelHtml(){
+  var etoilesOpts=[["","—"]];for(var i=1;i<=5;i++)etoilesOpts.push([i,i+" ★"]);
+  return '<div class="pop" id="ciblePop">'+
+    '<div class="poph"><span class="t">Ciblage</span>'+
+      (cibleActive()?'<button id="cibleReset">Réinitialiser</button>':'')+
+    '</div>'+
+    '<div class="cible-row"><span class="lb">Étoiles</span>'+
+      '<span class="wrap">'+selectHtml("etoiles_min",cible.etoiles_min,etoilesOpts)+'</span>'+
+      '<span class="sep">à</span>'+
+      '<span class="wrap">'+selectHtml("etoiles_max",cible.etoiles_max,etoilesOpts)+'</span></div>'+
+    '<div class="cible-row"><span class="lb">Prix / nuit</span>'+
+      '<input type="number" min="0" step="5" placeholder="min €" data-cible="prix_min" value="'+esc(cible.prix_min)+'">'+
+      '<span class="sep">à</span>'+
+      '<input type="number" min="0" step="5" placeholder="max €" data-cible="prix_max" value="'+esc(cible.prix_max)+'"></div>'+
+    '<div class="cible-row"><span class="lb">Petit-déjeuner</span><span class="wrap">'+
+      selectHtml("pdj",cible.pdj,[["any","Peu importe"],["oui","Avec petit-déjeuner"],["non","Sans mention"]])+'</span></div>'+
+    '<div class="cible-row"><span class="lb">Hébergement</span><span class="wrap">'+
+      selectHtml("type",cible.type,[["any","Peu importe"],["hotel","Hôtel"],["vacation rental","Location / maison d'hôtes"]])+'</span></div>'+
+    '<div class="cible-row"><span class="lb">Chaîne</span><span class="wrap">'+
+      selectHtml("chaine",cible.chaine,[["any","Peu importe"],["exclure","Exclure les chaînes"],["seulement","Chaînes seulement"]])+'</span></div>'+
+    '<div class="cible-row"><span class="lb">Type d\'entreprise</span><span class="wrap">'+
+      selectHtml("naf",cible.naf,Object.keys(NAF_LABEL).map(function(k){return [k,NAF_LABEL[k]];}))+'</span></div>'+
+    '<div class="hint">Ces réglages se combinent entre eux, avec la case du pipeline à gauche et le département.</div>'+
+  '</div>';
+}
+function applyCible(patch){
+  Object.assign(cible,patch);page=1;renderFilters();load();
 }
 
 /* Redessine uniquement la barre puis recharge : garde le panneau ouvert
@@ -2024,8 +2109,13 @@ document.addEventListener("click",function(e){
   }
 
   /* ---- panneau de tri ---- */
-  if(t.closest("#sortBtn")){ sortOpen=!sortOpen; renderFilters(); return; }
+  if(t.closest("#sortBtn")){ sortOpen=!sortOpen; cibleOpen=false; renderFilters(); return; }
   if(sortOpen && !t.closest("#sortPop")){ sortOpen=false; renderFilters(); }
+
+  /* ---- panneau de ciblage ---- */
+  if(t.closest("#cibleBtn")){ cibleOpen=!cibleOpen; sortOpen=false; renderFilters(); return; }
+  if(cibleOpen && !t.closest("#ciblePop")){ cibleOpen=false; renderFilters(); }
+  if(t.closest("#cibleReset")){ cible=Object.assign({},CIBLE_DEFAUT); page=1; renderFilters(); load(); return; }
 
   if(t.closest("#sortReset")){ resetSorts(view); page=1; renderFilters(); load(); return; }
 
@@ -2072,7 +2162,7 @@ document.addEventListener("click",function(e){
   }
 
   if(t.closest("#clearFilters")){
-    resetSorts(view);dep="";page=1;renderFilters();load();return;
+    resetSorts(view);dep="";cible=Object.assign({},CIBLE_DEFAUT);page=1;renderFilters();load();return;
   }
 
   var stBtn=t.closest("[data-status]");
@@ -2168,6 +2258,8 @@ document.addEventListener("change",function(e){
     return;
   }
   if(e.target.id==="selDep"){ dep=e.target.value;page=1;load();return; }
+  var cs=e.target.closest("[data-cible]");
+  if(cs){ var patch={};patch[cs.getAttribute("data-cible")]=cs.value;applyCible(patch);return; }
   var cb=e.target.closest("[data-cb]");
   if(cb){ setCallback(cb.getAttribute("data-cb"),cb.value); return; }
 
