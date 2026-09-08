@@ -1493,6 +1493,7 @@ function renderTable(){
       '<span>'+esc(r.type||"hôtel")+(s?(" "+s+"★"):"")+'</span>'+
       (r.city?('<span class="sep">·</span><span>'+esc(r.city)+'</span>'):"")+
       (r.departement_code?('<span class="dep">'+esc(r.departement_code)+'</span>'):"")+
+      (r.naf_cat&&NAF_CHIP[r.naf_cat]?('<span class="nafchip">'+esc(NAF_CHIP[r.naf_cat])+'</span>'):"")+
       (r.has_bounce?'<span class="dep" style="color:var(--non);border-color:var(--non-bg)">adresse KO</span>':"");
 
     if(brut){
@@ -1544,6 +1545,7 @@ function renderBrutBar(){
       '<span class="sp"></span></div>';
     return;
   }
+  var PRESETS=[25,50,75,100,500,1000];
   host.innerHTML='<div class="brutbar">'+
     (nSel?('<b>'+nSel+'</b> sélectionné(s)&nbsp;'+
       '<button id="enrichSel">Enrichir (gratuit, SIRENE)</button>'+
@@ -1551,10 +1553,10 @@ function renderBrutBar(){
       '<button class="ghost" id="selClearBtn">Désélectionner</button>'):
       '<span><b>'+nRestants+'</b> non enrichis dans ce filtre</span>')+
     '<span class="sp"></span>'+
-    (nSel?'':(nRestants>0?(
-      '<span>Traiter les</span><input type="number" min="1" max="3000" step="10" value="100" id="enrichN"><span>premiers</span>'+
-      '<button id="enrichFilter">Enrichir</button>'
-    ):''))+
+    '<span>Sélectionner les</span>'+
+    '<span class="ctrl"><select id="selectN">'+PRESETS.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('')+'</select>'+CHEV+'</span>'+
+    '<span>premiers de ce filtre</span>'+
+    '<button class="ghost" id="selectTopNBtn">Sélectionner</button>'+
   '</div>';
 }
 
@@ -1576,6 +1578,25 @@ function runEnrichPaid(){
   api({action:"enrich_paid",tokens:toks}).then(function(d){
     toast("Envoyé à n8n : "+(d&&d.sent||toks.length)+" établissement(s).");
     selClear();renderBrutBar();renderTable();
+  }).catch(function(e){
+    toast("Erreur : "+String(e&&e.error||e));
+  });
+}
+
+/* Selectionne les N premiers etablissements correspondant au filtre courant
+   (statut pipeline + departement + recherche + Ciblage, y compris le facet
+   "Enrichissement"), sans lancer quoi que ce soit — l'utilisateur choisit
+   ensuite "Enrichir (gratuit)" ou "Enrichir (payant)" sur cette selection. */
+function selectTopN(n){
+  api({action:"list",page:1,per:n,filter:view,q:query,sorts:sortsFor(view),dep:dep,
+    etoiles_min:cible.etoiles_min||null,etoiles_max:cible.etoiles_max||null,
+    prix_min:cible.prix_min||null,prix_max:cible.prix_max||null,
+    pdj:cible.pdj,type_hebergement:cible.type,chaine:cible.chaine,naf:cible.naf,enrichi:cible.enrichi
+  }).then(function(d){
+    var got=(d.rows||[]).length;
+    (d.rows||[]).forEach(function(r){ selectedIds[r.id]=r.property_token||null; });
+    toast(got+" établissement(s) sélectionné(s)."+(got<n?" (il n'y en avait pas plus dans ce filtre.)":""));
+    renderBrutBar();renderTable();
   }).catch(function(e){
     toast("Erreur : "+String(e&&e.error||e));
   });
@@ -2419,15 +2440,9 @@ document.addEventListener("click",function(e){
   if(t.closest("#selClearBtn")){ selClear(); renderBrutBar(); renderTable(); return; }
   if(t.closest("#enrichSel")){ runEnrich(Object.keys(selectedIds)); return; }
   if(t.closest("#enrichPaid")){ runEnrichPaid(); return; }
-  if(t.closest("#enrichFilter")){
-    var nb=document.getElementById("enrichN");
-    var lim=Math.min(Math.max(parseInt(nb&&nb.value,10)||100,1),3000);
-    api({action:"ids_for_filter",filter:view,q:query,dep:dep,
-      etoiles_min:cible.etoiles_min||null,etoiles_max:cible.etoiles_max||null,
-      prix_min:cible.prix_min||null,prix_max:cible.prix_max||null,
-      pdj:cible.pdj,type_hebergement:cible.type,chaine:cible.chaine,naf:cible.naf,
-      enrichi:"non",limit:lim}).then(function(ids){ runEnrich(ids||[]); })
-      .catch(function(e){ toast("Erreur : "+String(e&&e.error||e)); });
+  if(t.closest("#selectTopNBtn")){
+    var selN=document.getElementById("selectN");
+    selectTopN(parseInt(selN&&selN.value,10)||25);
     return;
   }
 
