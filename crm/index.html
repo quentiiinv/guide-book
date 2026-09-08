@@ -285,6 +285,40 @@ input,textarea{font:inherit}
   .cible-row .lb{width:100%}
 }
 
+/* --- Sélection + enrichissement à la demande (vue "Tous les prospects / brut") --- */
+.thead.brut,.trow.brut{grid-template-columns:26px minmax(0,1fr) 108px 190px 150px 130px}
+.chkcell{display:flex;align-items:center;justify-content:center}
+.chkcell input{width:15px;height:15px;cursor:pointer;accent-color:var(--ink)}
+.brutbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 12px;margin:0 12px 10px;border-radius:var(--r-md);
+  background:var(--surface-2);border:1px solid var(--line);font-size:12.5px;color:var(--ink-2);
+}
+.brutbar b{color:var(--ink);font-weight:600}
+.brutbar .sp{flex:1}
+.brutbar input[type=number]{
+  width:76px;height:30px;padding:0 9px;border:1px solid var(--line-strong);border-radius:var(--r);
+  background:var(--surface);color:var(--ink);font-size:12.5px;outline:none;
+}
+.brutbar button{
+  padding:7px 12px;border-radius:var(--r);border:1px solid var(--line-strong);
+  background:var(--btn);color:var(--btn-ink);font-size:12.5px;font-weight:600;
+}
+.brutbar button:hover{opacity:.88}
+.brutbar button:disabled{opacity:.4;cursor:default}
+.brutbar button.ghost{background:var(--surface);color:var(--ink-2);border-color:var(--line-strong)}
+.brutbar button.ghost:hover{background:var(--hover)}
+.enrichpill{
+  display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:var(--r-sm);
+  font-size:11px;font-weight:600;background:var(--neutral-bg);color:var(--neutral);white-space:nowrap;
+}
+.enrichpill.oui{background:var(--rdv-bg);color:var(--rdv)}
+.enrichpill.sirenko{background:var(--non-bg);color:var(--non)}
+.nafchip{
+  font-family:var(--mono);font-size:10.5px;padding:1px 6px;border-radius:var(--r-sm);
+  background:var(--surface-2);color:var(--ink-3);border:1px solid var(--line);white-space:nowrap;
+}
+
 /* ============================================================
    TABLE
    ============================================================ */
@@ -868,7 +902,8 @@ textarea.notes::placeholder{color:var(--ink-3)}
       </div>
       <div class="content" id="viewList">
         <div class="filters" id="filters"></div>
-        <div class="thead">
+        <div id="brutBar"></div>
+        <div class="thead" id="thead">
           <div>Établissement</div><div>Échéance</div><div>Dernier mail</div><div>Ouverture</div><div>Statut</div>
         </div>
         <div id="rows"><div class="empty">Chargement…</div></div>
@@ -919,20 +954,27 @@ var mode="liste", calCursor=new Date(), calRows=[];
 /* Filtres de ciblage : combinables entre eux ET avec la case du pipeline
    (view) et le département, contrairement à l'ancien système à un seul
    filtre actif à la fois. */
-var CIBLE_DEFAUT={etoiles_min:"",etoiles_max:"",prix_min:"",prix_max:"",pdj:"any",type:"any",chaine:"any",naf:"any"};
+var CIBLE_DEFAUT={etoiles_min:"",etoiles_max:"",prix_min:"",prix_max:"",pdj:"any",type:"any",chaine:"any",naf:"any",enrichi:"any"};
 var cible=Object.assign({},CIBLE_DEFAUT);
 var cibleOpen=false;
 function cibleActive(){
   return cible.etoiles_min!==""||cible.etoiles_max!==""||cible.prix_min!==""||cible.prix_max!==""||
-    cible.pdj!=="any"||cible.type!=="any"||cible.chaine!=="any"||cible.naf!=="any";
+    cible.pdj!=="any"||cible.type!=="any"||cible.chaine!=="any"||cible.naf!=="any"||cible.enrichi!=="any";
 }
 function cibleCount(){
   var n=0;
   ["etoiles_min","etoiles_max","prix_min","prix_max"].forEach(function(k){if(cible[k]!=="")n++;});
-  ["pdj","type","chaine","naf"].forEach(function(k){if(cible[k]!=="any")n++;});
+  ["pdj","type","chaine","naf","enrichi"].forEach(function(k){if(cible[k]!=="any")n++;});
   return n;
 }
 var KEY=localStorage.getItem(LSK)||"";
+
+/* Sélection multi-lignes pour l'enrichissement à la demande (vue "brut" :
+   Tous les prospects, y compris ceux non qualifiés / non enrichis). */
+var selectedIds={};
+function selCount(){return Object.keys(selectedIds).length;}
+function selClear(){selectedIds={};}
+var enriching=false, enrichProgress=null;
 
 /* ------------------------------------------------------------
    TRI MULTI-NIVEAUX (modèle Airtable)
@@ -1016,7 +1058,8 @@ var sortOpen=false;
    RÉFÉRENTIELS
    ============================================================ */
 var VIEWS={
-  tous:{nav:"Tous",title:"Tous les prospects",dot:""},
+  tous:{nav:"Tous",title:"Tous les prospects qualifiés",dot:""},
+  brut:{nav:"Tous les prospects",title:"Tous les prospects (bruts, y compris non enrichis)",dot:""},
   aujourdhui:{nav:"À rappeler aujourd'hui",title:"À rappeler aujourd'hui",dot:"d-rappel"},
   nouveau:{nav:"Nouveaux",title:"Nouveaux prospects",dot:""},
   rappel:{nav:"À rappeler",title:"À rappeler",dot:"d-rappel"},
@@ -1053,6 +1096,9 @@ var NAV=[
     {k:"ouvert",     nm:"Ont ouvert",   dot:"d-eng"},
     {k:"non",        nm:"Pas intéressé",dot:"d-non"},
     {k:"injoignable",nm:"Injoignable",  dot:"d-inj"}
+  ]},
+  {label:"Enrichissement",items:[
+    {k:"brut", nm:"Tous les prospects (brut)"}
   ]}
 ];
 var NAVIC={
@@ -1155,7 +1201,7 @@ function load(){
   return api({action:"list",page:page,per:PER,filter:view,q:query,sorts:sortsFor(view),dep:dep,
     etoiles_min:cible.etoiles_min||null,etoiles_max:cible.etoiles_max||null,
     prix_min:cible.prix_min||null,prix_max:cible.prix_max||null,
-    pdj:cible.pdj,type_hebergement:cible.type,chaine:cible.chaine,naf:cible.naf}).then(function(d){
+    pdj:cible.pdj,type_hebergement:cible.type,chaine:cible.chaine,naf:cible.naf,enrichi:cible.enrichi}).then(function(d){
     rows=d.rows||[];counts=d.counts||{};deps=d.deps||[];total=d.total||0;
     renderNav();renderFilters();renderTable();
   }).catch(function(e){
@@ -1302,11 +1348,13 @@ function ciblePanelHtml(){
       selectHtml("chaine",cible.chaine,[["any","Peu importe"],["exclure","Exclure les chaînes"],["seulement","Chaînes seulement"]])+'</span></div>'+
     '<div class="cible-row"><span class="lb">Type d\'entreprise</span><span class="wrap">'+
       selectHtml("naf",cible.naf,Object.keys(NAF_LABEL).map(function(k){return [k,NAF_LABEL[k]];}))+'</span></div>'+
+    '<div class="cible-row"><span class="lb">Enrichissement</span><span class="wrap">'+
+      selectHtml("enrichi",cible.enrichi,[["any","Peu importe"],["oui","Déjà enrichis (SIRENE vérifié)"],["non","Pas encore enrichis"]])+'</span></div>'+
     '<div class="hint">Ces réglages se combinent entre eux, avec la case du pipeline à gauche et le département.</div>'+
   '</div>';
 }
 function applyCible(patch){
-  Object.assign(cible,patch);page=1;renderFilters();load();
+  Object.assign(cible,patch);page=1;selClear();renderFilters();load();
 }
 
 /* Redessine uniquement la barre puis recharge : garde le panneau ouvert
@@ -1368,9 +1416,27 @@ function sentChip(r){
     '<span class="pt"></span><span class="dt">'+esc(txt)+'</span>'+nb+'</span>';
 }
 
+var NAF_CHIP={hotel:"Hôtel",hebergement_touristique:"Hébergement",restaurant:"Restaurant",
+  hebergement_autre:"Autre hébergt",hors_sujet:"Hors sujet"};
+function enrichPill(r){
+  if(!r.a_siren) return '<span class="enrichpill sirenko">Pas de SIREN</span>';
+  if(!r.enrichi) return '<span class="enrichpill">Non enrichi</span>';
+  var naf=r.naf_cat&&NAF_CHIP[r.naf_cat]?('<span class="nafchip">'+esc(NAF_CHIP[r.naf_cat])+'</span>'):"";
+  return '<span class="enrichpill oui">Enrichi</span>'+naf;
+}
+
 function renderTable(){
   document.getElementById("viewTitle").childNodes[0].nodeValue=VIEWS[view].title;
   document.getElementById("viewCount").textContent=total?(" · "+total):"";
+  var brut=(view==="brut");
+
+  document.getElementById("thead").className="thead"+(brut?" brut":"");
+  document.getElementById("thead").innerHTML=brut
+    ? '<div class="chkcell"><input type="checkbox" id="chkAll" aria-label="Tout sélectionner sur la page"></div>'+
+      '<div>Établissement</div><div>Ville / dép.</div><div>Dirigeant</div><div>Enrichissement</div><div></div>'
+    : '<div>Établissement</div><div>Échéance</div><div>Dernier mail</div><div>Ouverture</div><div>Statut</div>';
+
+  renderBrutBar();
 
   var host=document.getElementById("rows");
   if(!rows.length){
@@ -1386,9 +1452,20 @@ function renderTable(){
       (r.city?('<span class="sep">·</span><span>'+esc(r.city)+'</span>'):"")+
       (r.departement_code?('<span class="dep">'+esc(r.departement_code)+'</span>'):"")+
       (r.has_bounce?'<span class="dep" style="color:var(--non);border-color:var(--non-bg)">adresse KO</span>':"");
-    var rating=r.overall_rating
-      ? '<span class="rating"><span class="v">'+Number(r.overall_rating).toFixed(1)+'</span><span class="n">'+(r.reviews_count||0)+' avis</span></span>'
-      : '<span class="muted">—</span>';
+
+    if(brut){
+      var dirig=r.dirigeant_primary?esc(r.dirigeant_primary):'<span class="muted">—</span>';
+      return '<div class="trow brut" data-idx="'+i+'">'+
+        '<div class="chkcell" data-nostep="1"><input type="checkbox" data-sel="'+esc(r.id)+'"'+(selectedIds[r.id]?' checked':'')+'></div>'+
+        '<div class="c-name" role="button" tabindex="0">'+avatar(r)+
+          '<div class="txt"><div class="t1">'+esc(r.hotel_name)+'</div><div class="t2">'+
+            '<span>'+esc(r.type||"hôtel")+(s?(" "+s+"★"):"")+'</span></div></div></div>'+
+        '<div>'+(r.city?esc(r.city):'<span class="muted">—</span>')+' '+(r.departement_code?('<span class="dep">'+esc(r.departement_code)+'</span>'):'')+'</div>'+
+        '<div>'+dirig+'</div>'+
+        '<div>'+enrichPill(r)+'</div><div></div>'+
+      '</div>';
+    }
+
     var opened=eng
       ? '<span class="opened"><span class="pt"></span><span class="dt">'+esc(r.last_open||"ouvert")+'</span></span>'
       : '<span class="muted">—</span>';
@@ -1411,6 +1488,63 @@ function renderTable(){
       '<span class="grp"><button id="prev"'+(page<=1?" disabled":"")+'>Précédent</button>'+
       '<button id="next"'+(page>=pages?" disabled":"")+'>Suivant</button></span>'
     : '';
+}
+
+/* ------------------------------------------------------------
+   ENRICHISSEMENT À LA DEMANDE (vue "brut")
+   ------------------------------------------------------------ */
+function renderBrutBar(){
+  var host=document.getElementById("brutBar");
+  if(view!=="brut"){ host.innerHTML=""; return; }
+  var nSel=selCount();
+  var nRestants=counts.non_enrichi||0;
+  if(enrichProgress){
+    host.innerHTML='<div class="brutbar"><b>Enrichissement en cours…</b> '+
+      enrichProgress.done+' / '+enrichProgress.total+' traités'+
+      (enrichProgress.ecartes?(' · '+enrichProgress.ecartes+' dirigeant(s) mal apparié(s) écarté(s)'):'')+
+      '<span class="sp"></span></div>';
+    return;
+  }
+  host.innerHTML='<div class="brutbar">'+
+    (nSel?('<b>'+nSel+'</b> sélectionné(s)&nbsp;'+
+      '<button id="enrichSel">Enrichir la sélection</button>'+
+      '<button class="ghost" id="selClearBtn">Désélectionner</button>'):
+      '<span><b>'+nRestants+'</b> non enrichis dans ce filtre</span>')+
+    '<span class="sp"></span>'+
+    (nSel?'':(nRestants>0?(
+      '<span>Traiter les</span><input type="number" min="1" max="3000" step="10" value="100" id="enrichN"><span>premiers</span>'+
+      '<button id="enrichFilter">Enrichir</button>'
+    ):''))+
+  '</div>';
+}
+
+function runEnrich(ids){
+  if(!ids.length) return;
+  enriching=true;
+  enrichProgress={done:0,total:ids.length,ecartes:0};
+  renderBrutBar();
+  var i=0, CH=20;
+  function step(){
+    if(i>=ids.length){
+      enriching=false;enrichProgress=null;selClear();
+      toast("Enrichissement terminé");
+      load();
+      return;
+    }
+    var chunk=ids.slice(i,i+CH);
+    api({action:"enrich_ids",ids:chunk}).then(function(d){
+      i+=chunk.length;
+      enrichProgress.done=i;
+      enrichProgress.ecartes+=(d&&d.dirigeants_ecartes)||0;
+      renderBrutBar();
+      step();
+    }).catch(function(e){
+      enriching=false;enrichProgress=null;
+      toast("Erreur d'enrichissement : "+String(e&&e.error||e));
+      renderBrutBar();
+    });
+  }
+  step();
 }
 
 
@@ -2115,7 +2249,7 @@ document.addEventListener("click",function(e){
   /* ---- panneau de ciblage ---- */
   if(t.closest("#cibleBtn")){ cibleOpen=!cibleOpen; sortOpen=false; renderFilters(); return; }
   if(cibleOpen && !t.closest("#ciblePop")){ cibleOpen=false; renderFilters(); }
-  if(t.closest("#cibleReset")){ cible=Object.assign({},CIBLE_DEFAUT); page=1; renderFilters(); load(); return; }
+  if(t.closest("#cibleReset")){ cible=Object.assign({},CIBLE_DEFAUT); page=1; selClear(); renderFilters(); load(); return; }
 
   if(t.closest("#sortReset")){ resetSorts(view); page=1; renderFilters(); load(); return; }
 
@@ -2148,7 +2282,7 @@ document.addEventListener("click",function(e){
   if(md){closeRecord();setMode(md.getAttribute("data-mode"));return;}
 
   var nav=t.closest("[data-view]");
-  if(nav){view=nav.getAttribute("data-view");page=1;dep="";closeRecord();
+  if(nav){view=nav.getAttribute("data-view");page=1;dep="";selClear();closeRecord();
     if(mode!=="liste"){setMode("liste");}else{load();} return;}
 
   if(t.closest("#calPrev")){calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth()-1,1);loadCalendar();return;}
@@ -2162,7 +2296,7 @@ document.addEventListener("click",function(e){
   }
 
   if(t.closest("#clearFilters")){
-    resetSorts(view);dep="";cible=Object.assign({},CIBLE_DEFAUT);page=1;renderFilters();load();return;
+    resetSorts(view);dep="";cible=Object.assign({},CIBLE_DEFAUT);page=1;selClear();renderFilters();load();return;
   }
 
   var stBtn=t.closest("[data-status]");
@@ -2215,6 +2349,22 @@ document.addEventListener("click",function(e){
   if(t.closest("#closeRec")){closeRecord();return;}
   if(t.id==="overlay"){closeRecord();return;}       /* clic sur les bords floutés */
 
+  /* ---- sélection + enrichissement (vue "brut") ---- */
+  if(t.closest("[data-sel]")||t.closest("#chkAll")){ return; } /* traité par le handler "change" */
+  if(t.closest("#selClearBtn")){ selClear(); renderBrutBar(); renderTable(); return; }
+  if(t.closest("#enrichSel")){ runEnrich(Object.keys(selectedIds)); return; }
+  if(t.closest("#enrichFilter")){
+    var nb=document.getElementById("enrichN");
+    var lim=Math.min(Math.max(parseInt(nb&&nb.value,10)||100,1),3000);
+    api({action:"ids_for_filter",filter:view,q:query,dep:dep,
+      etoiles_min:cible.etoiles_min||null,etoiles_max:cible.etoiles_max||null,
+      prix_min:cible.prix_min||null,prix_max:cible.prix_max||null,
+      pdj:cible.pdj,type_hebergement:cible.type,chaine:cible.chaine,naf:cible.naf,
+      enrichi:"non",limit:lim}).then(function(ids){ runEnrich(ids||[]); })
+      .catch(function(e){ toast("Erreur : "+String(e&&e.error||e)); });
+    return;
+  }
+
   var row=t.closest("[data-idx]");
   if(row){openRecord(parseInt(row.getAttribute("data-idx"),10));return;}
 });
@@ -2257,7 +2407,18 @@ document.addEventListener("change",function(e){
     if(l2[i2]){ l2[i2]={f:l2[i2].f,d:(e.target.value==="asc"?"asc":"desc")}; applySorts(l2); }
     return;
   }
-  if(e.target.id==="selDep"){ dep=e.target.value;page=1;load();return; }
+  if(e.target.id==="selDep"){ dep=e.target.value;page=1;selClear();load();return; }
+  if(e.target.id==="chkAll"){
+    var on=e.target.checked;
+    rows.forEach(function(r){ if(on) selectedIds[r.id]=true; else delete selectedIds[r.id]; });
+    renderBrutBar();renderTable();return;
+  }
+  var selBox=e.target.closest("[data-sel]");
+  if(selBox){
+    var sid=selBox.getAttribute("data-sel");
+    if(e.target.checked) selectedIds[sid]=true; else delete selectedIds[sid];
+    renderBrutBar();return;
+  }
   var cs=e.target.closest("[data-cible]");
   if(cs){ var patch={};patch[cs.getAttribute("data-cible")]=cs.value;applyCible(patch);return; }
   var cb=e.target.closest("[data-cb]");
