@@ -947,6 +947,11 @@ var ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6I
 var FN=SUPA+"/functions/v1/crm";
 var LSK="solvia_crm_key";
 var PER=25;
+/* Vue "brut" : plus de lignes par page pour reduire les allers-retours
+   quand on construit une selection a la main sur plusieurs centaines
+   d'etablissements (l'enrichissement payant se fait a la coche, pas par
+   filtre automatique). */
+function perFor(){ return view==="brut"?100:PER; }
 
 /* état */
 var rows=[],counts={},deps=[],total=0,page=1,view="tous",query="",cursor=-1;
@@ -1200,7 +1205,7 @@ function api(payload){
    ============================================================ */
 function load(){
   document.getElementById("rows").innerHTML='<div class="empty">Chargement…</div>';
-  return api({action:"list",page:page,per:PER,filter:view,q:query,sorts:sortsFor(view),dep:dep,
+  return api({action:"list",page:page,per:perFor(),filter:view,q:query,sorts:sortsFor(view),dep:dep,
     etoiles_min:cible.etoiles_min||null,etoiles_max:cible.etoiles_max||null,
     prix_min:cible.prix_min||null,prix_max:cible.prix_max||null,
     pdj:cible.pdj,type_hebergement:cible.type,chaine:cible.chaine,naf:cible.naf,enrichi:cible.enrichi}).then(function(d){
@@ -1458,7 +1463,7 @@ function renderTable(){
     if(brut){
       var dirig=r.dirigeant_primary?esc(r.dirigeant_primary):'<span class="muted">—</span>';
       return '<div class="trow brut" data-idx="'+i+'">'+
-        '<div class="chkcell" data-nostep="1"><input type="checkbox" data-sel="'+esc(r.id)+'"'+(selectedIds[r.id]?' checked':'')+'></div>'+
+        '<div class="chkcell" data-nostep="1"><input type="checkbox" data-sel="'+esc(r.id)+'"'+(Object.prototype.hasOwnProperty.call(selectedIds,r.id)?' checked':'')+'></div>'+
         '<div class="c-name" role="button" tabindex="0">'+avatar(r)+
           '<div class="txt"><div class="t1">'+esc(r.hotel_name)+'</div><div class="t2">'+
             '<span>'+esc(r.type||"hôtel")+(s?(" "+s+"★"):"")+'</span></div></div></div>'+
@@ -1483,9 +1488,9 @@ function renderTable(){
     '</div>';
   }).join("");
 
-  var pages=Math.max(1,Math.ceil(total/PER));
-  var from=(page-1)*PER+1, to=Math.min(page*PER,total);
-  document.getElementById("pager").innerHTML= total>PER
+  var pages=Math.max(1,Math.ceil(total/perFor()));
+  var from=(page-1)*perFor()+1, to=Math.min(page*perFor(),total);
+  document.getElementById("pager").innerHTML= total>perFor()
     ? '<span>'+from+'–'+to+' sur '+total+'</span>'+
       '<span class="grp"><button id="prev"'+(page<=1?" disabled":"")+'>Précédent</button>'+
       '<button id="next"'+(page>=pages?" disabled":"")+'>Suivant</button></span>'
@@ -1527,9 +1532,9 @@ function renderBrutBar(){
    le nombre exact avant de depenser. */
 function runEnrichPaid(){
   var toks=[], sansToken=0;
-  rows.forEach(function(r){
-    if(!selectedIds[r.id]) return;
-    if(r.property_token) toks.push(r.property_token); else sansToken++;
+  Object.keys(selectedIds).forEach(function(id){
+    var tok=selectedIds[id];
+    if(tok) toks.push(tok); else sansToken++;
   });
   if(!toks.length){ toast("Aucun établissement sélectionné n'a de property_token."); return; }
   var msg="Lancer l'enrichissement PAYANT (Apify) sur "+toks.length+" établissement(s) ?"+
@@ -1643,7 +1648,7 @@ function openRecord(i){cursor=i;document.getElementById("overlay").classList.add
 function closeRecord(){cursor=-1;document.getElementById("overlay").classList.remove("open");document.body.style.overflow="";}
 function nextRecord(){
   if(cursor<rows.length-1){cursor++;renderRecord();}
-  else if(page*PER<total){page++;load().then(function(){cursor=0;renderRecord();});}
+  else if(page*perFor()<total){page++;load().then(function(){cursor=0;renderRecord();});}
 }
 function prevRecord(){
   if(cursor>0){cursor--;renderRecord();}
@@ -1662,9 +1667,9 @@ function renderRecord(){
   if(!r){closeRecord();return;}
   var eng=r.opens>0, st=r.crm_status||"nouveau", s=stars(r.hotel_class);
 
-  document.getElementById("recPos").textContent=((page-1)*PER+cursor+1)+" sur "+total;
+  document.getElementById("recPos").textContent=((page-1)*perFor()+cursor+1)+" sur "+total;
   document.getElementById("prevRec").disabled=(page<=1&&cursor<=0);
-  document.getElementById("nextRec").disabled=(page*PER>=total&&cursor>=rows.length-1);
+  document.getElementById("nextRec").disabled=(page*perFor()>=total&&cursor>=rows.length-1);
 
   var meta='<span>'+esc(r.type||"hôtel")+(s?(" · "+s+"★"):"")+'</span>'+
     (r.city?('<span class="sep">·</span><span>'+esc(r.city)+(r.departement_code?(" ("+esc(r.departement_code)+")"):"")+'</span>'):"")+
@@ -2437,13 +2442,16 @@ document.addEventListener("change",function(e){
   if(e.target.id==="selDep"){ dep=e.target.value;page=1;selClear();load();return; }
   if(e.target.id==="chkAll"){
     var on=e.target.checked;
-    rows.forEach(function(r){ if(on) selectedIds[r.id]=true; else delete selectedIds[r.id]; });
+    rows.forEach(function(r){ if(on) selectedIds[r.id]=r.property_token||null; else delete selectedIds[r.id]; });
     renderBrutBar();renderTable();return;
   }
   var selBox=e.target.closest("[data-sel]");
   if(selBox){
     var sid=selBox.getAttribute("data-sel");
-    if(e.target.checked) selectedIds[sid]=true; else delete selectedIds[sid];
+    if(e.target.checked){
+      var rr3=null; for(var i3=0;i3<rows.length;i3++) if(rows[i3].id===sid){rr3=rows[i3];break;}
+      selectedIds[sid]=(rr3&&rr3.property_token)||null;
+    } else delete selectedIds[sid];
     renderBrutBar();return;
   }
   var cs=e.target.closest("[data-cible]");
