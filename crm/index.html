@@ -1783,7 +1783,7 @@ function renderRecord(){
     field("Tarif indicatif",r.rate_per_night?(r.rate_per_night+" € / nuit"):"",false)+
     /* nom complet + qualité : c'est la même personne que « Demander » du pitch,
        qui n'en garde que le premier prénom pour l'usage au téléphone */
-    field("Contact au registre",
+    field("Contact au registre"+(r.dirigeant_status&&r.dirigeant_status!=="found"&&(r.dirigeant_primary||r.dirigeant_prenom)?" (non confirmé, à ne pas citer)":""),
       (r.dirigeant_primary||r.dirigeant_prenom||"")+(r.dirigeant_role?" · "+r.dirigeant_role:""),false)+
   '</div>'+
   (r.hotel_description?('<p class="desc" style="margin-top:14px">'+esc(r.hotel_description)+'</p>'):"")+
@@ -1945,7 +1945,8 @@ function renderCall(){
       (num?('<div class="numrow"><div class="num">'+esc(num)+'</div>'+
         '<button class="cp" id="callCopy">'+I.copy+'Copier</button></div>'):
         '<div class="askname" style="color:var(--non)">Aucun numéro de téléphone sur cette fiche.</div>')+
-      (pi&&pi.decideur?('<div class="askname">Demander <b>'+esc(pi.decideur)+'</b></div>'):'<div class="askname"></div>')+
+      (pi&&pi.decideur?('<div class="askname">Demander <b>'+esc(pi.decideur)+'</b></div>')
+        :'<div class="askname" style="color:var(--rappel)">Pas de nom fiable — demandez <b>le responsable de l\'établissement</b>, ne citez aucun nom</div>')+
       pitchHtml(pi)+
       '<div class="lbl" style="font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">Résultat de l\'appel</div>'+
       '<div class="outc">'+boutons+'</div>'+
