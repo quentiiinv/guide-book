@@ -1878,7 +1878,7 @@ function quickWhen(kind){
 function outcomeList(){
   var rec=callState.record;
   return (rec&&rec.outcomes&&rec.outcomes.length)?rec.outcomes:[
-    {code:"pas_repondu",label:"Pas de réponse",besoin:"rappel",couleur:"neutral"},
+    {code:"pas_repondu",label:"Pas de réponse",besoin:null,couleur:"neutral"},
     {code:"rappeler",label:"À rappeler plus tard",besoin:"rappel",couleur:"rappel"},
     {code:"decideur",label:"Transmis au décideur",besoin:"attente",couleur:"attente"},
     {code:"interesse",label:"Intéressé",besoin:"rappel",couleur:"eng"},
